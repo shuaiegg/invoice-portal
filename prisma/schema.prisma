@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  WORKER
+  ADMIN
+}
+
+enum InvoiceStatus {
+  SUBMITTED
+  APPROVED
+  PAID
+  VOID
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          Role      @default(WORKER)
+  active        Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+  worker        Worker?
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  provider              String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Worker {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  name           String
+  team           String?
+  address        String?
+  city           String?
+  country        String?
+  vatNumber      String?
+  vatRate        Float     @default(0)
+  paymentMethod  String?
+  paymentAccount String?
+  paymentNotes   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices       Invoice[]
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  workerId       String
+  invoiceNumber  String        @unique
+  invoiceDate    DateTime
+  dueDate        DateTime
+  status         InvoiceStatus @default(SUBMITTED)
+  
+  // Amounts
+  subtotal       Float
+  vatAmount      Float
+  totalAmount    Float
+  currency       String        @default("EUR")
+
+  // Xero Sync
+  xeroSynced     Boolean       @default(false)
+  xeroInvoiceId  String?
+  xeroSyncedAt   DateTime?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  worker         Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@index([status])
+  @@index([invoiceDate])
+}
+
+model InvoiceCounter {
+  year  Int @id
+  count Int @default(0)
+}
+
+model WebhookConfig {
+  key             String   @id // e.g., "invoice.submitted"
+  url             String
+  enabled         Boolean  @default(true)
+  environment     String   // "production" | "development"
+  secret          String?  // X-Webhook-Secret
+  internalSecret  String?  // For callback validation
+  lastTriggeredAt DateTime?
+  updatedAt       DateTime @updatedAt
+}
