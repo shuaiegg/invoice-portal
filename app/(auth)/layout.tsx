@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "systeme.io Invoice Generator",
+};
+
 export default function AuthLayout({
   children,
 }: {

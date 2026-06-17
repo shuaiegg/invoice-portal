@@ -1,14 +1,42 @@
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { headers } from "next/headers";
+import { redirect, notFound } from "next/navigation";
+import { AdminInvoiceDetail } from "@/components/admin/admin-invoice-detail";
+
 export default async function AdminInvoiceDetailsPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    redirect("/login");
+  }
+
   const { id } = await params;
 
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Admin Invoice Review</h1>
-      <p className="text-gray-600">Reviewing invoice: {id}</p>
-    </div>
-  );
+  const invoice = await db.invoice.findUnique({
+    where: { id },
+    include: {
+      worker: {
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!invoice) {
+    notFound();
+  }
+
+  return <AdminInvoiceDetail invoice={invoice} />;
 }

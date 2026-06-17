@@ -27,15 +27,21 @@ export type AggregateInvoice = {
 }
 
 export type InvoiceAvgAggregateOutputType = {
+  quantity: number | null
+  rate: number | null
   subtotal: number | null
   vatAmount: number | null
   totalAmount: number | null
+  vatRate: number | null
 }
 
 export type InvoiceSumAggregateOutputType = {
+  quantity: number | null
+  rate: number | null
   subtotal: number | null
   vatAmount: number | null
   totalAmount: number | null
+  vatRate: number | null
 }
 
 export type InvoiceMinAggregateOutputType = {
@@ -44,10 +50,16 @@ export type InvoiceMinAggregateOutputType = {
   invoiceNumber: string | null
   invoiceDate: Date | null
   dueDate: Date | null
+  serviceDate: Date | null
   status: $Enums.InvoiceStatus | null
+  description: string | null
+  period: string | null
+  quantity: number | null
+  rate: number | null
   subtotal: number | null
   vatAmount: number | null
   totalAmount: number | null
+  vatRate: number | null
   currency: string | null
   xeroSynced: boolean | null
   xeroInvoiceId: string | null
@@ -62,10 +74,16 @@ export type InvoiceMaxAggregateOutputType = {
   invoiceNumber: string | null
   invoiceDate: Date | null
   dueDate: Date | null
+  serviceDate: Date | null
   status: $Enums.InvoiceStatus | null
+  description: string | null
+  period: string | null
+  quantity: number | null
+  rate: number | null
   subtotal: number | null
   vatAmount: number | null
   totalAmount: number | null
+  vatRate: number | null
   currency: string | null
   xeroSynced: boolean | null
   xeroInvoiceId: string | null
@@ -80,10 +98,16 @@ export type InvoiceCountAggregateOutputType = {
   invoiceNumber: number
   invoiceDate: number
   dueDate: number
+  serviceDate: number
   status: number
+  description: number
+  period: number
+  quantity: number
+  rate: number
   subtotal: number
   vatAmount: number
   totalAmount: number
+  vatRate: number
   currency: number
   xeroSynced: number
   xeroInvoiceId: number
@@ -95,15 +119,21 @@ export type InvoiceCountAggregateOutputType = {
 
 
 export type InvoiceAvgAggregateInputType = {
+  quantity?: true
+  rate?: true
   subtotal?: true
   vatAmount?: true
   totalAmount?: true
+  vatRate?: true
 }
 
 export type InvoiceSumAggregateInputType = {
+  quantity?: true
+  rate?: true
   subtotal?: true
   vatAmount?: true
   totalAmount?: true
+  vatRate?: true
 }
 
 export type InvoiceMinAggregateInputType = {
@@ -112,10 +142,16 @@ export type InvoiceMinAggregateInputType = {
   invoiceNumber?: true
   invoiceDate?: true
   dueDate?: true
+  serviceDate?: true
   status?: true
+  description?: true
+  period?: true
+  quantity?: true
+  rate?: true
   subtotal?: true
   vatAmount?: true
   totalAmount?: true
+  vatRate?: true
   currency?: true
   xeroSynced?: true
   xeroInvoiceId?: true
@@ -130,10 +166,16 @@ export type InvoiceMaxAggregateInputType = {
   invoiceNumber?: true
   invoiceDate?: true
   dueDate?: true
+  serviceDate?: true
   status?: true
+  description?: true
+  period?: true
+  quantity?: true
+  rate?: true
   subtotal?: true
   vatAmount?: true
   totalAmount?: true
+  vatRate?: true
   currency?: true
   xeroSynced?: true
   xeroInvoiceId?: true
@@ -148,10 +190,16 @@ export type InvoiceCountAggregateInputType = {
   invoiceNumber?: true
   invoiceDate?: true
   dueDate?: true
+  serviceDate?: true
   status?: true
+  description?: true
+  period?: true
+  quantity?: true
+  rate?: true
   subtotal?: true
   vatAmount?: true
   totalAmount?: true
+  vatRate?: true
   currency?: true
   xeroSynced?: true
   xeroInvoiceId?: true
@@ -253,10 +301,16 @@ export type InvoiceGroupByOutputType = {
   invoiceNumber: string
   invoiceDate: Date
   dueDate: Date
+  serviceDate: Date | null
   status: $Enums.InvoiceStatus
+  description: string
+  period: string
+  quantity: number
+  rate: number
   subtotal: number
   vatAmount: number
   totalAmount: number
+  vatRate: number
   currency: string
   xeroSynced: boolean
   xeroInvoiceId: string | null
@@ -294,10 +348,16 @@ export type InvoiceWhereInput = {
   invoiceNumber?: Prisma.StringFilter<"Invoice"> | string
   invoiceDate?: Prisma.DateTimeFilter<"Invoice"> | Date | string
   dueDate?: Prisma.DateTimeFilter<"Invoice"> | Date | string
+  serviceDate?: Prisma.DateTimeNullableFilter<"Invoice"> | Date | string | null
   status?: Prisma.EnumInvoiceStatusFilter<"Invoice"> | $Enums.InvoiceStatus
+  description?: Prisma.StringFilter<"Invoice"> | string
+  period?: Prisma.StringFilter<"Invoice"> | string
+  quantity?: Prisma.FloatFilter<"Invoice"> | number
+  rate?: Prisma.FloatFilter<"Invoice"> | number
   subtotal?: Prisma.FloatFilter<"Invoice"> | number
   vatAmount?: Prisma.FloatFilter<"Invoice"> | number
   totalAmount?: Prisma.FloatFilter<"Invoice"> | number
+  vatRate?: Prisma.FloatFilter<"Invoice"> | number
   currency?: Prisma.StringFilter<"Invoice"> | string
   xeroSynced?: Prisma.BoolFilter<"Invoice"> | boolean
   xeroInvoiceId?: Prisma.StringNullableFilter<"Invoice"> | string | null
@@ -313,10 +373,16 @@ export type InvoiceOrderByWithRelationInput = {
   invoiceNumber?: Prisma.SortOrder
   invoiceDate?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  period?: Prisma.SortOrder
+  quantity?: Prisma.SortOrder
+  rate?: Prisma.SortOrder
   subtotal?: Prisma.SortOrder
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
+  vatRate?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -335,10 +401,16 @@ export type InvoiceWhereUniqueInput = Prisma.AtLeast<{
   workerId?: Prisma.StringFilter<"Invoice"> | string
   invoiceDate?: Prisma.DateTimeFilter<"Invoice"> | Date | string
   dueDate?: Prisma.DateTimeFilter<"Invoice"> | Date | string
+  serviceDate?: Prisma.DateTimeNullableFilter<"Invoice"> | Date | string | null
   status?: Prisma.EnumInvoiceStatusFilter<"Invoice"> | $Enums.InvoiceStatus
+  description?: Prisma.StringFilter<"Invoice"> | string
+  period?: Prisma.StringFilter<"Invoice"> | string
+  quantity?: Prisma.FloatFilter<"Invoice"> | number
+  rate?: Prisma.FloatFilter<"Invoice"> | number
   subtotal?: Prisma.FloatFilter<"Invoice"> | number
   vatAmount?: Prisma.FloatFilter<"Invoice"> | number
   totalAmount?: Prisma.FloatFilter<"Invoice"> | number
+  vatRate?: Prisma.FloatFilter<"Invoice"> | number
   currency?: Prisma.StringFilter<"Invoice"> | string
   xeroSynced?: Prisma.BoolFilter<"Invoice"> | boolean
   xeroInvoiceId?: Prisma.StringNullableFilter<"Invoice"> | string | null
@@ -354,10 +426,16 @@ export type InvoiceOrderByWithAggregationInput = {
   invoiceNumber?: Prisma.SortOrder
   invoiceDate?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  period?: Prisma.SortOrder
+  quantity?: Prisma.SortOrder
+  rate?: Prisma.SortOrder
   subtotal?: Prisma.SortOrder
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
+  vatRate?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -380,10 +458,16 @@ export type InvoiceScalarWhereWithAggregatesInput = {
   invoiceNumber?: Prisma.StringWithAggregatesFilter<"Invoice"> | string
   invoiceDate?: Prisma.DateTimeWithAggregatesFilter<"Invoice"> | Date | string
   dueDate?: Prisma.DateTimeWithAggregatesFilter<"Invoice"> | Date | string
+  serviceDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Invoice"> | Date | string | null
   status?: Prisma.EnumInvoiceStatusWithAggregatesFilter<"Invoice"> | $Enums.InvoiceStatus
+  description?: Prisma.StringWithAggregatesFilter<"Invoice"> | string
+  period?: Prisma.StringWithAggregatesFilter<"Invoice"> | string
+  quantity?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
+  rate?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
   subtotal?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
   vatAmount?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
   totalAmount?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
+  vatRate?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
   currency?: Prisma.StringWithAggregatesFilter<"Invoice"> | string
   xeroSynced?: Prisma.BoolWithAggregatesFilter<"Invoice"> | boolean
   xeroInvoiceId?: Prisma.StringNullableWithAggregatesFilter<"Invoice"> | string | null
@@ -397,10 +481,16 @@ export type InvoiceCreateInput = {
   invoiceNumber: string
   invoiceDate: Date | string
   dueDate: Date | string
+  serviceDate?: Date | string | null
   status?: $Enums.InvoiceStatus
+  description: string
+  period: string
+  quantity: number
+  rate: number
   subtotal: number
   vatAmount: number
   totalAmount: number
+  vatRate?: number
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -416,10 +506,16 @@ export type InvoiceUncheckedCreateInput = {
   invoiceNumber: string
   invoiceDate: Date | string
   dueDate: Date | string
+  serviceDate?: Date | string | null
   status?: $Enums.InvoiceStatus
+  description: string
+  period: string
+  quantity: number
+  rate: number
   subtotal: number
   vatAmount: number
   totalAmount: number
+  vatRate?: number
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -433,10 +529,16 @@ export type InvoiceUpdateInput = {
   invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
   subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -452,10 +554,16 @@ export type InvoiceUncheckedUpdateInput = {
   invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
   subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -470,10 +578,16 @@ export type InvoiceCreateManyInput = {
   invoiceNumber: string
   invoiceDate: Date | string
   dueDate: Date | string
+  serviceDate?: Date | string | null
   status?: $Enums.InvoiceStatus
+  description: string
+  period: string
+  quantity: number
+  rate: number
   subtotal: number
   vatAmount: number
   totalAmount: number
+  vatRate?: number
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -487,10 +601,16 @@ export type InvoiceUpdateManyMutationInput = {
   invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
   subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -505,10 +625,16 @@ export type InvoiceUncheckedUpdateManyInput = {
   invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
   subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -533,10 +659,16 @@ export type InvoiceCountOrderByAggregateInput = {
   invoiceNumber?: Prisma.SortOrder
   invoiceDate?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  period?: Prisma.SortOrder
+  quantity?: Prisma.SortOrder
+  rate?: Prisma.SortOrder
   subtotal?: Prisma.SortOrder
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
+  vatRate?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrder
@@ -546,9 +678,12 @@ export type InvoiceCountOrderByAggregateInput = {
 }
 
 export type InvoiceAvgOrderByAggregateInput = {
+  quantity?: Prisma.SortOrder
+  rate?: Prisma.SortOrder
   subtotal?: Prisma.SortOrder
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
+  vatRate?: Prisma.SortOrder
 }
 
 export type InvoiceMaxOrderByAggregateInput = {
@@ -557,10 +692,16 @@ export type InvoiceMaxOrderByAggregateInput = {
   invoiceNumber?: Prisma.SortOrder
   invoiceDate?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  period?: Prisma.SortOrder
+  quantity?: Prisma.SortOrder
+  rate?: Prisma.SortOrder
   subtotal?: Prisma.SortOrder
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
+  vatRate?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrder
@@ -575,10 +716,16 @@ export type InvoiceMinOrderByAggregateInput = {
   invoiceNumber?: Prisma.SortOrder
   invoiceDate?: Prisma.SortOrder
   dueDate?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  period?: Prisma.SortOrder
+  quantity?: Prisma.SortOrder
+  rate?: Prisma.SortOrder
   subtotal?: Prisma.SortOrder
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
+  vatRate?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrder
@@ -588,9 +735,12 @@ export type InvoiceMinOrderByAggregateInput = {
 }
 
 export type InvoiceSumOrderByAggregateInput = {
+  quantity?: Prisma.SortOrder
+  rate?: Prisma.SortOrder
   subtotal?: Prisma.SortOrder
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
+  vatRate?: Prisma.SortOrder
 }
 
 export type InvoiceCreateNestedManyWithoutWorkerInput = {
@@ -644,10 +794,16 @@ export type InvoiceCreateWithoutWorkerInput = {
   invoiceNumber: string
   invoiceDate: Date | string
   dueDate: Date | string
+  serviceDate?: Date | string | null
   status?: $Enums.InvoiceStatus
+  description: string
+  period: string
+  quantity: number
+  rate: number
   subtotal: number
   vatAmount: number
   totalAmount: number
+  vatRate?: number
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -661,10 +817,16 @@ export type InvoiceUncheckedCreateWithoutWorkerInput = {
   invoiceNumber: string
   invoiceDate: Date | string
   dueDate: Date | string
+  serviceDate?: Date | string | null
   status?: $Enums.InvoiceStatus
+  description: string
+  period: string
+  quantity: number
+  rate: number
   subtotal: number
   vatAmount: number
   totalAmount: number
+  vatRate?: number
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -708,10 +870,16 @@ export type InvoiceScalarWhereInput = {
   invoiceNumber?: Prisma.StringFilter<"Invoice"> | string
   invoiceDate?: Prisma.DateTimeFilter<"Invoice"> | Date | string
   dueDate?: Prisma.DateTimeFilter<"Invoice"> | Date | string
+  serviceDate?: Prisma.DateTimeNullableFilter<"Invoice"> | Date | string | null
   status?: Prisma.EnumInvoiceStatusFilter<"Invoice"> | $Enums.InvoiceStatus
+  description?: Prisma.StringFilter<"Invoice"> | string
+  period?: Prisma.StringFilter<"Invoice"> | string
+  quantity?: Prisma.FloatFilter<"Invoice"> | number
+  rate?: Prisma.FloatFilter<"Invoice"> | number
   subtotal?: Prisma.FloatFilter<"Invoice"> | number
   vatAmount?: Prisma.FloatFilter<"Invoice"> | number
   totalAmount?: Prisma.FloatFilter<"Invoice"> | number
+  vatRate?: Prisma.FloatFilter<"Invoice"> | number
   currency?: Prisma.StringFilter<"Invoice"> | string
   xeroSynced?: Prisma.BoolFilter<"Invoice"> | boolean
   xeroInvoiceId?: Prisma.StringNullableFilter<"Invoice"> | string | null
@@ -725,10 +893,16 @@ export type InvoiceCreateManyWorkerInput = {
   invoiceNumber: string
   invoiceDate: Date | string
   dueDate: Date | string
+  serviceDate?: Date | string | null
   status?: $Enums.InvoiceStatus
+  description: string
+  period: string
+  quantity: number
+  rate: number
   subtotal: number
   vatAmount: number
   totalAmount: number
+  vatRate?: number
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -742,10 +916,16 @@ export type InvoiceUpdateWithoutWorkerInput = {
   invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
   subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -759,10 +939,16 @@ export type InvoiceUncheckedUpdateWithoutWorkerInput = {
   invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
   subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -776,10 +962,16 @@ export type InvoiceUncheckedUpdateManyWithoutWorkerInput = {
   invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
   invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
   subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -796,10 +988,16 @@ export type InvoiceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   invoiceNumber?: boolean
   invoiceDate?: boolean
   dueDate?: boolean
+  serviceDate?: boolean
   status?: boolean
+  description?: boolean
+  period?: boolean
+  quantity?: boolean
+  rate?: boolean
   subtotal?: boolean
   vatAmount?: boolean
   totalAmount?: boolean
+  vatRate?: boolean
   currency?: boolean
   xeroSynced?: boolean
   xeroInvoiceId?: boolean
@@ -815,10 +1013,16 @@ export type InvoiceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   invoiceNumber?: boolean
   invoiceDate?: boolean
   dueDate?: boolean
+  serviceDate?: boolean
   status?: boolean
+  description?: boolean
+  period?: boolean
+  quantity?: boolean
+  rate?: boolean
   subtotal?: boolean
   vatAmount?: boolean
   totalAmount?: boolean
+  vatRate?: boolean
   currency?: boolean
   xeroSynced?: boolean
   xeroInvoiceId?: boolean
@@ -834,10 +1038,16 @@ export type InvoiceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   invoiceNumber?: boolean
   invoiceDate?: boolean
   dueDate?: boolean
+  serviceDate?: boolean
   status?: boolean
+  description?: boolean
+  period?: boolean
+  quantity?: boolean
+  rate?: boolean
   subtotal?: boolean
   vatAmount?: boolean
   totalAmount?: boolean
+  vatRate?: boolean
   currency?: boolean
   xeroSynced?: boolean
   xeroInvoiceId?: boolean
@@ -853,10 +1063,16 @@ export type InvoiceSelectScalar = {
   invoiceNumber?: boolean
   invoiceDate?: boolean
   dueDate?: boolean
+  serviceDate?: boolean
   status?: boolean
+  description?: boolean
+  period?: boolean
+  quantity?: boolean
+  rate?: boolean
   subtotal?: boolean
   vatAmount?: boolean
   totalAmount?: boolean
+  vatRate?: boolean
   currency?: boolean
   xeroSynced?: boolean
   xeroInvoiceId?: boolean
@@ -865,7 +1081,7 @@ export type InvoiceSelectScalar = {
   updatedAt?: boolean
 }
 
-export type InvoiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workerId" | "invoiceNumber" | "invoiceDate" | "dueDate" | "status" | "subtotal" | "vatAmount" | "totalAmount" | "currency" | "xeroSynced" | "xeroInvoiceId" | "xeroSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["invoice"]>
+export type InvoiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workerId" | "invoiceNumber" | "invoiceDate" | "dueDate" | "serviceDate" | "status" | "description" | "period" | "quantity" | "rate" | "subtotal" | "vatAmount" | "totalAmount" | "vatRate" | "currency" | "xeroSynced" | "xeroInvoiceId" | "xeroSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["invoice"]>
 export type InvoiceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   worker?: boolean | Prisma.WorkerDefaultArgs<ExtArgs>
 }
@@ -887,10 +1103,16 @@ export type $InvoicePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     invoiceNumber: string
     invoiceDate: Date
     dueDate: Date
+    serviceDate: Date | null
     status: $Enums.InvoiceStatus
+    description: string
+    period: string
+    quantity: number
+    rate: number
     subtotal: number
     vatAmount: number
     totalAmount: number
+    vatRate: number
     currency: string
     xeroSynced: boolean
     xeroInvoiceId: string | null
@@ -1326,10 +1548,16 @@ export interface InvoiceFieldRefs {
   readonly invoiceNumber: Prisma.FieldRef<"Invoice", 'String'>
   readonly invoiceDate: Prisma.FieldRef<"Invoice", 'DateTime'>
   readonly dueDate: Prisma.FieldRef<"Invoice", 'DateTime'>
+  readonly serviceDate: Prisma.FieldRef<"Invoice", 'DateTime'>
   readonly status: Prisma.FieldRef<"Invoice", 'InvoiceStatus'>
+  readonly description: Prisma.FieldRef<"Invoice", 'String'>
+  readonly period: Prisma.FieldRef<"Invoice", 'String'>
+  readonly quantity: Prisma.FieldRef<"Invoice", 'Float'>
+  readonly rate: Prisma.FieldRef<"Invoice", 'Float'>
   readonly subtotal: Prisma.FieldRef<"Invoice", 'Float'>
   readonly vatAmount: Prisma.FieldRef<"Invoice", 'Float'>
   readonly totalAmount: Prisma.FieldRef<"Invoice", 'Float'>
+  readonly vatRate: Prisma.FieldRef<"Invoice", 'Float'>
   readonly currency: Prisma.FieldRef<"Invoice", 'String'>
   readonly xeroSynced: Prisma.FieldRef<"Invoice", 'Boolean'>
   readonly xeroInvoiceId: Prisma.FieldRef<"Invoice", 'String'>

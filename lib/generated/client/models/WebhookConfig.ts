@@ -220,10 +220,11 @@ export type WebhookConfigOrderByWithRelationInput = {
 }
 
 export type WebhookConfigWhereUniqueInput = Prisma.AtLeast<{
-  key?: string
+  key_environment?: Prisma.WebhookConfigKeyEnvironmentCompoundUniqueInput
   AND?: Prisma.WebhookConfigWhereInput | Prisma.WebhookConfigWhereInput[]
   OR?: Prisma.WebhookConfigWhereInput[]
   NOT?: Prisma.WebhookConfigWhereInput | Prisma.WebhookConfigWhereInput[]
+  key?: Prisma.StringFilter<"WebhookConfig"> | string
   url?: Prisma.StringFilter<"WebhookConfig"> | string
   enabled?: Prisma.BoolFilter<"WebhookConfig"> | boolean
   environment?: Prisma.StringFilter<"WebhookConfig"> | string
@@ -231,7 +232,7 @@ export type WebhookConfigWhereUniqueInput = Prisma.AtLeast<{
   internalSecret?: Prisma.StringNullableFilter<"WebhookConfig"> | string | null
   lastTriggeredAt?: Prisma.DateTimeNullableFilter<"WebhookConfig"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"WebhookConfig"> | Date | string
-}, "key">
+}, "key_environment">
 
 export type WebhookConfigOrderByWithAggregationInput = {
   key?: Prisma.SortOrder
@@ -336,6 +337,11 @@ export type WebhookConfigUncheckedUpdateManyInput = {
   internalSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastTriggeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type WebhookConfigKeyEnvironmentCompoundUniqueInput = {
+  key: string
+  environment: string
 }
 
 export type WebhookConfigCountOrderByAggregateInput = {

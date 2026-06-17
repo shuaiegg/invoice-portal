@@ -1,0 +1,158 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  ArrowLeft, 
+  User, 
+  Mail, 
+  MapPin, 
+  CreditCard, 
+  ShieldCheck, 
+  ShieldAlert,
+  History
+} from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
+import { AdminInvoiceTable } from "./admin-invoice-table";
+
+interface AdminWorkerDetailProps {
+  worker: any;
+}
+
+export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
+  const router = useRouter();
+  const [active, setActive] = useState(worker.user.active);
+  const [loading, setLoading] = useState(false);
+
+  const handleToggleActive = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/workers/${worker.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !active }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update worker status");
+
+      setActive(!active);
+      toast.success(`Worker ${!active ? "activated" : "deactivated"} successfully`);
+      router.refresh();
+    } catch (error) {
+      toast.error("Failed to update status");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (date: string | Date) => {
+    return new Intl.DateTimeFormat("fr-FR", {
+      timeZone: "Europe/Paris",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(date));
+  };
+
+  return (
+    <div className="space-y-8 max-w-6xl mx-auto pb-12">
+      <div className="flex items-center justify-between">
+        <Link href="/admin/workers">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Workers
+          </Button>
+        </Link>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-secondary-text">Account Status:</span>
+          {active ? (
+            <Badge className="bg-success/10 text-success border-success/20 hover:bg-success/10">Active</Badge>
+          ) : (
+            <Badge className="bg-error/10 text-error border-error/20 hover:bg-error/10">Inactive</Badge>
+          )}
+          <Button 
+            variant={active ? "destructive" : "default"} 
+            size="sm"
+            onClick={handleToggleActive}
+            disabled={loading}
+          >
+            {loading ? "Updating..." : active ? "Deactivate Account" : "Activate Account"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-8 md:grid-cols-3">
+        <div className="space-y-8">
+          {/* Profile Card */}
+          <Card>
+            <CardHeader className="bg-accent/10 border-b">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <User className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">{worker.name}</CardTitle>
+                  <CardDescription>Joined {formatDate(worker.user.createdAt)}</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Mail className="h-4 w-4 text-secondary-text mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold uppercase text-secondary-text tracking-wider">Email</div>
+                    <div className="text-sm font-medium">{worker.user.email}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="h-4 w-4 text-secondary-text mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold uppercase text-secondary-text tracking-wider">Team</div>
+                    <div className="text-sm font-medium">{worker.team || "No Team Assigned"}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-secondary-text mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold uppercase text-secondary-text tracking-wider">Address</div>
+                    <div className="text-sm font-medium leading-tight">
+                      {worker.address || "N/A"}<br />
+                      {worker.city && worker.country ? `${worker.city}, ${worker.country}` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CreditCard className="h-4 w-4 text-secondary-text mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold uppercase text-secondary-text tracking-wider">Payment</div>
+                    <div className="text-sm font-medium">{worker.paymentMethod || "N/A"}</div>
+                    <div className="text-xs font-mono text-secondary-text break-all">{worker.paymentAccount}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="md:col-span-2 space-y-6">
+          <div className="flex items-center gap-2">
+            <History className="h-6 w-6 text-secondary-text" />
+            <h2 className="text-2xl font-bold tracking-tight text-text">Invoice History</h2>
+          </div>
+          
+          <AdminInvoiceTable 
+            invoices={worker.invoices.map((inv: any) => ({ ...inv, worker }))} 
+            total={worker.invoices.length}
+            page={1}
+            totalPages={1}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

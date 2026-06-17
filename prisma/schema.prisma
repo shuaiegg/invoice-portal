@@ -50,8 +50,8 @@ model Session {
 
 model Account {
   id                    String    @id @default(cuid())
+  accountId             String
   userId                String
-  provider              String
   providerId            String
   accessToken           String?
   refreshToken          String?
@@ -92,12 +92,19 @@ model Invoice {
   invoiceNumber  String        @unique
   invoiceDate    DateTime
   dueDate        DateTime
+  serviceDate    DateTime?
   status         InvoiceStatus @default(SUBMITTED)
-  
+
+  description    String
+  period         String
+  quantity       Float
+  rate           Float
+
   // Amounts
   subtotal       Float
   vatAmount      Float
   totalAmount    Float
+  vatRate        Float         @default(0)
   currency       String        @default("EUR")
 
   // Xero Sync
@@ -121,7 +128,7 @@ model InvoiceCounter {
 }
 
 model WebhookConfig {
-  key             String   @id // e.g., "invoice.submitted"
+  key             String
   url             String
   enabled         Boolean  @default(true)
   environment     String   // "production" | "development"
@@ -129,4 +136,6 @@ model WebhookConfig {
   internalSecret  String?  // For callback validation
   lastTriggeredAt DateTime?
   updatedAt       DateTime @updatedAt
+
+  @@id([key, environment])
 }

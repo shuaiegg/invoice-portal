@@ -1,14 +1,14 @@
-import { auth } from "@/lib/auth";
-import { NextResponse, type NextRequest } from "next/server";
-import { headers } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
-export async function proxy(request: NextRequest) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const session = getSessionCookie(request);
 
   if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
@@ -16,6 +16,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!login|register|forgot-password|api/auth|_next/static|_next/image|favicon.ico|.*\\..*).*)"  
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/invoice/:path*",
+    "/admin/:path*",
   ],
 };

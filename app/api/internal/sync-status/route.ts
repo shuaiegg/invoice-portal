@@ -14,9 +14,16 @@ export async function POST(request: Request) {
       );
     }
 
+    const environment = process.env.WEBHOOK_ENVIRONMENT || process.env.NODE_ENV || "development";
+
     // Fetch the webhook config that corresponds to the event that triggered n8n
     const config = await db.webhookConfig.findUnique({
-      where: { key: "invoice.submitted" },
+      where: {
+        key_environment: {
+          key: "invoice.submitted",
+          environment,
+        },
+      },
     });
 
     if (!config || !config.internalSecret || config.internalSecret !== secret) {
