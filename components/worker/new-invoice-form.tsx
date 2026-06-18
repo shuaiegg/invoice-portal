@@ -62,6 +62,10 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
     }).format(new Date(value));
   };
 
+  const [vatInclusive, setVatInclusive] = useState<boolean>(
+    initialData ? (initialData.vatInclusive ?? false) : false
+  );
+
   const [formData, setFormData] = useState({
     description: initialData?.description || "",
     period: initialData?.period || "",
@@ -88,12 +92,21 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
   });
 
   useEffect(() => {
-    const subtotal = formData.quantity * formData.rate;
     const effectiveVatRate = applyVat ? formData.vatRate : 0;
-    const vatAmount = subtotal * (effectiveVatRate / 100);
-    const totalAmount = subtotal + vatAmount;
+    let subtotal: number, vatAmount: number, totalAmount: number;
+    if (applyVat && vatInclusive) {
+      // Inclusive: user enters gross amount, extract VAT from it
+      totalAmount = formData.quantity * formData.rate;
+      subtotal = totalAmount / (1 + effectiveVatRate / 100);
+      vatAmount = totalAmount - subtotal;
+    } else {
+      // Exclusive: VAT added on top of subtotal
+      subtotal = formData.quantity * formData.rate;
+      vatAmount = subtotal * (effectiveVatRate / 100);
+      totalAmount = subtotal + vatAmount;
+    }
     setAmounts({ subtotal, vatAmount, totalAmount });
-  }, [formData.quantity, formData.rate, formData.vatRate, applyVat]);
+  }, [formData.quantity, formData.rate, formData.vatRate, applyVat, vatInclusive]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -116,7 +129,11 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...formData, vatRate: applyVat ? formData.vatRate : 0 }),
+        body: JSON.stringify({
+          ...formData,
+          vatRate: applyVat ? formData.vatRate : 0,
+          vatInclusive: applyVat ? vatInclusive : false,
+        }),
       });
 
       if (!response.ok) {
@@ -191,54 +208,95 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
               <CardTitle>Quantities & Rates</CardTitle>
               <CardDescription>Calculate your invoice totals</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-6 md:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="quantity">Quantity (e.g. Days/Hours)</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  step="0.01"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  required
-                />
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="quantity">Quantity (e.g. Days/Hours)</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    step="0.01"
+                    value={formData.quantity}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="rate">
+                    Rate
+                    {applyVat && vatInclusive && (
+                      <span className="ml-1.5 text-xs font-normal text-muted-foreground">(VAT incl.)</span>
+                    )}
+                  </Label>
+                  <Input
+                    id="rate"
+                    type="number"
+                    step="0.01"
+                    value={formData.rate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="rate">Rate</Label>
-                <Input
-                  id="rate"
-                  type="number"
-                  step="0.01"
-                  value={formData.rate}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>VAT</Label>
-                <div className="flex items-center gap-2 h-10">
+
+              <div className="border rounded-lg p-4 space-y-3 bg-accent/20">
+                <div className="flex items-center gap-2">
                   <Checkbox
                     id="applyVat"
                     checked={applyVat}
                     onCheckedChange={(checked) => setApplyVat(!!checked)}
                   />
-                  <label htmlFor="applyVat" className="text-sm cursor-pointer select-none">
+                  <label htmlFor="applyVat" className="text-sm font-medium cursor-pointer select-none">
                     Apply VAT
                   </label>
                 </div>
+
                 {applyVat && (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="vatRate"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={formData.vatRate}
-                      onChange={handleChange}
-                      className="w-24"
-                    />
-                    <span className="text-sm text-muted-foreground">%</span>
+                  <div className="flex flex-wrap items-center gap-4 pl-6">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="vatRate"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        value={formData.vatRate}
+                        onChange={handleChange}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-muted-foreground">%</span>
+                    </div>
+
+                    <div className="flex items-center rounded-md border bg-background overflow-hidden text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setVatInclusive(false)}
+                        className={`px-3 py-1.5 transition-colors ${
+                          !vatInclusive
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "text-muted-foreground hover:bg-accent"
+                        }`}
+                      >
+                        Exclusive
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVatInclusive(true)}
+                        className={`px-3 py-1.5 transition-colors ${
+                          vatInclusive
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "text-muted-foreground hover:bg-accent"
+                        }`}
+                      >
+                        Inclusive
+                      </button>
+                    </div>
+
+                    <span className="text-xs text-muted-foreground">
+                      {vatInclusive
+                        ? "VAT is included in the rate — total stays the same"
+                        : "VAT is added on top of the rate"}
+                    </span>
                   </div>
                 )}
               </div>
@@ -289,8 +347,17 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                 </div>
                 {applyVat && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">VAT ({formData.vatRate}%)</span>
+                    <span className="text-muted-foreground">
+                      VAT {formData.vatRate}%
+                      {vatInclusive && <span className="ml-1 text-xs">(incl.)</span>}
+                    </span>
                     <span className="font-medium">{formatCurrency(amounts.vatAmount)}</span>
+                  </div>
+                )}
+                {applyVat && vatInclusive && (
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Net (ex-VAT)</span>
+                    <span>{formatCurrency(amounts.subtotal)}</span>
                   </div>
                 )}
                 <Separator className="my-2" />

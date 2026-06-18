@@ -109,6 +109,7 @@ model Invoice {
   vatAmount      Float
   totalAmount    Float
   vatRate        Float         @default(0)
+  vatInclusive   Boolean       @default(false)
   currency       String        @default("EUR")
 
   // Xero Sync
@@ -131,15 +132,26 @@ model InvoiceCounter {
   count Int @default(0)
 }
 
-model WebhookConfig {
-  key             String
-  url             String
-  enabled         Boolean  @default(true)
-  environment     String   // "production" | "development"
-  secret          String?  // X-Webhook-Secret
-  internalSecret  String?  // For callback validation
-  lastTriggeredAt DateTime?
-  updatedAt       DateTime @updatedAt
+model XeroToken {
+  id           String   @id @default("singleton")
+  accessToken  String   @db.Text
+  refreshToken String   @db.Text
+  tokenExpiry  DateTime
+  tenantId     String
+  updatedAt    DateTime @updatedAt
+}
 
-  @@id([key, environment])
+model WebhookConfig {
+  id                String    @id @default(cuid())
+  key               String
+  environment       String    @default("production")
+  url               String
+  secret            String?
+  internalSecret    String?
+  enabled           Boolean   @default(true)
+  lastTriggeredAt   DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([key, environment])
 }

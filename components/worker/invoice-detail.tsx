@@ -204,15 +204,34 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
           {/* Totals */}
           <div className="flex justify-end">
             <div className="w-64 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-secondary-text">Subtotal</span>
-                <span>{formatCurrency(invoice.subtotal)}</span>
-              </div>
-              {invoice.vatRate > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-secondary-text">VAT ({invoice.vatRate}%)</span>
-                  <span>{formatCurrency(invoice.vatAmount)}</span>
-                </div>
+              {invoice.vatRate > 0 && invoice.vatInclusive ? (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-secondary-text">Gross Amount</span>
+                    <span>{formatCurrency(invoice.totalAmount)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-secondary-text">VAT {invoice.vatRate}% (incl.)</span>
+                    <span>({formatCurrency(invoice.vatAmount)})</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-secondary-text">Net (ex-VAT)</span>
+                    <span>{formatCurrency(invoice.subtotal)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-secondary-text">Subtotal</span>
+                    <span>{formatCurrency(invoice.subtotal)}</span>
+                  </div>
+                  {invoice.vatRate > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-secondary-text">VAT ({invoice.vatRate}%)</span>
+                      <span>{formatCurrency(invoice.vatAmount)}</span>
+                    </div>
+                  )}
+                </>
               )}
               <div className="flex justify-between border-t pt-3 text-xl font-bold">
                 <span className="text-text">Total</span>

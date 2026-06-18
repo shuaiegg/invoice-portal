@@ -1,61 +1,43 @@
-import { db } from "./db";
+import { PrismaClient } from "./generated/client/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 
-async function main() {
-  const configs = [
-    {
-      key: "invoice.submitted",
-      environment: "production",
-      url: "https://n8n.example.com/webhook/invoice-submitted",
-      enabled: true,
-      internalSecret: "prod-internal-secret-1234567890",
-    },
-    {
-      key: "invoice.submitted",
-      environment: "development",
-      url: "http://localhost:5678/webhook-test/invoice-submitted",
-      enabled: true,
-      internalSecret: "dev-internal-secret-1234567890",
-    },
-    {
-      key: "invoice.updated",
-      environment: "production",
-      url: "https://n8n.example.com/webhook/invoice-updated",
-      enabled: true,
-      internalSecret: "prod-internal-secret-1234567890",
-    },
-    {
-      key: "invoice.updated",
-      environment: "development",
-      url: "http://localhost:5678/webhook-test/invoice-updated",
-      enabled: true,
-      internalSecret: "dev-internal-secret-1234567890",
-    },
-  ];
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const db = new PrismaClient({ adapter });
 
-  console.log("Seeding WebhookConfigs...");
+const environment = process.env.WEBHOOK_ENVIRONMENT || "production";
 
-  for (const config of configs) {
+const defaults = [
+  {
+    key: "invoice.submitted",
+    environment,
+    url: process.env.N8N_INVOICE_SUBMITTED_URL || "https://your-n8n-instance/webhook/invoice-submit",
+    enabled: true,
+  },
+  {
+    key: "invoice.updated",
+    environment,
+    url: process.env.N8N_INVOICE_UPDATED_URL || "https://your-n8n-instance/webhook/invoice-submit",
+    enabled: true,
+  },
+];
+
+async function seed() {
+  for (const config of defaults) {
     await db.webhookConfig.upsert({
-      where: {
-        key_environment: {
-          key: config.key,
-          environment: config.environment,
-        },
-      },
-      update: config,
+      where: { key_environment: { key: config.key, environment: config.environment } },
+      update: {},
       create: config,
     });
-    console.log(`- Seeded ${config.key} (${config.environment})`);
+    console.log(`✓ ${config.key} (${config.environment})`);
   }
-
-  console.log("Done.");
+  console.log("Webhook configs seeded.");
+  await db.$disconnect();
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    // Note: db might not be disconnectable if it's a singleton without $disconnect
-  });
+seed().catch(async (e) => {
+  console.error(e);
+  await db.$disconnect();
+  process.exit(1);
+});

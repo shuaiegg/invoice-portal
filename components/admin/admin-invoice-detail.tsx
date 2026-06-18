@@ -23,7 +23,6 @@ import {
   User,
   CreditCard,
   History,
-  RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -36,7 +35,6 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
   const router = useRouter();
   const [status, setStatus] = useState(invoice.status);
   const [loading, setLoading] = useState(false);
-  const [resyncing, setResyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
@@ -65,24 +63,6 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
       setStatus(invoice.status); // Reset on error
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleResync = async () => {
-    setResyncing(true);
-    try {
-      const response = await fetch(`/api/admin/invoices/${invoice.id}/resync`, {
-        method: "POST",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to queue re-sync");
-      }
-      toast.success("Re-sync queued — n8n will process it shortly");
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setResyncing(false);
     }
   };
 
@@ -115,24 +95,13 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
       };
     }
     
-    if (mounted) {
-      const createdAt = new Date(invoice.createdAt);
-      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
-      if (createdAt < thirtyMinAgo) {
-        return {
-          label: "Sync Failed",
-          color: "text-error",
-          icon: <AlertCircle className="h-5 w-5" />,
-          description: "The n8n workflow failed to sync this invoice to Xero after multiple attempts.",
-        };
-      }
-    }
-
     return {
-      label: "Pending Sync",
-      color: "text-warning",
-      icon: <Clock className="h-5 w-5" />,
-      description: "This invoice is currently in the sync queue.",
+      label: "Not Synced",
+      color: "text-secondary-text",
+      icon: <AlertCircle className="h-5 w-5" />,
+      description: invoice.status === "VOID" 
+        ? "Invoice voided — not synced to Xero."
+        : "Direct sync not established (legacy invoice).",
     };
   };
 
@@ -305,18 +274,6 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
                     )}
                   </div>
                 </div>
-                {!invoice.xeroSynced && invoice.status !== "VOID" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={handleResync}
-                    disabled={resyncing}
-                  >
-                    <RefreshCw className={`mr-2 h-4 w-4 ${resyncing ? "animate-spin" : ""}`} />
-                    {resyncing ? "Queuing..." : "Re-sync to Xero"}
-                  </Button>
-                )}
               </div>
             </CardContent>
             <CardFooter>

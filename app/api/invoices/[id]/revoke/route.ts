@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { dispatchWebhook } from "@/lib/webhook";
+import { notifySlack } from "@/lib/slack";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -43,30 +43,8 @@ export async function POST(
     include: { worker: true },
   });
 
-  dispatchWebhook("invoice.revoked", {
-    invoiceId: revokedInvoice.id,
-    invoiceNumber: revokedInvoice.invoiceNumber,
-    worker: {
-      id: revokedInvoice.worker.id,
-      name: revokedInvoice.worker.name,
-      email: session.user.email,
-      address: revokedInvoice.worker.address,
-      city: revokedInvoice.worker.city,
-      country: revokedInvoice.worker.country,
-      vatNumber: revokedInvoice.worker.vatNumber,
-    },
-    invoice: {
-      description: revokedInvoice.description,
-      period: revokedInvoice.period,
-      quantity: revokedInvoice.quantity,
-      rate: revokedInvoice.rate,
-      subtotal: revokedInvoice.subtotal,
-      vatAmount: revokedInvoice.vatAmount,
-      totalAmount: revokedInvoice.totalAmount,
-      currency: revokedInvoice.currency,
-      invoiceDate: revokedInvoice.invoiceDate.toISOString(),
-    },
-    xeroInvoiceId: revokedInvoice.xeroInvoiceId,
+  notifySlack({
+    text: `Invoice revoked: ${revokedInvoice.invoiceNumber} by ${revokedInvoice.worker.name} (${revokedInvoice.totalAmount} ${revokedInvoice.currency})`
   });
 
   return NextResponse.json(revokedInvoice);

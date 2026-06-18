@@ -57,6 +57,7 @@ export const ModelName = {
   Worker: 'Worker',
   Invoice: 'Invoice',
   InvoiceCounter: 'InvoiceCounter',
+  XeroToken: 'XeroToken',
   WebhookConfig: 'WebhookConfig'
 } as const
 
@@ -164,6 +165,7 @@ export const InvoiceScalarFieldEnum = {
   vatAmount: 'vatAmount',
   totalAmount: 'totalAmount',
   vatRate: 'vatRate',
+  vatInclusive: 'vatInclusive',
   currency: 'currency',
   xeroSynced: 'xeroSynced',
   xeroInvoiceId: 'xeroInvoiceId',
@@ -183,14 +185,28 @@ export const InvoiceCounterScalarFieldEnum = {
 export type InvoiceCounterScalarFieldEnum = (typeof InvoiceCounterScalarFieldEnum)[keyof typeof InvoiceCounterScalarFieldEnum]
 
 
+export const XeroTokenScalarFieldEnum = {
+  id: 'id',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  tokenExpiry: 'tokenExpiry',
+  tenantId: 'tenantId',
+  updatedAt: 'updatedAt'
+} as const
+
+export type XeroTokenScalarFieldEnum = (typeof XeroTokenScalarFieldEnum)[keyof typeof XeroTokenScalarFieldEnum]
+
+
 export const WebhookConfigScalarFieldEnum = {
+  id: 'id',
   key: 'key',
-  url: 'url',
-  enabled: 'enabled',
   environment: 'environment',
+  url: 'url',
   secret: 'secret',
   internalSecret: 'internalSecret',
+  enabled: 'enabled',
   lastTriggeredAt: 'lastTriggeredAt',
+  createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 

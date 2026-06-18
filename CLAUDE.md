@@ -37,14 +37,14 @@ Implemented in BetterAuth's `after:sign-up` hook: if User count === 1 after crea
 - `DIRECT_URL` — direct connection, used by `prisma migrate` only
 Both must be set. Forgetting `DIRECT_URL` breaks migrations.
 
-**No Xero or Slack credentials in Next.js**
-All external integrations (Xero contact upsert, Xero draft bill, Slack notification) are handled entirely by n8n workflows. Next.js only fires fire-and-forget webhook POSTs to n8n. Do not add Xero/Slack API clients to this codebase.
+**Direct Xero integration for synchronous sync**
+Invoice submission creates a draft bill in Xero synchronously. If sync fails, the submission returns an error. No more silent failures or "Pending Sync" states. OAuth tokens are managed in the `XeroToken` DB table.
 
 **PDF = HTML + `@media print` (no PDF library)**
 Invoice detail page (`/invoice/[id]`) is the print template. "Download PDF" calls `window.print()`. `@media print` CSS hides UI chrome. No `@react-pdf/renderer` or puppeteer.
 
-**Webhook dispatch is fire-and-forget**
-`lib/webhook.ts` exports `dispatchWebhook(key, payload)` — reads `WebhookConfig` from DB, fires fetch without awaiting, swallows errors. n8n handles retries. User response is never blocked by webhook status.
+**Slack notifications via direct webhooks**
+Slack notifications are fired directly from Next.js using an Incoming Webhook URL stored in `SLACK_WEBHOOK_URL`.
 
 **Invoice numbers use atomic DB upsert**
 `lib/invoice-number.ts` uses `INSERT INTO InvoiceCounter ... ON CONFLICT DO UPDATE RETURNING count` — race-condition safe. Format: `INV-{YYYY}-{NNNN}`.
@@ -66,9 +66,11 @@ app/
   (worker)/        ← authenticated workers: /dashboard, /profile, /invoice/*
   (admin)/         ← ADMIN role only: /admin, /admin/workers, /admin/invoices, /admin/settings
   api/
-    auth/[...betterauth]/    ← BetterAuth handler
-    internal/sync-status/    ← n8n callback to update xeroSynced (secured with X-Internal-Secret)
-    invoices/                ← worker invoice CRUD
+    auth/
+      [...betterauth]/       ← BetterAuth handler
+      xero/connect/          ← Start Xero OAuth flow (Admin only)
+      xero/callback/         ← Xero OAuth callback (Admin only)
+    invoices/                ← worker invoice CRUD + Xero sync
     profile/                 ← worker profile
     admin/                   ← admin-only endpoints (enforce role server-side)
 middleware.ts      ← JWT validation only, no role check, Edge Runtime
@@ -81,8 +83,9 @@ middleware.ts      ← JWT validation only, no role check, Edge Runtime
 | `lib/db.ts` | Prisma client singleton (global pattern for hot-reload safety) |
 | `lib/auth.ts` | BetterAuth server config (JWT session, first-user-admin hook) |
 | `lib/auth-client.ts` | BetterAuth client for `'use client'` components |
+| `lib/xero.ts` | Xero API client (OAuth token mgmt, contact upsert, draft bill creation) |
+| `lib/slack.ts` | Direct Slack Incoming Webhook notification helper |
 | `lib/invoice-number.ts` | Atomic sequential invoice number generation |
-| `lib/webhook.ts` | Fire-and-forget webhook dispatch with WebhookConfig lookup |
 | `lib/admin-guard.ts` | `requireAdmin(request)` helper for all `/api/admin/*` routes |
 
 ## Environment Variables
@@ -93,9 +96,11 @@ DIRECT_URL=            # Neon direct URL — prisma migrate only
 BETTER_AUTH_SECRET=    # Random secret for JWT signing
 BETTER_AUTH_URL=       # = NEXT_PUBLIC_APP_URL
 NEXT_PUBLIC_APP_URL=   # e.g. https://invoice.yourdomain.com
+XERO_CLIENT_ID=        # Xero App Client ID
+XERO_CLIENT_SECRET=    # Xero App Client Secret
+XERO_REDIRECT_URI=     # {APP_URL}/api/auth/xero/callback
+SLACK_WEBHOOK_URL=     # Slack Incoming Webhook URL
 ```
-
-No Xero or Slack variables — those live in n8n credentials.
 
 ## Next.js 16 — Critical Breaking Changes
 
@@ -116,10 +121,10 @@ Key docs:
 All planned changes are in `openspec/changes/`. Implementation order:
 
 ```
-1. foundation      ← auth + Prisma schema + route structure + WebhookConfig
+1. foundation      ← auth + Prisma schema + route structure
 2. design-system   ← Tailwind tokens + shadcn/ui + shared components + auth UI
 3. worker-portal   ← profile + invoice submission + history + print PDF
-4. n8n-integration ← build n8n workflows (Xero + Slack) via n8n MCP tools
+4. xero-direct     ← direct Xero sync + Slack notifications
 5. admin-portal    ← admin dashboard + invoice management + worker management + CSV export
 ```
 

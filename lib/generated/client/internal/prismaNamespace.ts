@@ -390,6 +390,7 @@ export const ModelName = {
   Worker: 'Worker',
   Invoice: 'Invoice',
   InvoiceCounter: 'InvoiceCounter',
+  XeroToken: 'XeroToken',
   WebhookConfig: 'WebhookConfig'
 } as const
 
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "worker" | "invoice" | "invoiceCounter" | "webhookConfig"
+    modelProps: "user" | "session" | "account" | "worker" | "invoice" | "invoiceCounter" | "xeroToken" | "webhookConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -854,6 +855,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    XeroToken: {
+      payload: Prisma.$XeroTokenPayload<ExtArgs>
+      fields: Prisma.XeroTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.XeroTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.XeroTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.XeroTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.XeroTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>
+        }
+        findMany: {
+          args: Prisma.XeroTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>[]
+        }
+        create: {
+          args: Prisma.XeroTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>
+        }
+        createMany: {
+          args: Prisma.XeroTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.XeroTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.XeroTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>
+        }
+        update: {
+          args: Prisma.XeroTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.XeroTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.XeroTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.XeroTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.XeroTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.XeroTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateXeroToken>
+        }
+        groupBy: {
+          args: Prisma.XeroTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.XeroTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroTokenCountAggregateOutputType> | number
+        }
+      }
+    }
     WebhookConfig: {
       payload: Prisma.$WebhookConfigPayload<ExtArgs>
       fields: Prisma.WebhookConfigFieldRefs
@@ -1055,6 +1130,7 @@ export const InvoiceScalarFieldEnum = {
   vatAmount: 'vatAmount',
   totalAmount: 'totalAmount',
   vatRate: 'vatRate',
+  vatInclusive: 'vatInclusive',
   currency: 'currency',
   xeroSynced: 'xeroSynced',
   xeroInvoiceId: 'xeroInvoiceId',
@@ -1074,14 +1150,28 @@ export const InvoiceCounterScalarFieldEnum = {
 export type InvoiceCounterScalarFieldEnum = (typeof InvoiceCounterScalarFieldEnum)[keyof typeof InvoiceCounterScalarFieldEnum]
 
 
+export const XeroTokenScalarFieldEnum = {
+  id: 'id',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  tokenExpiry: 'tokenExpiry',
+  tenantId: 'tenantId',
+  updatedAt: 'updatedAt'
+} as const
+
+export type XeroTokenScalarFieldEnum = (typeof XeroTokenScalarFieldEnum)[keyof typeof XeroTokenScalarFieldEnum]
+
+
 export const WebhookConfigScalarFieldEnum = {
+  id: 'id',
   key: 'key',
-  url: 'url',
-  enabled: 'enabled',
   environment: 'environment',
+  url: 'url',
   secret: 'secret',
   internalSecret: 'internalSecret',
+  enabled: 'enabled',
   lastTriggeredAt: 'lastTriggeredAt',
+  createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
@@ -1324,6 +1414,7 @@ export type GlobalOmitConfig = {
   worker?: Prisma.WorkerOmit
   invoice?: Prisma.InvoiceOmit
   invoiceCounter?: Prisma.InvoiceCounterOmit
+  xeroToken?: Prisma.XeroTokenOmit
   webhookConfig?: Prisma.WebhookConfigOmit
 }
 

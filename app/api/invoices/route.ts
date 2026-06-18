@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateInvoiceNumber } from "@/lib/invoice-number";
+import { syncInvoiceToXero } from "@/lib/xero";
+import { notifySlack } from "@/lib/slack";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
 import { headers } from "next/headers";
@@ -78,13 +80,21 @@ export async function POST(req: Request) {
   const quantity = parseFloat(data.quantity);
   const rate = parseFloat(data.rate);
   const vatRate = parseFloat(data.vatRate) || 0;
+  const vatInclusive = data.vatInclusive === true || data.vatInclusive === "true";
 
   if (isNaN(quantity) || quantity <= 0) return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
   if (isNaN(rate) || rate <= 0) return NextResponse.json({ error: "Invalid rate" }, { status: 400 });
 
-  const subtotal = quantity * rate;
-  const vatAmount = subtotal * (vatRate / 100);
-  const totalAmount = subtotal + vatAmount;
+  let subtotal: number, vatAmount: number, totalAmount: number;
+  if (vatRate > 0 && vatInclusive) {
+    totalAmount = quantity * rate;
+    subtotal = totalAmount / (1 + vatRate / 100);
+    vatAmount = totalAmount - subtotal;
+  } else {
+    subtotal = quantity * rate;
+    vatAmount = subtotal * (vatRate / 100);
+    totalAmount = subtotal + vatAmount;
+  }
 
   let invoiceDate: Date;
   try {
@@ -117,6 +127,7 @@ export async function POST(req: Request) {
       vatAmount,
       totalAmount,
       vatRate,
+      vatInclusive,
       currency: data.currency || "EUR",
       status: "SUBMITTED",
     },
@@ -125,32 +136,26 @@ export async function POST(req: Request) {
     },
   });
 
-  // Dispatch fire-and-forget webhook
+  // Synchronous Xero sync
+  try {
+    await syncInvoiceToXero(invoice, worker);
+  } catch (error) {
+    console.error("Xero sync failed during submission:", error);
+    return NextResponse.json({
+      error: "Invoice saved but Xero sync failed. Please contact support or try again later.",
+      invoiceId: invoice.id,
+    }, { status: 500 });
+  }
+
+  // Fire-and-forget: n8n webhook (Slack notification etc.) + direct Slack fallback
   dispatchWebhook("invoice.submitted", {
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
-    updatedAt: invoice.updatedAt.toISOString(),
-    worker: {
-      id: worker.id,
-      name: worker.name,
-      email: session.user.email,
-      address: worker.address,
-      city: worker.city,
-      country: worker.country,
-      vatNumber: worker.vatNumber,
-    },
-    invoice: {
-      description: invoice.description,
-      period: invoice.period,
-      quantity: invoice.quantity,
-      rate: invoice.rate,
-      subtotal: invoice.subtotal,
-      vatAmount: invoice.vatAmount,
-      totalAmount: invoice.totalAmount,
-      currency: invoice.currency,
-      invoiceDate: invoice.invoiceDate.toISOString(),
-    },
-    xeroInvoiceId: null,
+    worker: { id: worker.id, name: worker.name },
+    invoice: { period: invoice.period, totalAmount: invoice.totalAmount, currency: invoice.currency },
+  });
+  notifySlack({
+    text: `📄 New invoice submitted\n*${worker.name}* | ${invoice.period}\nAmount: ${invoice.totalAmount} ${invoice.currency}\nInvoice #: ${invoice.invoiceNumber}\nXero: Created ✅`,
   });
 
   return NextResponse.json({ invoiceId: invoice.id });

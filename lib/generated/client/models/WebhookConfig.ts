@@ -25,70 +25,82 @@ export type AggregateWebhookConfig = {
 }
 
 export type WebhookConfigMinAggregateOutputType = {
+  id: string | null
   key: string | null
-  url: string | null
-  enabled: boolean | null
   environment: string | null
+  url: string | null
   secret: string | null
   internalSecret: string | null
+  enabled: boolean | null
   lastTriggeredAt: Date | null
+  createdAt: Date | null
   updatedAt: Date | null
 }
 
 export type WebhookConfigMaxAggregateOutputType = {
+  id: string | null
   key: string | null
-  url: string | null
-  enabled: boolean | null
   environment: string | null
+  url: string | null
   secret: string | null
   internalSecret: string | null
+  enabled: boolean | null
   lastTriggeredAt: Date | null
+  createdAt: Date | null
   updatedAt: Date | null
 }
 
 export type WebhookConfigCountAggregateOutputType = {
+  id: number
   key: number
-  url: number
-  enabled: number
   environment: number
+  url: number
   secret: number
   internalSecret: number
+  enabled: number
   lastTriggeredAt: number
+  createdAt: number
   updatedAt: number
   _all: number
 }
 
 
 export type WebhookConfigMinAggregateInputType = {
+  id?: true
   key?: true
-  url?: true
-  enabled?: true
   environment?: true
+  url?: true
   secret?: true
   internalSecret?: true
+  enabled?: true
   lastTriggeredAt?: true
+  createdAt?: true
   updatedAt?: true
 }
 
 export type WebhookConfigMaxAggregateInputType = {
+  id?: true
   key?: true
-  url?: true
-  enabled?: true
   environment?: true
+  url?: true
   secret?: true
   internalSecret?: true
+  enabled?: true
   lastTriggeredAt?: true
+  createdAt?: true
   updatedAt?: true
 }
 
 export type WebhookConfigCountAggregateInputType = {
+  id?: true
   key?: true
-  url?: true
-  enabled?: true
   environment?: true
+  url?: true
   secret?: true
   internalSecret?: true
+  enabled?: true
   lastTriggeredAt?: true
+  createdAt?: true
   updatedAt?: true
   _all?: true
 }
@@ -166,13 +178,15 @@ export type WebhookConfigGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 export type WebhookConfigGroupByOutputType = {
+  id: string
   key: string
-  url: string
-  enabled: boolean
   environment: string
+  url: string
   secret: string | null
   internalSecret: string | null
+  enabled: boolean
   lastTriggeredAt: Date | null
+  createdAt: Date
   updatedAt: Date
   _count: WebhookConfigCountAggregateOutputType | null
   _min: WebhookConfigMinAggregateOutputType | null
@@ -198,50 +212,58 @@ export type WebhookConfigWhereInput = {
   AND?: Prisma.WebhookConfigWhereInput | Prisma.WebhookConfigWhereInput[]
   OR?: Prisma.WebhookConfigWhereInput[]
   NOT?: Prisma.WebhookConfigWhereInput | Prisma.WebhookConfigWhereInput[]
+  id?: Prisma.StringFilter<"WebhookConfig"> | string
   key?: Prisma.StringFilter<"WebhookConfig"> | string
-  url?: Prisma.StringFilter<"WebhookConfig"> | string
-  enabled?: Prisma.BoolFilter<"WebhookConfig"> | boolean
   environment?: Prisma.StringFilter<"WebhookConfig"> | string
+  url?: Prisma.StringFilter<"WebhookConfig"> | string
   secret?: Prisma.StringNullableFilter<"WebhookConfig"> | string | null
   internalSecret?: Prisma.StringNullableFilter<"WebhookConfig"> | string | null
+  enabled?: Prisma.BoolFilter<"WebhookConfig"> | boolean
   lastTriggeredAt?: Prisma.DateTimeNullableFilter<"WebhookConfig"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"WebhookConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WebhookConfig"> | Date | string
 }
 
 export type WebhookConfigOrderByWithRelationInput = {
+  id?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  url?: Prisma.SortOrder
-  enabled?: Prisma.SortOrder
   environment?: Prisma.SortOrder
+  url?: Prisma.SortOrder
   secret?: Prisma.SortOrderInput | Prisma.SortOrder
   internalSecret?: Prisma.SortOrderInput | Prisma.SortOrder
+  enabled?: Prisma.SortOrder
   lastTriggeredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type WebhookConfigWhereUniqueInput = Prisma.AtLeast<{
+  id?: string
   key_environment?: Prisma.WebhookConfigKeyEnvironmentCompoundUniqueInput
   AND?: Prisma.WebhookConfigWhereInput | Prisma.WebhookConfigWhereInput[]
   OR?: Prisma.WebhookConfigWhereInput[]
   NOT?: Prisma.WebhookConfigWhereInput | Prisma.WebhookConfigWhereInput[]
   key?: Prisma.StringFilter<"WebhookConfig"> | string
-  url?: Prisma.StringFilter<"WebhookConfig"> | string
-  enabled?: Prisma.BoolFilter<"WebhookConfig"> | boolean
   environment?: Prisma.StringFilter<"WebhookConfig"> | string
+  url?: Prisma.StringFilter<"WebhookConfig"> | string
   secret?: Prisma.StringNullableFilter<"WebhookConfig"> | string | null
   internalSecret?: Prisma.StringNullableFilter<"WebhookConfig"> | string | null
+  enabled?: Prisma.BoolFilter<"WebhookConfig"> | boolean
   lastTriggeredAt?: Prisma.DateTimeNullableFilter<"WebhookConfig"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"WebhookConfig"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"WebhookConfig"> | Date | string
-}, "key_environment">
+}, "id" | "key_environment">
 
 export type WebhookConfigOrderByWithAggregationInput = {
+  id?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  url?: Prisma.SortOrder
-  enabled?: Prisma.SortOrder
   environment?: Prisma.SortOrder
+  url?: Prisma.SortOrder
   secret?: Prisma.SortOrderInput | Prisma.SortOrder
   internalSecret?: Prisma.SortOrderInput | Prisma.SortOrder
+  enabled?: Prisma.SortOrder
   lastTriggeredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.WebhookConfigCountOrderByAggregateInput
   _max?: Prisma.WebhookConfigMaxOrderByAggregateInput
@@ -252,90 +274,106 @@ export type WebhookConfigScalarWhereWithAggregatesInput = {
   AND?: Prisma.WebhookConfigScalarWhereWithAggregatesInput | Prisma.WebhookConfigScalarWhereWithAggregatesInput[]
   OR?: Prisma.WebhookConfigScalarWhereWithAggregatesInput[]
   NOT?: Prisma.WebhookConfigScalarWhereWithAggregatesInput | Prisma.WebhookConfigScalarWhereWithAggregatesInput[]
+  id?: Prisma.StringWithAggregatesFilter<"WebhookConfig"> | string
   key?: Prisma.StringWithAggregatesFilter<"WebhookConfig"> | string
-  url?: Prisma.StringWithAggregatesFilter<"WebhookConfig"> | string
-  enabled?: Prisma.BoolWithAggregatesFilter<"WebhookConfig"> | boolean
   environment?: Prisma.StringWithAggregatesFilter<"WebhookConfig"> | string
+  url?: Prisma.StringWithAggregatesFilter<"WebhookConfig"> | string
   secret?: Prisma.StringNullableWithAggregatesFilter<"WebhookConfig"> | string | null
   internalSecret?: Prisma.StringNullableWithAggregatesFilter<"WebhookConfig"> | string | null
+  enabled?: Prisma.BoolWithAggregatesFilter<"WebhookConfig"> | boolean
   lastTriggeredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"WebhookConfig"> | Date | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"WebhookConfig"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"WebhookConfig"> | Date | string
 }
 
 export type WebhookConfigCreateInput = {
+  id?: string
   key: string
+  environment?: string
   url: string
-  enabled?: boolean
-  environment: string
   secret?: string | null
   internalSecret?: string | null
+  enabled?: boolean
   lastTriggeredAt?: Date | string | null
+  createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type WebhookConfigUncheckedCreateInput = {
+  id?: string
   key: string
+  environment?: string
   url: string
-  enabled?: boolean
-  environment: string
   secret?: string | null
   internalSecret?: string | null
+  enabled?: boolean
   lastTriggeredAt?: Date | string | null
+  createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type WebhookConfigUpdateInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   environment?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.StringFieldUpdateOperationsInput | string
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   internalSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastTriggeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WebhookConfigUncheckedUpdateInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   environment?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.StringFieldUpdateOperationsInput | string
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   internalSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastTriggeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WebhookConfigCreateManyInput = {
+  id?: string
   key: string
+  environment?: string
   url: string
-  enabled?: boolean
-  environment: string
   secret?: string | null
   internalSecret?: string | null
+  enabled?: boolean
   lastTriggeredAt?: Date | string | null
+  createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type WebhookConfigUpdateManyMutationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   environment?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.StringFieldUpdateOperationsInput | string
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   internalSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastTriggeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type WebhookConfigUncheckedUpdateManyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
   key?: Prisma.StringFieldUpdateOperationsInput | string
-  url?: Prisma.StringFieldUpdateOperationsInput | string
-  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   environment?: Prisma.StringFieldUpdateOperationsInput | string
+  url?: Prisma.StringFieldUpdateOperationsInput | string
   secret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   internalSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastTriggeredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -345,97 +383,113 @@ export type WebhookConfigKeyEnvironmentCompoundUniqueInput = {
 }
 
 export type WebhookConfigCountOrderByAggregateInput = {
+  id?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  url?: Prisma.SortOrder
-  enabled?: Prisma.SortOrder
   environment?: Prisma.SortOrder
+  url?: Prisma.SortOrder
   secret?: Prisma.SortOrder
   internalSecret?: Prisma.SortOrder
+  enabled?: Prisma.SortOrder
   lastTriggeredAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type WebhookConfigMaxOrderByAggregateInput = {
+  id?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  url?: Prisma.SortOrder
-  enabled?: Prisma.SortOrder
   environment?: Prisma.SortOrder
+  url?: Prisma.SortOrder
   secret?: Prisma.SortOrder
   internalSecret?: Prisma.SortOrder
+  enabled?: Prisma.SortOrder
   lastTriggeredAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type WebhookConfigMinOrderByAggregateInput = {
+  id?: Prisma.SortOrder
   key?: Prisma.SortOrder
-  url?: Prisma.SortOrder
-  enabled?: Prisma.SortOrder
   environment?: Prisma.SortOrder
+  url?: Prisma.SortOrder
   secret?: Prisma.SortOrder
   internalSecret?: Prisma.SortOrder
+  enabled?: Prisma.SortOrder
   lastTriggeredAt?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 
 
 export type WebhookConfigSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
   key?: boolean
-  url?: boolean
-  enabled?: boolean
   environment?: boolean
+  url?: boolean
   secret?: boolean
   internalSecret?: boolean
+  enabled?: boolean
   lastTriggeredAt?: boolean
+  createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["webhookConfig"]>
 
 export type WebhookConfigSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
   key?: boolean
-  url?: boolean
-  enabled?: boolean
   environment?: boolean
+  url?: boolean
   secret?: boolean
   internalSecret?: boolean
+  enabled?: boolean
   lastTriggeredAt?: boolean
+  createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["webhookConfig"]>
 
 export type WebhookConfigSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
   key?: boolean
-  url?: boolean
-  enabled?: boolean
   environment?: boolean
+  url?: boolean
   secret?: boolean
   internalSecret?: boolean
+  enabled?: boolean
   lastTriggeredAt?: boolean
+  createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["webhookConfig"]>
 
 export type WebhookConfigSelectScalar = {
+  id?: boolean
   key?: boolean
-  url?: boolean
-  enabled?: boolean
   environment?: boolean
+  url?: boolean
   secret?: boolean
   internalSecret?: boolean
+  enabled?: boolean
   lastTriggeredAt?: boolean
+  createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type WebhookConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"key" | "url" | "enabled" | "environment" | "secret" | "internalSecret" | "lastTriggeredAt" | "updatedAt", ExtArgs["result"]["webhookConfig"]>
+export type WebhookConfigOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "environment" | "url" | "secret" | "internalSecret" | "enabled" | "lastTriggeredAt" | "createdAt" | "updatedAt", ExtArgs["result"]["webhookConfig"]>
 
 export type $WebhookConfigPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "WebhookConfig"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    id: string
     key: string
-    url: string
-    enabled: boolean
     environment: string
+    url: string
     secret: string | null
     internalSecret: string | null
+    enabled: boolean
     lastTriggeredAt: Date | null
+    createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["webhookConfig"]>
   composites: {}
@@ -520,8 +574,8 @@ export interface WebhookConfigDelegate<ExtArgs extends runtime.Types.Extensions.
    * // Get first 10 WebhookConfigs
    * const webhookConfigs = await prisma.webhookConfig.findMany({ take: 10 })
    * 
-   * // Only select the `key`
-   * const webhookConfigWithKeyOnly = await prisma.webhookConfig.findMany({ select: { key: true } })
+   * // Only select the `id`
+   * const webhookConfigWithIdOnly = await prisma.webhookConfig.findMany({ select: { id: true } })
    * 
    */
   findMany<T extends WebhookConfigFindManyArgs>(args?: Prisma.SelectSubset<T, WebhookConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WebhookConfigPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -565,9 +619,9 @@ export interface WebhookConfigDelegate<ExtArgs extends runtime.Types.Extensions.
    *   ]
    * })
    * 
-   * // Create many WebhookConfigs and only return the `key`
-   * const webhookConfigWithKeyOnly = await prisma.webhookConfig.createManyAndReturn({
-   *   select: { key: true },
+   * // Create many WebhookConfigs and only return the `id`
+   * const webhookConfigWithIdOnly = await prisma.webhookConfig.createManyAndReturn({
+   *   select: { id: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -656,9 +710,9 @@ export interface WebhookConfigDelegate<ExtArgs extends runtime.Types.Extensions.
    *   ]
    * })
    * 
-   * // Update zero or more WebhookConfigs and only return the `key`
-   * const webhookConfigWithKeyOnly = await prisma.webhookConfig.updateManyAndReturn({
-   *   select: { key: true },
+   * // Update zero or more WebhookConfigs and only return the `id`
+   * const webhookConfigWithIdOnly = await prisma.webhookConfig.updateManyAndReturn({
+   *   select: { id: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -860,13 +914,15 @@ export interface Prisma__WebhookConfigClient<T, Null = never, ExtArgs extends ru
  * Fields of the WebhookConfig model
  */
 export interface WebhookConfigFieldRefs {
+  readonly id: Prisma.FieldRef<"WebhookConfig", 'String'>
   readonly key: Prisma.FieldRef<"WebhookConfig", 'String'>
-  readonly url: Prisma.FieldRef<"WebhookConfig", 'String'>
-  readonly enabled: Prisma.FieldRef<"WebhookConfig", 'Boolean'>
   readonly environment: Prisma.FieldRef<"WebhookConfig", 'String'>
+  readonly url: Prisma.FieldRef<"WebhookConfig", 'String'>
   readonly secret: Prisma.FieldRef<"WebhookConfig", 'String'>
   readonly internalSecret: Prisma.FieldRef<"WebhookConfig", 'String'>
+  readonly enabled: Prisma.FieldRef<"WebhookConfig", 'Boolean'>
   readonly lastTriggeredAt: Prisma.FieldRef<"WebhookConfig", 'DateTime'>
+  readonly createdAt: Prisma.FieldRef<"WebhookConfig", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"WebhookConfig", 'DateTime'>
 }
     

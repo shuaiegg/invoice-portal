@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { syncInvoiceToXero } from "@/lib/xero";
+import { notifySlack } from "@/lib/slack";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
 import { headers } from "next/headers";
@@ -78,10 +80,18 @@ export async function PUT(
   const quantity = parseFloat(data.quantity);
   const rate = parseFloat(data.rate);
   const vatRate = parseFloat(data.vatRate) || 0;
+  const vatInclusive = data.vatInclusive === true || data.vatInclusive === "true";
 
-  const subtotal = quantity * rate;
-  const vatAmount = subtotal * (vatRate / 100);
-  const totalAmount = subtotal + vatAmount;
+  let subtotal: number, vatAmount: number, totalAmount: number;
+  if (vatRate > 0 && vatInclusive) {
+    totalAmount = quantity * rate;
+    subtotal = totalAmount / (1 + vatRate / 100);
+    vatAmount = totalAmount - subtotal;
+  } else {
+    subtotal = quantity * rate;
+    vatAmount = subtotal * (vatRate / 100);
+    totalAmount = subtotal + vatAmount;
+  }
 
   let invoiceDate: Date;
   try {
@@ -103,6 +113,7 @@ export async function PUT(
       vatAmount,
       totalAmount,
       vatRate,
+      vatInclusive,
       currency: data.currency || "EUR",
     },
     include: {
@@ -110,32 +121,26 @@ export async function PUT(
     },
   });
 
-  // Dispatch fire-and-forget webhook for update
+  // Synchronous Xero sync
+  try {
+    await syncInvoiceToXero(updatedInvoice, updatedInvoice.worker);
+  } catch (error) {
+    console.error("Xero sync failed during update:", error);
+    return NextResponse.json({
+      error: "Invoice updated but Xero sync failed. Please contact support.",
+      invoice: updatedInvoice,
+    }, { status: 500 });
+  }
+
+  // Fire-and-forget: n8n webhook + direct Slack fallback
   dispatchWebhook("invoice.updated", {
     invoiceId: updatedInvoice.id,
     invoiceNumber: updatedInvoice.invoiceNumber,
-    updatedAt: updatedInvoice.updatedAt.toISOString(),
-    worker: {
-      id: updatedInvoice.worker.id,
-      name: updatedInvoice.worker.name,
-      email: session.user.email,
-      address: updatedInvoice.worker.address,
-      city: updatedInvoice.worker.city,
-      country: updatedInvoice.worker.country,
-      vatNumber: updatedInvoice.worker.vatNumber,
-    },
-    invoice: {
-      description: updatedInvoice.description,
-      period: updatedInvoice.period,
-      quantity: updatedInvoice.quantity,
-      rate: updatedInvoice.rate,
-      subtotal: updatedInvoice.subtotal,
-      vatAmount: updatedInvoice.vatAmount,
-      totalAmount: updatedInvoice.totalAmount,
-      currency: updatedInvoice.currency,
-      invoiceDate: updatedInvoice.invoiceDate.toISOString(),
-    },
-    xeroInvoiceId: updatedInvoice.xeroInvoiceId,
+    worker: { id: updatedInvoice.worker.id, name: updatedInvoice.worker.name },
+    invoice: { period: updatedInvoice.period, totalAmount: updatedInvoice.totalAmount, currency: updatedInvoice.currency },
+  });
+  notifySlack({
+    text: `📝 Invoice updated\n*${updatedInvoice.worker.name}* | ${updatedInvoice.period}\nAmount: ${updatedInvoice.totalAmount} ${updatedInvoice.currency}\nInvoice #: ${updatedInvoice.invoiceNumber}\nXero: Updated ✅`,
   });
 
   return NextResponse.json(updatedInvoice);

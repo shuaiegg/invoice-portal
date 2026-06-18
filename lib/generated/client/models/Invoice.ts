@@ -60,6 +60,7 @@ export type InvoiceMinAggregateOutputType = {
   vatAmount: number | null
   totalAmount: number | null
   vatRate: number | null
+  vatInclusive: boolean | null
   currency: string | null
   xeroSynced: boolean | null
   xeroInvoiceId: string | null
@@ -84,6 +85,7 @@ export type InvoiceMaxAggregateOutputType = {
   vatAmount: number | null
   totalAmount: number | null
   vatRate: number | null
+  vatInclusive: boolean | null
   currency: string | null
   xeroSynced: boolean | null
   xeroInvoiceId: string | null
@@ -108,6 +110,7 @@ export type InvoiceCountAggregateOutputType = {
   vatAmount: number
   totalAmount: number
   vatRate: number
+  vatInclusive: number
   currency: number
   xeroSynced: number
   xeroInvoiceId: number
@@ -152,6 +155,7 @@ export type InvoiceMinAggregateInputType = {
   vatAmount?: true
   totalAmount?: true
   vatRate?: true
+  vatInclusive?: true
   currency?: true
   xeroSynced?: true
   xeroInvoiceId?: true
@@ -176,6 +180,7 @@ export type InvoiceMaxAggregateInputType = {
   vatAmount?: true
   totalAmount?: true
   vatRate?: true
+  vatInclusive?: true
   currency?: true
   xeroSynced?: true
   xeroInvoiceId?: true
@@ -200,6 +205,7 @@ export type InvoiceCountAggregateInputType = {
   vatAmount?: true
   totalAmount?: true
   vatRate?: true
+  vatInclusive?: true
   currency?: true
   xeroSynced?: true
   xeroInvoiceId?: true
@@ -311,6 +317,7 @@ export type InvoiceGroupByOutputType = {
   vatAmount: number
   totalAmount: number
   vatRate: number
+  vatInclusive: boolean
   currency: string
   xeroSynced: boolean
   xeroInvoiceId: string | null
@@ -358,6 +365,7 @@ export type InvoiceWhereInput = {
   vatAmount?: Prisma.FloatFilter<"Invoice"> | number
   totalAmount?: Prisma.FloatFilter<"Invoice"> | number
   vatRate?: Prisma.FloatFilter<"Invoice"> | number
+  vatInclusive?: Prisma.BoolFilter<"Invoice"> | boolean
   currency?: Prisma.StringFilter<"Invoice"> | string
   xeroSynced?: Prisma.BoolFilter<"Invoice"> | boolean
   xeroInvoiceId?: Prisma.StringNullableFilter<"Invoice"> | string | null
@@ -383,6 +391,7 @@ export type InvoiceOrderByWithRelationInput = {
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   vatRate?: Prisma.SortOrder
+  vatInclusive?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -411,6 +420,7 @@ export type InvoiceWhereUniqueInput = Prisma.AtLeast<{
   vatAmount?: Prisma.FloatFilter<"Invoice"> | number
   totalAmount?: Prisma.FloatFilter<"Invoice"> | number
   vatRate?: Prisma.FloatFilter<"Invoice"> | number
+  vatInclusive?: Prisma.BoolFilter<"Invoice"> | boolean
   currency?: Prisma.StringFilter<"Invoice"> | string
   xeroSynced?: Prisma.BoolFilter<"Invoice"> | boolean
   xeroInvoiceId?: Prisma.StringNullableFilter<"Invoice"> | string | null
@@ -436,6 +446,7 @@ export type InvoiceOrderByWithAggregationInput = {
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   vatRate?: Prisma.SortOrder
+  vatInclusive?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -468,6 +479,7 @@ export type InvoiceScalarWhereWithAggregatesInput = {
   vatAmount?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
   totalAmount?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
   vatRate?: Prisma.FloatWithAggregatesFilter<"Invoice"> | number
+  vatInclusive?: Prisma.BoolWithAggregatesFilter<"Invoice"> | boolean
   currency?: Prisma.StringWithAggregatesFilter<"Invoice"> | string
   xeroSynced?: Prisma.BoolWithAggregatesFilter<"Invoice"> | boolean
   xeroInvoiceId?: Prisma.StringNullableWithAggregatesFilter<"Invoice"> | string | null
@@ -491,6 +503,7 @@ export type InvoiceCreateInput = {
   vatAmount: number
   totalAmount: number
   vatRate?: number
+  vatInclusive?: boolean
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -516,6 +529,7 @@ export type InvoiceUncheckedCreateInput = {
   vatAmount: number
   totalAmount: number
   vatRate?: number
+  vatInclusive?: boolean
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -539,6 +553,7 @@ export type InvoiceUpdateInput = {
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -564,6 +579,7 @@ export type InvoiceUncheckedUpdateInput = {
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -588,6 +604,7 @@ export type InvoiceCreateManyInput = {
   vatAmount: number
   totalAmount: number
   vatRate?: number
+  vatInclusive?: boolean
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -611,6 +628,7 @@ export type InvoiceUpdateManyMutationInput = {
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -635,6 +653,7 @@ export type InvoiceUncheckedUpdateManyInput = {
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -669,6 +688,7 @@ export type InvoiceCountOrderByAggregateInput = {
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   vatRate?: Prisma.SortOrder
+  vatInclusive?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrder
@@ -702,6 +722,7 @@ export type InvoiceMaxOrderByAggregateInput = {
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   vatRate?: Prisma.SortOrder
+  vatInclusive?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrder
@@ -726,6 +747,7 @@ export type InvoiceMinOrderByAggregateInput = {
   vatAmount?: Prisma.SortOrder
   totalAmount?: Prisma.SortOrder
   vatRate?: Prisma.SortOrder
+  vatInclusive?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   xeroSynced?: Prisma.SortOrder
   xeroInvoiceId?: Prisma.SortOrder
@@ -804,6 +826,7 @@ export type InvoiceCreateWithoutWorkerInput = {
   vatAmount: number
   totalAmount: number
   vatRate?: number
+  vatInclusive?: boolean
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -827,6 +850,7 @@ export type InvoiceUncheckedCreateWithoutWorkerInput = {
   vatAmount: number
   totalAmount: number
   vatRate?: number
+  vatInclusive?: boolean
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -880,6 +904,7 @@ export type InvoiceScalarWhereInput = {
   vatAmount?: Prisma.FloatFilter<"Invoice"> | number
   totalAmount?: Prisma.FloatFilter<"Invoice"> | number
   vatRate?: Prisma.FloatFilter<"Invoice"> | number
+  vatInclusive?: Prisma.BoolFilter<"Invoice"> | boolean
   currency?: Prisma.StringFilter<"Invoice"> | string
   xeroSynced?: Prisma.BoolFilter<"Invoice"> | boolean
   xeroInvoiceId?: Prisma.StringNullableFilter<"Invoice"> | string | null
@@ -903,6 +928,7 @@ export type InvoiceCreateManyWorkerInput = {
   vatAmount: number
   totalAmount: number
   vatRate?: number
+  vatInclusive?: boolean
   currency?: string
   xeroSynced?: boolean
   xeroInvoiceId?: string | null
@@ -926,6 +952,7 @@ export type InvoiceUpdateWithoutWorkerInput = {
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -949,6 +976,7 @@ export type InvoiceUncheckedUpdateWithoutWorkerInput = {
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -972,6 +1000,7 @@ export type InvoiceUncheckedUpdateManyWithoutWorkerInput = {
   vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -998,6 +1027,7 @@ export type InvoiceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   vatAmount?: boolean
   totalAmount?: boolean
   vatRate?: boolean
+  vatInclusive?: boolean
   currency?: boolean
   xeroSynced?: boolean
   xeroInvoiceId?: boolean
@@ -1023,6 +1053,7 @@ export type InvoiceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   vatAmount?: boolean
   totalAmount?: boolean
   vatRate?: boolean
+  vatInclusive?: boolean
   currency?: boolean
   xeroSynced?: boolean
   xeroInvoiceId?: boolean
@@ -1048,6 +1079,7 @@ export type InvoiceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   vatAmount?: boolean
   totalAmount?: boolean
   vatRate?: boolean
+  vatInclusive?: boolean
   currency?: boolean
   xeroSynced?: boolean
   xeroInvoiceId?: boolean
@@ -1073,6 +1105,7 @@ export type InvoiceSelectScalar = {
   vatAmount?: boolean
   totalAmount?: boolean
   vatRate?: boolean
+  vatInclusive?: boolean
   currency?: boolean
   xeroSynced?: boolean
   xeroInvoiceId?: boolean
@@ -1081,7 +1114,7 @@ export type InvoiceSelectScalar = {
   updatedAt?: boolean
 }
 
-export type InvoiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workerId" | "invoiceNumber" | "invoiceDate" | "dueDate" | "serviceDate" | "status" | "description" | "period" | "quantity" | "rate" | "subtotal" | "vatAmount" | "totalAmount" | "vatRate" | "currency" | "xeroSynced" | "xeroInvoiceId" | "xeroSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["invoice"]>
+export type InvoiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workerId" | "invoiceNumber" | "invoiceDate" | "dueDate" | "serviceDate" | "status" | "description" | "period" | "quantity" | "rate" | "subtotal" | "vatAmount" | "totalAmount" | "vatRate" | "vatInclusive" | "currency" | "xeroSynced" | "xeroInvoiceId" | "xeroSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["invoice"]>
 export type InvoiceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   worker?: boolean | Prisma.WorkerDefaultArgs<ExtArgs>
 }
@@ -1113,6 +1146,7 @@ export type $InvoicePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     vatAmount: number
     totalAmount: number
     vatRate: number
+    vatInclusive: boolean
     currency: string
     xeroSynced: boolean
     xeroInvoiceId: string | null
@@ -1558,6 +1592,7 @@ export interface InvoiceFieldRefs {
   readonly vatAmount: Prisma.FieldRef<"Invoice", 'Float'>
   readonly totalAmount: Prisma.FieldRef<"Invoice", 'Float'>
   readonly vatRate: Prisma.FieldRef<"Invoice", 'Float'>
+  readonly vatInclusive: Prisma.FieldRef<"Invoice", 'Boolean'>
   readonly currency: Prisma.FieldRef<"Invoice", 'String'>
   readonly xeroSynced: Prisma.FieldRef<"Invoice", 'Boolean'>
   readonly xeroInvoiceId: Prisma.FieldRef<"Invoice", 'String'>
