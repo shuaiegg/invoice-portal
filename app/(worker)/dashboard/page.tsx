@@ -18,34 +18,40 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // JWT is minted before the first-user-admin DB hook fires, so read role from DB
-  const dbUser = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-  if (dbUser?.role === "ADMIN") {
+  // Smart role check: Skip DB role lookup if JWT already says ADMIN
+  const sessionUserRole = (session.user as any).role;
+  const shouldCheckDbRole = sessionUserRole !== "ADMIN";
+
+  const [dbUser, worker] = await Promise.all([
+    shouldCheckDbRole
+      ? db.user.findUnique({
+          where: { id: session.user.id },
+          select: { role: true },
+        })
+      : null,
+    db.worker.findUnique({
+      where: { userId: session.user.id },
+    }),
+  ]);
+
+  if (sessionUserRole === "ADMIN" || dbUser?.role === "ADMIN") {
     redirect("/admin");
   }
 
-  const worker = await db.worker.findUnique({
-    where: { userId: session.user.id },
-  });
-
   const isProfileComplete = isWorkerProfileComplete(worker);
 
-  const invoices = worker
-    ? await db.invoice.findMany({
-        where: { workerId: worker.id },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      })
-    : [];
-
-  const totalInvoices = worker
-    ? await db.invoice.count({
-        where: { workerId: worker.id },
-      })
-    : 0;
+  const [invoices, totalInvoices] = worker
+    ? await Promise.all([
+        db.invoice.findMany({
+          where: { workerId: worker.id },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        }),
+        db.invoice.count({
+          where: { workerId: worker.id },
+        }),
+      ])
+    : [[], 0];
 
   return (
     <div className="space-y-8">

@@ -57,11 +57,15 @@ export default async function AdminDashboardPage() {
     }).format(amount);
   };
 
+  const monthName = new Intl.DateTimeFormat("fr-FR", {
+    month: "long",
+  }).format(now);
+
   return (
     <div className="space-y-10">
       <PageHeader 
         title="Admin Overview" 
-        subtitle={`Summary for ${now.toLocaleString("default", { month: "long" })} ${now.getFullYear()}`}
+        subtitle={`Summary for ${monthName} ${now.getFullYear()}`}
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

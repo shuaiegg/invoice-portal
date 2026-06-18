@@ -137,6 +137,10 @@ export const WorkerScalarFieldEnum = {
   paymentMethod: 'paymentMethod',
   paymentAccount: 'paymentAccount',
   paymentNotes: 'paymentNotes',
+  bankName: 'bankName',
+  swiftCode: 'swiftCode',
+  postCode: 'postCode',
+  secondaryPayment: 'secondaryPayment',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

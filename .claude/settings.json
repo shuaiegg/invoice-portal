@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "n8n": {
+      "command": "/Users/jack/.nvm/versions/node/v22.22.3/bin/node",
+      "args": [
+        "/Users/jack/Projects/n8n/n8n_linkedin/.claude/mcp-bridge.js"
+      ]
+    }
+  }
+}

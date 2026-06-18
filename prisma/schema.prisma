@@ -79,6 +79,10 @@ model Worker {
   paymentMethod  String?
   paymentAccount String?
   paymentNotes   String?
+  bankName       String?
+  swiftCode      String?
+  postCode       String?
+  secondaryPayment String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

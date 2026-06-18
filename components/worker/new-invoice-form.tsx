@@ -7,6 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, Send } from "lucide-react";
 
@@ -27,6 +35,11 @@ interface NewInvoiceFormProps {
 
 export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
   const [loading, setLoading] = useState(false);
+
+  const defaultVatRate = worker.vatRate > 0 ? worker.vatRate : 20;
+  const [applyVat, setApplyVat] = useState(
+    initialData ? (initialData.vatRate ?? 0) > 0 : worker.vatRate > 0
+  );
 
   // Default date in Europe/Paris
   const getTodayInParis = () => {
@@ -57,8 +70,8 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
     invoiceDate: initialData?.invoiceDate ? formatDateForInput(initialData.invoiceDate) : "",
     quantity: initialData?.quantity || 1,
     rate: initialData?.rate || 0,
-    vatRate: initialData?.vatRate ?? worker.vatRate,
-    currency: initialData?.currency || "EUR",
+    vatRate: (initialData?.vatRate ?? 0) > 0 ? initialData.vatRate : defaultVatRate,
+    currency: initialData?.currency || "USD",
   });
 
   useEffect(() => {
@@ -76,10 +89,11 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
 
   useEffect(() => {
     const subtotal = formData.quantity * formData.rate;
-    const vatAmount = subtotal * (formData.vatRate / 100);
+    const effectiveVatRate = applyVat ? formData.vatRate : 0;
+    const vatAmount = subtotal * (effectiveVatRate / 100);
     const totalAmount = subtotal + vatAmount;
     setAmounts({ subtotal, vatAmount, totalAmount });
-  }, [formData.quantity, formData.rate, formData.vatRate]);
+  }, [formData.quantity, formData.rate, formData.vatRate, applyVat]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -102,7 +116,7 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, vatRate: applyVat ? formData.vatRate : 0 }),
       });
 
       if (!response.ok) {
@@ -123,7 +137,7 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
+      currency: formData.currency || "USD",
     }).format(amount);
   };
 
@@ -190,7 +204,7 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="rate">Rate (EUR)</Label>
+                <Label htmlFor="rate">Rate</Label>
                 <Input
                   id="rate"
                   type="number"
@@ -201,15 +215,32 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="vatRate">VAT Rate (%)</Label>
-                <Input
-                  id="vatRate"
-                  type="number"
-                  step="0.01"
-                  value={formData.vatRate}
-                  onChange={handleChange}
-                  required
-                />
+                <Label>VAT</Label>
+                <div className="flex items-center gap-2 h-10">
+                  <Checkbox
+                    id="applyVat"
+                    checked={applyVat}
+                    onCheckedChange={(checked) => setApplyVat(!!checked)}
+                  />
+                  <label htmlFor="applyVat" className="text-sm cursor-pointer select-none">
+                    Apply VAT
+                  </label>
+                </div>
+                {applyVat && (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="vatRate"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={formData.vatRate}
+                      onChange={handleChange}
+                      className="w-24"
+                    />
+                    <span className="text-sm text-muted-foreground">%</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -231,6 +262,23 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                   required
                 />
               </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="currency">Currency</Label>
+                <Select 
+                  value={formData.currency} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
+                >
+                  <SelectTrigger id="currency" className="bg-accent/50">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
               <Separator className="my-4" />
               
@@ -239,10 +287,12 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-medium">{formatCurrency(amounts.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">VAT ({formData.vatRate}%)</span>
-                  <span className="font-medium">{formatCurrency(amounts.vatAmount)}</span>
-                </div>
+                {applyVat && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">VAT ({formData.vatRate}%)</span>
+                    <span className="font-medium">{formatCurrency(amounts.vatAmount)}</span>
+                  </div>
+                )}
                 <Separator className="my-2" />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>

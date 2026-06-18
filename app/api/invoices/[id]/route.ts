@@ -114,6 +114,7 @@ export async function PUT(
   dispatchWebhook("invoice.updated", {
     invoiceId: updatedInvoice.id,
     invoiceNumber: updatedInvoice.invoiceNumber,
+    updatedAt: updatedInvoice.updatedAt.toISOString(),
     worker: {
       id: updatedInvoice.worker.id,
       name: updatedInvoice.worker.name,

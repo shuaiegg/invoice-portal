@@ -1,20 +1,14 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { requireAdmin } from "@/lib/admin-guard";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ key: string }> }
 ) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || (session.user as any).role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { authorized, response } = await requireAdmin();
+    if (!authorized) return response!
 
     const { key } = await params;
     const body = await request.json();

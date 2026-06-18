@@ -129,6 +129,7 @@ export async function POST(req: Request) {
   dispatchWebhook("invoice.submitted", {
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
+    updatedAt: invoice.updatedAt.toISOString(),
     worker: {
       id: worker.id,
       name: worker.name,

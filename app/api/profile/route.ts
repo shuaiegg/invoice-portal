@@ -63,6 +63,10 @@ export async function PUT(req: Request) {
       paymentMethod: data.paymentMethod,
       paymentAccount: data.paymentAccount,
       paymentNotes: data.paymentNotes,
+      bankName: data.bankName,
+      swiftCode: data.swiftCode,
+      postCode: data.postCode,
+      secondaryPayment: data.secondaryPayment,
     },
     create: {
       userId,
@@ -76,6 +80,10 @@ export async function PUT(req: Request) {
       paymentMethod: data.paymentMethod,
       paymentAccount: data.paymentAccount,
       paymentNotes: data.paymentNotes,
+      bankName: data.bankName,
+      swiftCode: data.swiftCode,
+      postCode: data.postCode,
+      secondaryPayment: data.secondaryPayment,
     },
   });
 

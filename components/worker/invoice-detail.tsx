@@ -3,12 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Printer, Edit, ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 interface InvoiceDetailProps {
   invoice: any;
@@ -59,16 +58,16 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
     }).format(new Date(date));
   };
 
-  const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || "Your Company Name";
-  const companyAddress = process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "123 Company St";
-  const companyCity = process.env.NEXT_PUBLIC_COMPANY_CITY || "Business City";
-  const companyCountry = process.env.NEXT_PUBLIC_COMPANY_COUNTRY || "Country";
-  const companyVat = process.env.NEXT_PUBLIC_COMPANY_VAT || "FR 99 999 999 999";
+  const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || "ITACWT Limited";
+  const companyAddress = process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "2 Cruise Park Rise, Tyrrelstown";
+  const companyCity = process.env.NEXT_PUBLIC_COMPANY_CITY || "Dublin 15";
+  const companyCountry = process.env.NEXT_PUBLIC_COMPANY_COUNTRY || "Ireland";
+  const companyVat = process.env.NEXT_PUBLIC_COMPANY_VAT || "IE3450340QH";
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
+      currency: invoice.currency || "USD",
     }).format(amount);
   };
 
@@ -117,44 +116,63 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
         <CardContent className="p-8 sm:p-12 space-y-12">
           {/* Header */}
           <div className="flex justify-between items-start border-b pb-8">
-            <div className="space-y-1">
-              <h1 className="text-4xl font-bold tracking-tight text-primary">INVOICE</h1>
-              <p className="text-lg font-medium text-muted-foreground">{invoice.invoiceNumber}</p>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">BILLED TO</div>
+                <div className="font-bold text-lg">{companyName}</div>
+                <p className="text-sm text-secondary-text">VAT No. {companyVat}</p>
+                <p className="text-sm text-secondary-text">{companyAddress}</p>
+                <p className="text-sm text-secondary-text">{companyCity}, {companyCountry}</p>
+              </div>
             </div>
-            <div className="text-right space-y-1">
-              <div className="font-bold text-xl">{companyName}</div>
-              <p className="text-muted-foreground">{companyAddress}</p>
-              <p className="text-muted-foreground">{companyCity}, {companyCountry}</p>
-              <p className="text-muted-foreground">VAT: {companyVat}</p>
+            <div className="text-right space-y-2">
+              <h1 className="text-4xl font-bold tracking-tight text-primary">INVOICE</h1>
+              <div className="space-y-1">
+                <p className="text-lg font-bold text-text">#{invoice.invoiceNumber}</p>
+                <p className="text-sm text-secondary-text">Date: {formatDate(invoice.invoiceDate)}</p>
+                <p className="text-sm text-secondary-text">Due Date: {formatDate(invoice.dueDate)}</p>
+                <p className="text-sm text-secondary-text font-medium">Period: {invoice.period}</p>
+              </div>
             </div>
           </div>
 
           {/* Info Grid */}
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 gap-12">
             <div className="space-y-4">
-              <div className="text-sm font-bold uppercase tracking-wider text-secondary-text">From</div>
-              <div className="space-y-1">
-                <div className="font-bold text-lg">{worker.name}</div>
-                <p className="text-secondary-text">{worker.address}</p>
-                <p className="text-secondary-text">{worker.city}, {worker.country}</p>
-                {worker.vatNumber && <p className="text-secondary-text">VAT: {worker.vatNumber}</p>}
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="text-sm font-bold uppercase tracking-wider text-secondary-text">Invoice Details</div>
-              <div className="grid grid-cols-2 gap-y-2 text-sm">
-                <div className="text-secondary-text">Invoice Date:</div>
-                <div className="font-medium text-right">{formatDate(invoice.invoiceDate)}</div>
-                <div className="text-secondary-text">Due Date:</div>
-                <div className="font-medium text-right">{formatDate(invoice.dueDate)}</div>
-                <div className="text-secondary-text">Billing Period:</div>
-                <div className="font-medium text-right">{invoice.period}</div>
-                {invoice.serviceDate && (
-                  <>
-                    <div className="text-secondary-text">Service Date:</div>
-                    <div className="font-medium text-right">{formatDate(invoice.serviceDate)}</div>
-                  </>
-                )}
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">PAY TO</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-1">
+                  <div className="font-bold text-lg text-text">{worker.name}</div>
+                  <p className="text-secondary-text">
+                    {worker.address}{worker.postCode ? `, ${worker.postCode}` : ""}
+                  </p>
+                  <p className="text-secondary-text">{worker.city}, {worker.country}</p>
+                  {worker.vatNumber && <p className="text-secondary-text">VAT: {worker.vatNumber}</p>}
+                </div>
+                
+                <div className="space-y-1 text-sm border-l pl-8 border-dashed">
+                  {worker.bankName && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-text">Bank:</span>
+                      <span className="font-medium text-text">{worker.bankName}</span>
+                    </div>
+                  )}
+                  {worker.swiftCode && (
+                    <div className="flex justify-between">
+                      <span className="text-secondary-text">SWIFT:</span>
+                      <span className="font-medium text-text">{worker.swiftCode}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-secondary-text">Account:</span>
+                    <span className="font-medium text-text">{worker.paymentAccount}</span>
+                  </div>
+                  {worker.secondaryPayment && (
+                    <div className="pt-2 mt-2 border-t border-dashed border-gray-100 italic text-secondary-text text-xs whitespace-pre-wrap">
+                      {worker.secondaryPayment}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -165,19 +183,19 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
               <thead>
                 <tr className="border-b text-sm font-bold uppercase tracking-wider text-secondary-text">
                   <th className="py-3 px-2">Description</th>
-                  <th className="py-3 px-2 text-right">Qty</th>
                   <th className="py-3 px-2 text-right">Rate</th>
+                  <th className="py-3 px-2 text-right">Qty</th>
                   <th className="py-3 px-2 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b">
                   <td className="py-4 px-2 align-top max-w-md">
-                    <div className="font-medium">{invoice.description}</div>
+                    <div className="font-medium text-text">{invoice.description}</div>
                   </td>
-                  <td className="py-4 px-2 text-right align-top">{invoice.quantity}</td>
                   <td className="py-4 px-2 text-right align-top">{formatCurrency(invoice.rate)}</td>
-                  <td className="py-4 px-2 text-right align-top font-bold">{formatCurrency(invoice.subtotal)}</td>
+                  <td className="py-4 px-2 text-right align-top">{invoice.quantity}</td>
+                  <td className="py-4 px-2 text-right align-top font-bold text-text">{formatCurrency(invoice.subtotal)}</td>
                 </tr>
               </tbody>
             </table>
@@ -197,32 +215,9 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
                 </div>
               )}
               <div className="flex justify-between border-t pt-3 text-xl font-bold">
-                <span>Total</span>
+                <span className="text-text">Total</span>
                 <span className="text-primary">{formatCurrency(invoice.totalAmount)}</span>
               </div>
-            </div>
-          </div>
-
-          {/* Payment Info */}
-          <div className="border-t pt-8 space-y-4">
-            <div className="text-sm font-bold uppercase tracking-wider text-secondary-text">Payment Information</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
-              <div className="space-y-2">
-                <div className="flex justify-between border-b pb-1">
-                  <span className="text-secondary-text">Method:</span>
-                  <span className="font-medium">{worker.paymentMethod}</span>
-                </div>
-                <div className="flex justify-between border-b pb-1">
-                  <span className="text-secondary-text">Account / IBAN:</span>
-                  <span className="font-medium">{worker.paymentAccount}</span>
-                </div>
-              </div>
-              {worker.paymentNotes && (
-                <div className="space-y-1">
-                  <div className="text-secondary-text">Notes:</div>
-                  <div className="italic text-secondary-text">{worker.paymentNotes}</div>
-                </div>
-              )}
             </div>
           </div>
         </CardContent>
@@ -246,7 +241,7 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
             border: none !important;
           }
           @page {
-            margin: 2cm;
+            margin: 1.5cm;
           }
         }
       `}</style>

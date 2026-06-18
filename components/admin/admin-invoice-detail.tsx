@@ -13,16 +13,17 @@ import {
 } from "@/components/ui/select";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, 
-  Save, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
+import {
+  ArrowLeft,
+  Save,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
   FileText,
   User,
   CreditCard,
-  History
+  History,
+  RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
   const router = useRouter();
   const [status, setStatus] = useState(invoice.status);
   const [loading, setLoading] = useState(false);
+  const [resyncing, setResyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
@@ -63,6 +65,24 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
       setStatus(invoice.status); // Reset on error
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResync = async () => {
+    setResyncing(true);
+    try {
+      const response = await fetch(`/api/admin/invoices/${invoice.id}/resync`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to queue re-sync");
+      }
+      toast.success("Re-sync queued — n8n will process it shortly");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setResyncing(false);
     }
   };
 
@@ -275,7 +295,7 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
               <div className="space-y-4 pt-4 border-t">
                 <div className="flex items-start gap-3">
                   <div className={xero.color}>{xero.icon}</div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1">
                     <div className={`text-sm font-bold ${xero.color}`}>{xero.label}</div>
                     <p className="text-xs text-secondary-text">{xero.description}</p>
                     {xero.id && (
@@ -285,11 +305,23 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
                     )}
                   </div>
                 </div>
+                {!invoice.xeroSynced && invoice.status !== "VOID" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={handleResync}
+                    disabled={resyncing}
+                  >
+                    <RefreshCw className={`mr-2 h-4 w-4 ${resyncing ? "animate-spin" : ""}`} />
+                    {resyncing ? "Queuing..." : "Re-sync to Xero"}
+                  </Button>
+                )}
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 onClick={handleSaveStatus}
                 disabled={status === invoice.status || loading}
               >

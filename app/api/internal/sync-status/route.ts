@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   try {
     const secret = request.headers.get("X-Internal-Secret");
     const body = await request.json();
-    const { invoiceId, xeroInvoiceId } = body;
+    const { invoiceId, xeroInvoiceId, eventKey } = body;
 
     if (!invoiceId || !xeroInvoiceId) {
       return NextResponse.json(
@@ -15,18 +15,29 @@ export async function POST(request: Request) {
     }
 
     const environment = process.env.WEBHOOK_ENVIRONMENT || process.env.NODE_ENV || "development";
+    const allowedKeys = ["invoice.submitted", "invoice.updated"];
+    const candidateKeys = eventKey && allowedKeys.includes(eventKey)
+      ? [eventKey]
+      : allowedKeys;
 
-    // Fetch the webhook config that corresponds to the event that triggered n8n
-    const config = await db.webhookConfig.findUnique({
-      where: {
-        key_environment: {
-          key: "invoice.submitted",
-          environment,
+    let config = null;
+    for (const key of candidateKeys) {
+      const candidate = await db.webhookConfig.findUnique({
+        where: {
+          key_environment: {
+            key,
+            environment,
+          },
         },
-      },
-    });
+      });
 
-    if (!config || !config.internalSecret || config.internalSecret !== secret) {
+      if (candidate && candidate.internalSecret === secret) {
+        config = candidate;
+        break;
+      }
+    }
+
+    if (!config) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -23,6 +23,10 @@ interface ProfileFormProps {
     paymentMethod: string | null;
     paymentAccount: string | null;
     paymentNotes: string | null;
+    bankName: string | null;
+    swiftCode: string | null;
+    postCode: string | null;
+    secondaryPayment: string | null;
   };
 }
 
@@ -205,6 +209,59 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               onChange={handleChange}
               disabled={loading}
               placeholder="Any additional instructions for the finance team"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Banking Details</CardTitle>
+          <CardDescription>Detailed information for international bank transfers</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="bankName">Bank Name</Label>
+              <Input
+                id="bankName"
+                value={formData.bankName || ""}
+                onChange={handleChange}
+                disabled={loading}
+                placeholder="e.g. PING AN BANK CO.,LTD"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="swiftCode">SWIFT / BIC Code</Label>
+              <Input
+                id="swiftCode"
+                value={formData.swiftCode || ""}
+                onChange={handleChange}
+                disabled={loading}
+                placeholder="e.g. SZDBCNBS"
+              />
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="postCode">Post Code</Label>
+              <Input
+                id="postCode"
+                value={formData.postCode || ""}
+                onChange={handleChange}
+                disabled={loading}
+                placeholder="e.g. 518000"
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="secondaryPayment">Secondary Payment Method (Optional)</Label>
+            <Textarea
+              id="secondaryPayment"
+              value={formData.secondaryPayment || ""}
+              onChange={handleChange}
+              disabled={loading}
+              placeholder="e.g. AliPay: 86-13424371741 / user@email.com"
             />
           </div>
         </CardContent>

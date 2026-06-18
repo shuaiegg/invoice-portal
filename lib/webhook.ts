@@ -38,6 +38,7 @@ export function dispatchWebhook(
         method: "POST",
         headers,
         body: JSON.stringify({
+          eventKey: key,
           ...payload,
           timestamp: new Date().toISOString(),
           environment,

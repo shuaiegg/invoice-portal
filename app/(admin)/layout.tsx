@@ -19,14 +19,19 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  // JWT is minted before DB hooks fire; read role from DB for accuracy
-  const dbUser = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
+  // Smart role check: Skip DB role lookup if JWT already says ADMIN
+  const sessionUserRole = (session.user as any).role;
+  
+  if (sessionUserRole !== "ADMIN") {
+    // JWT says WORKER — could be stale (first-user case). Check DB.
+    const dbUser = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
 
-  if (dbUser?.role !== "ADMIN") {
-    redirect("/dashboard");
+    if (dbUser?.role !== "ADMIN") {
+      redirect("/dashboard");
+    }
   }
 
   return (
