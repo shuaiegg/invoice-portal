@@ -20,7 +20,10 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
   const { worker } = invoice;
 
   const handlePrint = () => {
+    const original = document.title;
+    document.title = `${worker.name}-${invoice.invoiceNumber}`;
     window.print();
+    document.title = original;
   };
 
   const handleRevoke = async () => {
@@ -72,7 +75,7 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto pb-12">
+    <div className="space-y-8 max-w-4xl mx-auto pb-12 print:max-w-none print:pb-0 print:space-y-0">
       {/* Action Bar - Hidden during print */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div className="flex items-center gap-4">
@@ -113,9 +116,9 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
 
       {/* Invoice Content */}
       <Card className="shadow-lg print:shadow-none print:border-none">
-        <CardContent className="p-8 sm:p-12 space-y-12">
+        <CardContent className="p-8 sm:p-12 space-y-12 print:space-y-6 invoice-print-card">
           {/* Header */}
-          <div className="flex justify-between items-start border-b pb-8">
+          <div className="flex justify-between items-start border-b pb-8 print:pb-4">
             <div className="space-y-4">
               <div className="space-y-1">
                 <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">BILLED TO</div>
@@ -248,19 +251,24 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
           .no-print {
             display: none !important;
           }
-          body {
-            background-color: white !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          .print\\:shadow-none {
-            box-shadow: none !important;
-          }
-          .print\\:border-none {
-            border: none !important;
-          }
+
+          /* Remove browser URL/date header and footer */
           @page {
-            margin: 1.5cm;
+            size: A4;
+            margin: 0;
+          }
+
+          html, body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* The card itself becomes the A4 page with controlled padding */
+          .invoice-print-card {
+            padding: 1.5cm 2cm !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
           }
         }
       `}</style>

@@ -9,7 +9,7 @@ export default function WorkerLayout({
 }) {
   return (
     <div className="min-h-screen bg-accent/30">
-      <nav className="bg-white border-b border-border sticky top-0 z-10">
+      <nav className="bg-white border-b border-border sticky top-0 z-10 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
@@ -47,7 +47,7 @@ export default function WorkerLayout({
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 print:max-w-none print:p-0">
         {children}
       </main>
     </div>
