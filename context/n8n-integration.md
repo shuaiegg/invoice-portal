@@ -1,234 +1,197 @@
-# n8n 集成配置指南
+# n8n 通知集成配置指南
 
-本文档描述 Invoice Portal 与 n8n 之间的所有接口约定，供搭建 n8n 工作流时参考。
+本文档描述 Invoice Portal 与 n8n 之间的接口约定。
+
+当前架构决策：
+
+- Xero 由 Portal 直接同步。
+- Time Doctor 由 Portal 直接轮询/同步。
+- Wise 由 Portal 直接调用 API，并由 Portal 直接接收 Wise webhook。
+- n8n 只负责通知，不负责财务状态、不负责付款、不负责会计写入。
 
 ---
 
 ## 架构概览
 
-```
-Worker 提交发票
-  └─→ Next.js API (/api/invoices)
-        └─→ fire-and-forget POST → n8n Webhook Trigger
-                                       └─→ 创建 Xero 草稿账单
-                                       └─→ 发 Slack 通知
-                                       └─→ 回调 Next.js /api/internal/sync-status
+```text
+Worker / Admin action
+  -> Invoice Portal
+      -> Portal writes DB state
+      -> Portal syncs Xero directly when required
+      -> Portal polls Time Doctor directly when required
+      -> Portal calls Wise directly when required
+      -> Portal emits notification event to n8n
+          -> n8n sends Slack/email notifications
 ```
 
-n8n 工作流只由 **Webhook Trigger** 启动，Next.js 不使用 n8n API 触发任何执行。
+n8n 工作流只由 **Webhook Trigger** 启动。Portal 不使用 n8n API 触发执行。
 
 ---
 
-## 一、Portal → n8n（出站 Webhook）
+## 一、n8n 的职责边界
 
-### 1.1 触发时机与事件 Key
+### n8n 可以做
 
-| 事件 Key           | 触发时机                                       |
-|--------------------|------------------------------------------------|
-| `invoice.submitted`| Worker 首次提交发票                            |
-| `invoice.updated`  | Worker 修改已提交（SUBMITTED）发票后重新保存   |
-| `invoice.revoked`  | Worker 主动撤回一张 SUBMITTED 状态的发票       |
+- Slack 通知
+- Email 通知
+- Finance channel 摘要消息
+- Operational reminders
+- 失败告警 fan-out
 
-> **注意**：Portal 以 fire-and-forget 方式 POST，不等待 n8n 响应，不重试。n8n 工作流本身负责错误重试。
+### n8n 不可以做
 
-### 1.2 请求格式
+- 创建或更新 Xero invoice/bill
+- 回调 Portal 更新 Xero sync status
+- 调用 Wise 创建 quote/recipient/transfer/payment
+- 接收 Wise webhook 并把 invoice 标记为 Paid
+- 读取 Time Doctor 并生成 invoice
+- 修改 Portal 中的 invoice/payment/accounting 状态
+- 作为财务审计 source of truth
 
+原则：
+
+```text
+All financial source-of-truth writes happen in Portal.
+n8n is notification-only.
 ```
-POST <在 Admin → Settings → Webhooks 中配置的 URL>
+
+---
+
+## 二、Portal -> n8n 出站 Webhook
+
+Portal 以 fire-and-forget 方式把通知事件发送给 n8n。
+
+通知失败不应阻塞主流程：
+
+- invoice 创建成功不依赖 n8n。
+- Xero sync 成功不依赖 n8n。
+- Wise payment 状态更新不依赖 n8n。
+- n8n 失败时，Portal 应在本地记录或日志中保留错误，但不回滚财务状态。
+
+### 请求格式
+
+```http
+POST <Admin Settings 中配置的 n8n Webhook URL>
 Content-Type: application/json
-X-Webhook-Secret: <在 Admin Settings 中设置的 secret>（如未配置则无此 header）
+X-Webhook-Secret: <optional shared secret>
 ```
 
-### 1.3 Payload 结构（大部分字段一致）
-
-`eventKey` 会告诉 n8n 当前事件类型；`updatedAt` 会在 `invoice.submitted` 和 `invoice.updated` 中出现，用于 stale webhook 去重。
+### 通用 Payload
 
 ```json
 {
   "eventKey": "invoice.submitted",
-  "invoiceId": "clxxx...",
-  "invoiceNumber": "INV-2026-0008",
-  "updatedAt": "2026-06-17T11:29:30.000Z",
-  "worker": {
-    "id": "clxxx...",
-    "name": "Test Worker",
-    "email": "worker@example.com",
-    "address": "123 Rue de la Paix",
-    "city": "Paris",
-    "country": "France",
-    "vatNumber": "FR12345678901"
+  "eventId": "evt_clxxx",
+  "timestamp": "2026-07-07T10:00:00.000Z",
+  "environment": "production",
+  "actor": {
+    "id": "user_clxxx",
+    "name": "Jack",
+    "role": "ADMIN"
   },
   "invoice": {
-    "description": "Software development services for June 2026",
+    "id": "inv_clxxx",
+    "invoiceNumber": "INV-2026-0008",
     "period": "June 2026",
-    "quantity": 20,
-    "rate": 250,
-    "subtotal": 5000.00,
-    "vatAmount": 1000.00,
-    "totalAmount": 6000.00,
+    "status": "APPROVED",
+    "totalAmount": 6000,
     "currency": "EUR",
-    "invoiceDate": "2026-06-17T00:00:00.000Z"
+    "xeroSynced": true
   },
-  "xeroInvoiceId": null,
-  "timestamp": "2026-06-17T11:30:00.000Z",
-  "environment": "production"
+  "worker": {
+    "id": "worker_clxxx",
+    "name": "Test Worker",
+    "email": "worker@example.com",
+    "team": "Engineering"
+  },
+  "message": {
+    "title": "Invoice approved",
+    "summary": "INV-2026-0008 approved for 6000 EUR"
+  }
 }
 ```
 
-**字段说明**：
+Payload rules:
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `invoiceId` | string | Portal 数据库中的发票 ID，回调时需要 |
-| `invoiceNumber` | string | 格式 `INV-{YYYY}-{NNNN}` |
-| `worker.email` | string | 联系邮箱 |
-| `worker.vatNumber` | string \| null | 有的 Worker 没有 VAT 号 |
-| `invoice.subtotal` | number | 税前金额（EUR） |
-| `invoice.vatAmount` | number | VAT 金额 |
-| `invoice.totalAmount` | number | 含税总额，即 subtotal + vatAmount |
-| `invoice.invoiceDate` | ISO 8601 | UTC，显示时用 Europe/Paris 时区 |
-| `xeroInvoiceId` | string \| null | 已同步到 Xero 的账单 ID，首次提交时为 null |
-| `eventKey` | string | 事件标识，等于 `invoice.submitted` / `invoice.updated` / `invoice.revoked` |
-| `updatedAt` | ISO 8601 | 发票上一轮更新时间；`invoice.submitted` 和 `invoice.updated` 事件会包含它，用于 stale webhook 去重 |
-| `timestamp` | ISO 8601 | Webhook 发出时刻（UTC） |
-| `environment` | string | `production` 或 `development` |
+- Include enough display data for notification formatting.
+- Do not include secrets, full bank details, Wise tokens, Xero tokens, or raw payment credentials.
+- Include IDs so Slack messages can link back to Portal.
+- Include `environment` so n8n can ignore development events in production workflows.
 
 ---
 
-## 二、n8n → Portal（回调：invoice.submitted 和 invoice.updated）
+## 三、Recommended Event Keys
 
-发票在 Xero 创建成功后，n8n 需要回调 Portal，更新同步状态。`invoice.submitted` 和 `invoice.updated` 工作流都应使用同一个接口，并在 body 中携带 `eventKey`。回调将依据 `eventKey` 或 `internalSecret` 确认请求来源。
+### Invoice lifecycle
 
-### 2.1 接口
+| Event Key | Trigger | Suggested recipient |
+| --- | --- | --- |
+| `invoice.submitted` | Worker manually submits invoice | Finance channel |
+| `invoice.updated` | Worker updates editable invoice | Finance channel, if review relevant |
+| `invoice.revoked` | Worker voids/revokes submitted invoice | Finance channel |
+| `invoice.generated` | Portal generates invoice from Time Doctor | Worker/developer |
+| `invoice.review_requested` | Worker/developer submits adjustments for review | Felipe/Finance reviewer |
+| `invoice.returned` | Finance returns invoice for changes | Worker/developer |
+| `invoice.approved` | Finance approves invoice | Finance channel |
+| `invoice.paid` | Portal records payment | Worker + Finance channel |
+| `invoice.voided` | Admin voids invoice | Finance channel |
 
-```
-POST https://<your-domain>/api/internal/sync-status
-Content-Type: application/json
-X-Internal-Secret: <internalSecret（在 Admin Settings 中配置）>
-```
+### Integration lifecycle
 
-### 2.2 Request Body
-
-```json
-{
-  "invoiceId": "clxxx...",
-  "xeroInvoiceId": "INV-XERO-0001",
-  "eventKey": "invoice.updated"
-}
-```
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `invoiceId` | string | 从 Webhook payload 中取 `invoiceId` |
-| `xeroInvoiceId` | string | Xero 创建草稿账单后返回的 InvoiceID |
-| `eventKey` | string | 所触发的事件，`invoice.submitted` 或 `invoice.updated`；用于校验正确的 `internalSecret` |
-
-### 2.3 响应
-
-- `200 OK` `{ "success": true }` — 更新成功
-- `400` — 缺少 `invoiceId` 或 `xeroInvoiceId`
-- `401` — `X-Internal-Secret` 不匹配或未配置
+| Event Key | Trigger | Suggested recipient |
+| --- | --- | --- |
+| `xero.sync_succeeded` | Portal successfully syncs Xero | Optional finance log |
+| `xero.sync_failed` | Portal fails to sync Xero | Admin/Finance alert |
+| `timedoctor.sync_completed` | Scheduled sync completes | Admin/Finance summary |
+| `timedoctor.sync_failed` | Scheduled sync fails | Admin alert |
+| `wise.payment_run_created` | Portal creates a payment run | Finance channel |
+| `wise.payment_sent` | Wise webhook confirms outgoing payment sent | Worker + Finance channel |
+| `wise.payment_failed` | Wise transfer/payment fails | Admin/Finance alert |
 
 ---
 
-## 三、Admin Settings 中的 WebhookConfig
+## 四、n8n Workflow Pattern
 
-在 **Admin → Settings → Webhooks** 页面中为每个事件配置：
+推荐每类通知用一个 webhook workflow，或者一个总入口根据 `eventKey` 分流。
 
-| 字段 | 用途 | 示例 |
-|------|------|------|
-| **URL** | n8n Webhook Trigger 的 URL（Production 模式下为 `/webhook/...`，Test 模式为 `/webhook-test/...`） | `https://n8n.yourdomain.com/webhook/invoice-submitted` |
-| **X-Webhook-Secret** | Portal 发出请求时携带的 header，n8n 用于验证来源（可选） | `my-shared-secret-xyz` |
-| **Internal Secret** | n8n 回调 `/api/internal/sync-status` 时携带的 `X-Internal-Secret` header | `callback-secret-abc` |
-
-> **两个 Secret 的区别**：
-> - `X-Webhook-Secret` — Portal 出站时携带，n8n 验证"请求真的来自 Portal"
-> - `X-Internal-Secret` — n8n 回调时携带，Portal 验证"回调真的来自 n8n"
-
----
-
-## 四、推荐 n8n 工作流结构
-
-### 4.1 invoice.submitted 工作流
-
-```
+```text
 [Webhook Trigger]
-    ↓ 验证 X-Webhook-Secret（可选）
-[If] xeroInvoiceId != null → 跳过（已同步，可能是重发）
-    ↓
-[Xero — Create Invoice]
-    → Contact Name: {{ $json.worker.name }}
-    → Reference: {{ $json.invoiceNumber }}
-    → Line Item Desc: {{ $json.invoice.description }}
-    → Quantity: {{ $json.invoice.quantity }}
-    → Unit Amount: {{ $json.invoice.rate }}
-    → Tax Amount: {{ $json.invoice.vatAmount }}
-    → Total: {{ $json.invoice.totalAmount }}
-    → Due Date: +30 days from invoiceDate
-    ↓
-[HTTP Request] POST /api/internal/sync-status
-    → Header: X-Internal-Secret: <internalSecret>
-    → Body: { invoiceId, xeroInvoiceId }
-    ↓
-[Slack — Send Message]
-    → Channel: #finance
-    → 消息模板见下方
+    -> Verify X-Webhook-Secret
+    -> If environment is allowed
+    -> Switch on eventKey
+    -> Format Slack/email message
+    -> Send notification
 ```
 
-**Slack 消息模板示例**：
-```
-📄 New invoice submitted
-*{{ $json.worker.name }}* | {{ $json.invoice.period }}
-Amount: {{ $json.invoice.totalAmount }} {{ $json.invoice.currency }}
-Invoice #: {{ $json.invoiceNumber }}
-Xero: Created ✅
-```
-
-### 4.2 invoice.updated 工作流
-
-```
-[Webhook Trigger]
-    ↓
-[If] xeroInvoiceId != null
-    → [Xero — Update Invoice]（用 xeroInvoiceId 定位）
-[Else]
-    → [Xero — Create Invoice]（首次 update，Xero 还没有记录）
-    ↓
-[HTTP Request] POST /api/internal/sync-status（如新建了 Xero 账单）
-```
-
-### 4.3 invoice.revoked 工作流
-
-```
-[Webhook Trigger]
-    ↓
-[If] xeroInvoiceId != null
-    → [Xero — Void Invoice]
-    ↓
-[Slack] 通知 #finance：Invoice {{ $json.invoiceNumber }} revoked
-```
+n8n workflow 不应调用 Portal 的 write APIs。  
+如果未来需要通知重发，应该调用只读 endpoint 获取展示数据，或者由 Portal 重新发 notification event。
 
 ---
 
 ## 五、环境区分
 
-Portal 发出的 Webhook 包含 `environment` 字段（`"production"` 或 `"development"`）。
+Portal 发出的 webhook 包含 `environment` 字段。
 
 环境由以下优先级决定：
-1. 环境变量 `WEBHOOK_ENVIRONMENT`（如设置）
-2. `NODE_ENV`（Next.js 默认 `production` 在 Vercel 上）
 
-**建议配置**：
-- 在 Admin Settings 中为 `development` 和 `production` 分别设置不同的 n8n URL（`/webhook-test/...` vs `/webhook/...`）
-- 在 n8n 工作流中加 If 节点过滤 `environment`，防止开发数据进入正式 Xero
+1. `WEBHOOK_ENVIRONMENT`
+2. `NODE_ENV`
+3. fallback: `development`
+
+建议：
+
+- development 使用 n8n test webhook URL。
+- production 使用 n8n production webhook URL。
+- n8n workflow 必须检查 `environment`，避免开发数据进入正式 Slack channel。
 
 ---
 
 ## 六、快速检查清单
 
-- [ ] Admin Settings → Webhooks → `invoice.submitted` 的 URL 已填入 n8n Production Webhook URL
-- [ ] `X-Webhook-Secret` 与 n8n Webhook Trigger 中设置的 Header Auth 一致
-- [ ] `Internal Secret` 与 n8n HTTP Request 节点发出的 `X-Internal-Secret` 一致
-- [ ] n8n 工作流中 `/api/internal/sync-status` 的回调 URL 指向 Portal 的正式域名
-- [ ] Xero OAuth2 凭证已在 n8n Credentials 中配置
-- [ ] Slack Bot Token 已在 n8n Credentials 中配置
+- [ ] Admin Settings 中配置 notification webhook URL。
+- [ ] `X-Webhook-Secret` 与 n8n workflow 校验值一致。
+- [ ] n8n workflow 只发送通知，不调用 Xero/Wise/Time Doctor。
+- [ ] n8n workflow 不调用 Portal write APIs。
+- [ ] 所有 notification payload 不包含 tokens、bank details、payment secrets。
+- [ ] Slack message 包含 Portal 链接，方便 Finance 回到系统处理。
+- [ ] production workflow 会过滤非 production events。

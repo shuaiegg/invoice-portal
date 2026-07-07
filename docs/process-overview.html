@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worker Invoice Portal — Process & Roadmap</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --primary:    #2563eb;
+      --primary-lt: #eff6ff;
+      --success:    #16a34a;
+      --success-lt: #f0fdf4;
+      --warning:    #d97706;
+      --warning-lt: #fffbeb;
+      --danger:     #dc2626;
+      --danger-lt:  #fef2f2;
+      --gray-50:    #f9fafb;
+      --gray-100:   #f3f4f6;
+      --gray-200:   #e5e7eb;
+      --gray-400:   #9ca3af;
+      --gray-600:   #4b5563;
+      --gray-800:   #1f2937;
+      --gray-900:   #111827;
+      --radius:     10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--gray-800);
+      background: var(--gray-50);
+    }
+
+    /* ── Layout ── */
+    .page { max-width: 1400px; margin: 0 auto; padding: 48px 32px 80px; }
+
+    /* ── Header ── */
+    .doc-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      color: #fff;
+      padding: 48px 40px 40px;
+      border-radius: var(--radius);
+      margin-bottom: 40px;
+    }
+    .doc-header .tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .doc-header h1 { font-size: 32px; font-weight: 700; margin-bottom: 10px; }
+    .doc-header p  { opacity: 0.85; font-size: 15px; max-width: 640px; }
+    .doc-header .meta {
+      margin-top: 24px;
+      display: flex; gap: 32px;
+      font-size: 13px; opacity: 0.75;
+    }
+
+    /* ── Section ── */
+    section { margin-bottom: 40px; }
+    .section-title {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px; padding-bottom: 12px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .section-title .num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; flex-shrink: 0;
+    }
+    .section-title h2 { font-size: 22px; font-weight: 700; color: var(--gray-900); }
+    .section-title p  { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .card-title {
+      font-size: 15px; font-weight: 600;
+      color: var(--gray-900); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── Pain point chips ── */
+    .pain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media(max-width:680px){ .pain-grid { grid-template-columns: 1fr; } }
+    .pain-item {
+      background: var(--danger-lt);
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .pain-item .icon { margin-right: 6px; }
+
+    /* ── Stat pills ── */
+    .stat-row { display: flex; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+    .stat-pill {
+      background: var(--gray-100);
+      border-radius: 8px;
+      padding: 10px 16px;
+      text-align: center;
+    }
+    .stat-pill .val { font-size: 22px; font-weight: 700; color: var(--primary); }
+    .stat-pill .lbl { font-size: 11px; color: var(--gray-600); text-transform: uppercase; letter-spacing: .04em; }
+
+    /* ── Mermaid wrapper ── */
+    .diagram-wrap {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 14px 12px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+    .diagram-label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--gray-400);
+      margin-bottom: 10px;
+    }
+
+    /* ── Comparison table ── */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:720px){ .compare-grid { grid-template-columns: 1fr; } }
+    .compare-col { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--gray-200); }
+    .compare-col .col-head {
+      padding: 14px 18px;
+      font-weight: 600; font-size: 14px;
+    }
+    .compare-col.before .col-head { background: #fef2f2; color: var(--danger); }
+    .compare-col.after  .col-head { background: var(--success-lt); color: var(--success); }
+    .compare-col ul { padding: 14px 18px; list-style: none; }
+    .compare-col ul li {
+      padding: 7px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+    .compare-col ul li:last-child { border-bottom: none; }
+
+    /* ── Manual remains table ── */
+    .remains-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .remains-table th {
+      background: var(--gray-100); text-align: left;
+      padding: 10px 14px; font-size: 12px;
+      text-transform: uppercase; letter-spacing: .05em;
+      color: var(--gray-600); border-bottom: 2px solid var(--gray-200);
+    }
+    .remains-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: top;
+    }
+    .remains-table tr:last-child td { border-bottom: none; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-auto    { background: var(--success-lt); color: var(--success); }
+    .badge-manual  { background: var(--warning-lt); color: var(--warning); }
+    .badge-partial { background: var(--primary-lt); color: var(--primary); }
+
+    /* ── Roadmap ── */
+    .roadmap { position: relative; padding-left: 40px; }
+    .roadmap::before {
+      content: '';
+      position: absolute; left: 12px; top: 8px;
+      width: 2px; bottom: 8px;
+      background: var(--gray-200);
+    }
+    .rm-phase { position: relative; margin-bottom: 32px; }
+    .rm-dot {
+      position: absolute; left: -40px; top: 4px;
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      border: 2px solid #fff;
+    }
+    .rm-dot.done     { background: var(--success); color: #fff; box-shadow: 0 0 0 3px #bbf7d0; }
+    .rm-dot.active   { background: var(--primary); color: #fff; box-shadow: 0 0 0 3px #bfdbfe; }
+    .rm-dot.upcoming { background: #fff; color: var(--gray-400); border: 2px solid var(--gray-200); }
+
+    .rm-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 10px;
+    }
+    .rm-title { font-weight: 700; font-size: 15px; color: var(--gray-900); }
+    .rm-date  { font-size: 12px; color: var(--gray-400); }
+    .rm-tag   {
+      margin-left: auto;
+      font-size: 11px; padding: 2px 10px;
+      border-radius: 20px; font-weight: 600;
+    }
+    .rm-tag.done     { background: var(--success-lt); color: var(--success); }
+    .rm-tag.active   { background: var(--primary-lt); color: var(--primary); }
+    .rm-tag.upcoming { background: var(--gray-100);   color: var(--gray-600); }
+
+    .rm-items {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .rm-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 13px;
+    }
+    .rm-item:last-child { border-bottom: none; }
+    .rm-item .check { flex-shrink: 0; margin-top: 2px; }
+
+    /* ── Security ── */
+    .security-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:720px){ .security-grid { grid-template-columns: 1fr; } }
+    .sec-card {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .sec-card .sec-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; margin-bottom: 12px;
+    }
+    .sec-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--gray-900); }
+    .sec-card p  { font-size: 13px; color: var(--gray-600); line-height: 1.55; }
+    .sec-card .detail {
+      margin-top: 10px; padding: 10px;
+      background: var(--gray-50); border-radius: 6px;
+      font-size: 12px; font-family: monospace; color: var(--gray-600);
+    }
+    .sec-card .risk-label {
+      display: inline-block; margin-top: 10px;
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .risk-critical { background: #fef2f2; color: var(--danger); }
+    .risk-high     { background: var(--warning-lt); color: var(--warning); }
+    .risk-medium   { background: var(--primary-lt); color: var(--primary); }
+
+    /* ── Approval flow ── */
+    .approval-steps {
+      display: flex; gap: 0; overflow-x: auto;
+      margin: 16px 0;
+    }
+    .ap-step {
+      flex: 1; min-width: 130px;
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      padding: 14px;
+      position: relative;
+      text-align: center;
+      font-size: 12px;
+    }
+    .ap-step:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+    .ap-step:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
+    .ap-step + .ap-step  { border-left: none; }
+    .ap-step .ap-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px;
+    }
+    .ap-step .ap-title { font-weight: 600; color: var(--gray-900); margin-bottom: 4px; }
+    .ap-step.human .ap-num { background: var(--warning); }
+    .ap-step.human { background: var(--warning-lt); }
+    .ap-step.auto  { background: var(--primary-lt); }
+    .human-label {
+      font-size: 10px; color: var(--warning); font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .auto-label {
+      font-size: 10px; color: var(--primary); font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+
+    /* ── Time saved banner ── */
+    .time-saved {
+      background: linear-gradient(135deg, #14532d, #16a34a);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      display: flex; align-items: center; gap: 32px;
+      margin: 24px 0;
+      flex-wrap: wrap;
+    }
+    .time-saved .big { font-size: 48px; font-weight: 800; line-height: 1; }
+    .time-saved .sub { font-size: 14px; opacity: .8; margin-top: 4px; }
+    .time-saved .detail-list { font-size: 13px; opacity: .9; }
+    .time-saved .detail-list li { margin: 4px 0; }
+
+    /* Print */
+    @media print {
+      body  { background: #fff; }
+      .page { padding: 24px 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Header ── -->
+  <div class="doc-header">
+    <div class="tag">Internal Document</div>
+    <h1>Worker Invoice Portal</h1>
+    <p>Process transformation overview — current manual workflow, automated future state, project roadmap, and security framework.</p>
+    <div class="meta">
+      <span>📅 Last updated: July 2026</span>
+      <span>👥 Stakeholders: Lorena · Nataly · Felipe · Jack</span>
+      <span>🏗 Status: Phase 0 Complete · Phase 1 Planned</span>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 1 — CURRENT MANUAL PROCESS
+  ══════════════════════════════════════════════════════════ -->
+  <section id="current">
+    <div class="section-title">
+      <div class="num">1</div>
+      <div>
+        <h2>Current Manual Process</h2>
+        <p>How payments and invoicing are handled today — before the platform</p>
+      </div>
+    </div>
+
+    <!-- Pain points -->
+    <div class="card" style="margin-bottom:20px; border-color:#fca5a5; background:#fff5f5;">
+      <div class="card-title" style="color:var(--danger)">⚠️ Current Pain Points</div>
+      <div class="pain-grid">
+        <div class="pain-item"><span class="icon">⏱️</span> Manually chasing employees who haven't submitted invoices — often 1–2 hours of back-and-forth messages per month</div>
+        <div class="pain-item"><span class="icon">📊</span> Maintaining a separate Excel spreadsheet to track who has been paid and who submitted invoices</div>
+        <div class="pain-item"><span class="icon">🔢</span> Time zone differences between Time Doctor and employee dashboards cause hour discrepancies</div>
+        <div class="pain-item"><span class="icon">📁</span> Manually downloading invoices and sending the monthly folder to Nataly for Xero upload</div>
+        <div class="pain-item"><span class="icon">🔍</span> Manually verifying each invoice's hours and rate against Time Doctor before approving payment</div>
+        <div class="pain-item"><span class="icon">🔄</span> Separate workflows for automatic vs manual payments with no single source of truth</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-pill"><div class="val">8h+</div><div class="lbl">Finance hours / month</div></div>
+        <div class="stat-pill"><div class="val">200+</div><div class="lbl">Workers to track</div></div>
+        <div class="stat-pill"><div class="val">2</div><div class="lbl">Separate tracking tools</div></div>
+        <div class="stat-pill"><div class="val">∞</div><div class="lbl">Back-and-forth messages</div></div>
+      </div>
+    </div>
+
+    <!-- Flow 1A: Automatic payments -->
+    <div class="diagram-label">Flow 1A — Automatic Payments (Wise / IBAN / India / Philippines)</div>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    A([🗓️ Month Start — Day 1]) --> B["📥 Download TD export\n(hours · rate · bank details)"]
+    B --> C["💸 Upload to Wise\nBatch auto-payments"]
+    C --> D["📊 Update Excel\ntracking sheet"]
+    D --> E{{"❓ Invoice\nsubmitted?"}}
+    E -- "✅ Yes" --> F["📋 Verify invoice\nvs TD data"]
+    E -- "❌ No" --> G["💬 Chase employee\nfor invoice"]
+    G --> H["⏳ Wait..."]
+    H --> E
+    F --> I{{"✅ Data\ncorrect?"}}
+    I -- "❌ Mismatch" --> J["💬 Request\ncorrection"]
+    J --> F
+    I -- "✅ Match" --> K["🟢 Mark green\nin Excel"]
+    K --> L["💾 Save PDF to\nmonthly folder"]
+    L --> M{{"More?"}}
+    M -- "Yes" --> E
+    M -- "No" --> N["📤 Send folder\nto Nataly"]
+    N --> O["📚 Nataly uploads\nto Xero manually"]
+    O --> P([✅ Month Complete])
+
+    style A fill:#dbeafe,stroke:#93c5fd
+    style P fill:#dcfce7,stroke:#86efac
+    style G fill:#fef3c7,stroke:#fcd34d
+    style J fill:#fef3c7,stroke:#fcd34d
+    style O fill:#fee2e2,stroke:#fca5a5
+    style N fill:#fee2e2,stroke:#fca5a5
+      </div>
+    </div>
+
+    <!-- Flow 1B: Manual payments -->
+    <div class="diagram-label">Flow 1B — Manual Payments (Developers · Colombia · USD · Additional Compensation)</div>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    A(["📨 Receive invoice"]) --> B["🔍 Verify vs TD\nhours · rate · period"]
+    B --> C{{"Data\ncorrect?"}}
+    C -- "❌ No" --> D["💬 Request\ncorrection"]
+    D --> B
+    C -- "✅ Yes" --> E{{"Payment\nmethod?"}}
+    E -- "Wise" --> F["💳 Manual transfer\nin Wise"]
+    E -- "Revolut" --> G["💳 Manual in\nRevolut"]
+    E -- "Crypto" --> H["₿ Send crypto"]
+    F --> I["📥 Download receipt"]
+    G --> I
+    H --> I
+    I --> J["💾 Save to\nmonthly folder"]
+    J --> K(["📤 Folder → Nataly\n→ Xero upload"])
+
+    style A fill:#dbeafe,stroke:#93c5fd
+    style K fill:#fee2e2,stroke:#fca5a5
+    style D fill:#fef3c7,stroke:#fcd34d
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 2 — AUTOMATED FUTURE PROCESS
+  ══════════════════════════════════════════════════════════ -->
+  <section id="future">
+    <div class="section-title">
+      <div class="num">2</div>
+      <div>
+        <h2>Automated Future Process</h2>
+        <p>What the workflow looks like once the full platform is in place</p>
+      </div>
+    </div>
+
+    <!-- Time saved banner -->
+    <div class="time-saved">
+      <div>
+        <div class="big">~7h</div>
+        <div class="sub">saved per month for Finance</div>
+      </div>
+      <div class="detail-list">
+        <ul>
+          <li>✅ No more Excel tracking spreadsheet</li>
+          <li>✅ No more chasing employees for invoices</li>
+          <li>✅ No more manual Xero uploads (Nataly)</li>
+          <li>✅ No more verifying TD hours vs invoice manually</li>
+          <li>✅ Workers notified automatically when paid</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Automated flow -->
+    <div class="diagram-label">Flow 2 — Automated Payment Cycle (Phase 3 Complete)</div>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '36px'}, 'flowchart': {'nodeSpacing': 560, 'rankSpacing': 120}}}%%
+flowchart LR
+    A([🤖 Vercel Cron · 1st of month]) --> B["📡 Pull from\nTime Doctor API"]
+    B --> C["📄 Auto-generate invoices\nper matched employee"]
+    C --> D["🔔 Slack alert to Lorena\n'152 invoices · €58,400'"]
+    D --> E["👀 Lorena reviews\nAdmin Dashboard"]
+    E --> F{{"Review\nOK?"}}
+    F -- "⚠️ Anomaly" --> G["🔍 Review &\nadjust"]
+    G --> E
+    F -- "✅ Approve" --> H{{"Payment\ntype?"}}
+    H -- "Wise / IBAN" --> I["🏦 Platform creates\nWise transfers (Step 1–3)"]
+    H -- "Crypto / PayPal" --> J["💬 Lorena pays\nmanually"]
+    I --> IM{{"Payment\nMode?"}}
+    IM -- "Safe baseline" --> IA["👩 Finance pays externally\nthen records in Portal"]
+    IM -- "Future API mode" --> IB["⚡ Portal funds via Wise API\nafter verified spike"]
+    IA --> L["📬 Wise Webhook\noutgoing_payment_sent"]
+    IB --> L
+    L --> M["✅ Invoice auto-marked\nPAID"]
+    J --> N["✅ Lorena marks\nPaid in platform"]
+    M --> O["🔄 Xero auto-synced"]
+    N --> O
+    O --> P["📲 Worker email:\ninvoice paid"]
+    O --> Q["💬 Slack #finance\nrun complete"]
+    P --> R([✅ Month Complete])
+    Q --> R
+
+    style A fill:#dbeafe,stroke:#3b82f6
+    style R fill:#dcfce7,stroke:#86efac
+    style E fill:#fef3c7,stroke:#fcd34d
+    style F fill:#fef3c7,stroke:#fcd34d
+    style G fill:#fef3c7,stroke:#fcd34d
+    style IM fill:#f3e8ff,stroke:#c084fc
+    style IA fill:#fef3c7,stroke:#fcd34d
+    style IB fill:#dbeafe,stroke:#93c5fd
+    style L fill:#dbeafe,stroke:#93c5fd
+    style M fill:#dcfce7,stroke:#86efac
+    style N fill:#fef3c7,stroke:#fcd34d
+      </div>
+    </div>
+
+    <!-- Remaining manual work -->
+    <div class="card" style="margin-top:24px;">
+      <div class="card-title">📋 What Remains Manual vs What Gets Automated</div>
+      <table class="remains-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Today</th>
+            <th>After Platform</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Generate invoices for auto-pay workers</td>
+            <td>❌ Wait for employees, chase, remind</td>
+            <td><span class="badge badge-auto">Fully Automated</span> System generates from TD data</td>
+            <td>Platform</td>
+          </tr>
+          <tr>
+            <td>Track who has / hasn't submitted</td>
+            <td>❌ Manual Excel spreadsheet</td>
+            <td><span class="badge badge-auto">Fully Automated</span> Real-time dashboard</td>
+            <td>Platform</td>
+          </tr>
+          <tr>
+            <td>Verify hours match Time Doctor</td>
+            <td>❌ Manual check per invoice</td>
+            <td><span class="badge badge-auto">Fully Automated</span> TD data is the source</td>
+            <td>Platform</td>
+          </tr>
+          <tr>
+            <td>Execute Wise/IBAN payments</td>
+            <td>❌ Manual file upload to Wise</td>
+            <td><span class="badge badge-auto">Fully Automated</span> One-click batch via API</td>
+            <td>Platform → Wise API</td>
+          </tr>
+          <tr>
+            <td>Upload invoices to Xero</td>
+            <td>❌ Manual (Nataly, every month)</td>
+            <td><span class="badge badge-auto">Fully Automated</span> Synced on submission</td>
+            <td>Platform → Xero API</td>
+          </tr>
+          <tr>
+            <td>Monthly payment review / approval</td>
+            <td>— (no oversight step)</td>
+            <td><span class="badge badge-manual">Human Step</span> Lorena reviews dashboard, clicks Approve</td>
+            <td>Lorena (5–10 min)</td>
+          </tr>
+          <tr>
+            <td>Crypto payments</td>
+            <td>❌ Manual (Wise can't do crypto)</td>
+            <td><span class="badge badge-manual">Still Manual</span> Pay externally → mark Paid in platform</td>
+            <td>Lorena / Felipe</td>
+          </tr>
+          <tr>
+            <td>PayPal payments</td>
+            <td>❌ Manual</td>
+            <td><span class="badge badge-manual">Still Manual</span> Pay externally → mark Paid in platform</td>
+            <td>Lorena / Felipe</td>
+          </tr>
+          <tr>
+            <td>Handle anomalies (unusual hours)</td>
+            <td>❌ Discovered after the fact</td>
+            <td><span class="badge badge-partial">Alerted</span> System flags >30% variation before payment</td>
+            <td>Lorena (as needed)</td>
+          </tr>
+          <tr>
+            <td>Worker invoice for manual pay workers</td>
+            <td>Worker submits manually</td>
+            <td><span class="badge badge-partial">Same</span> Worker creates in platform (already done)</td>
+            <td>Worker + Lorena</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Human approval steps -->
+    <div class="card" style="margin-top:20px;">
+      <div class="card-title">👤 Human Touchpoints in the Automated Flow</div>
+      <p style="font-size:13px; color:var(--gray-600); margin-bottom:16px;">
+        Fully removing humans from financial flows is risky. The platform keeps one deliberate approval gate before money moves.
+      </p>
+      <div class="approval-steps">
+        <div class="ap-step auto">
+          <div class="ap-num">1</div>
+          <div class="ap-title">TD Sync</div>
+          <div style="color:var(--gray-600); font-size:12px;">Pull hours & rates</div>
+          <div class="auto-label">Auto</div>
+        </div>
+        <div class="ap-step auto">
+          <div class="ap-num">2</div>
+          <div class="ap-title">Generate Invoices</div>
+          <div style="color:var(--gray-600); font-size:12px;">Pre-fill from TD data</div>
+          <div class="auto-label">Auto</div>
+        </div>
+        <div class="ap-step human">
+          <div class="ap-num">3</div>
+          <div class="ap-title">⭐ Lorena Reviews</div>
+          <div style="color:var(--gray-800); font-size:12px;">Check summary, approve batch</div>
+          <div class="human-label">Human — required</div>
+        </div>
+        <div class="ap-step human">
+          <div class="ap-num">4</div>
+          <div class="ap-title">Wise Execution</div>
+          <div style="color:var(--gray-800); font-size:12px;">Baseline: manual payment record · Future: Portal Wise API after spike</div>
+          <div class="human-label">Configurable</div>
+        </div>
+        <div class="ap-step auto">
+          <div class="ap-num">5</div>
+          <div class="ap-title">Mark Paid + Xero</div>
+          <div style="color:var(--gray-600); font-size:12px;">Webhook → status update</div>
+          <div class="auto-label">Auto</div>
+        </div>
+        <div class="ap-step auto">
+          <div class="ap-num">6</div>
+          <div class="ap-title">Notify Workers</div>
+          <div style="color:var(--gray-600); font-size:12px;">Email + dashboard</div>
+          <div class="auto-label">Auto</div>
+        </div>
+      </div>
+    </div>
+    <!-- Wise payment modes -->
+    <div class="card" style="margin-top:20px; border-color:#c084fc; background:#faf5ff;">
+      <div class="card-title" style="color:#7c3aed;">⚙️ Wise Payment Approach — Requires API Spike</div>
+      <p style="font-size:13px; color:var(--gray-600); margin-bottom:16px;">
+        Wise will be integrated directly from Portal, not through n8n. The exact payment mode must be verified against the real Wise Business account first, because API-created transfers may not support the same approval behavior as dashboard-created transfers.
+      </p>
+      <div class="compare-grid">
+        <div class="compare-col before" style="border-color:#c084fc;">
+          <div class="col-head" style="background:#f3e8ff; color:#7c3aed;">Mode A — Manual Payment Record (Safe Baseline)</div>
+          <ul>
+            <li><span>🏦</span> Lorena/Felipe pays externally in Wise/Revolut/Crypto/PayPal</li>
+            <li><span>🧾</span> Finance records payment details and receipt in Portal</li>
+            <li><span>✅</span> Portal marks invoice PAID only after a local payment record exists</li>
+            <li><span>✅</span> Safest first step while Wise API capabilities are verified</li>
+            <li><span>✅</span> Works for developers and payment methods Wise cannot automate</li>
+          </ul>
+        </div>
+        <div class="compare-col after" style="border-color:#93c5fd;">
+          <div class="col-head" style="background:#dbeafe; color:#1d4ed8;">Mode B — Portal Direct Wise API</div>
+          <ul>
+            <li><span>🏦</span> Portal creates quotes, recipients, transfers, and funding directly</li>
+            <li><span>📦</span> Batch Groups must be evaluated before one-transfer-per-worker loops</li>
+            <li><span>🔔</span> Wise webhook hits Portal directly; n8n only receives notifications after Portal saves state</li>
+            <li><span>⚠️</span> Requires account/auth verification for funding and approval behavior</li>
+            <li><span>⚠️</span> Should start only after a Wise sandbox/business-account spike</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top:16px; padding:12px 14px; background:var(--gray-50); border-radius:8px; font-size:13px; color:var(--gray-600);">
+        <strong>Wise spike required</strong> — Verify sandbox URL, auth model, API funding, Batch Groups, Business Payment Approvals behavior, and webhook signature verification before implementing automatic payments.
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 3 — PROJECT ROADMAP
+  ══════════════════════════════════════════════════════════ -->
+  <section id="roadmap">
+    <div class="section-title">
+      <div class="num">3</div>
+      <div>
+        <h2>Project Roadmap</h2>
+        <p>Implementation phases — what's built, what's next</p>
+      </div>
+    </div>
+
+    <div class="roadmap">
+
+      <!-- Phase 0 -->
+      <div class="rm-phase">
+        <div class="rm-dot done">✓</div>
+        <div class="rm-header">
+          <span class="rm-title">Phase 0 — Foundation</span>
+          <span class="rm-date">May 2026</span>
+          <span class="rm-tag done">✅ Complete</span>
+        </div>
+        <div class="rm-items">
+          <div class="rm-item"><span class="check">✅</span> Auth system (BetterAuth JWT) — register, login, roles</div>
+          <div class="rm-item"><span class="check">✅</span> Worker portal — profile, invoice submission, invoice history</div>
+          <div class="rm-item"><span class="check">✅</span> Admin dashboard — invoice management, worker management, status changes</div>
+          <div class="rm-item"><span class="check">✅</span> Invoice PDF — printable, auto-filename (worker + invoice number)</div>
+          <div class="rm-item"><span class="check">✅</span> Xero direct integration — invoices auto-synced on submission</div>
+          <div class="rm-item"><span class="check">✅</span> Slack notifications — team notified on new invoice</div>
+          <div class="rm-item"><span class="check">✅</span> Deployed to Vercel + Neon PostgreSQL</div>
+        </div>
+      </div>
+
+      <!-- Phase 1 -->
+      <div class="rm-phase">
+        <div class="rm-dot active">→</div>
+        <div class="rm-header">
+          <span class="rm-title">Phase 1 — Invoice &amp; Profile Enhancements</span>
+          <span class="rm-date">July 2026</span>
+          <span class="rm-tag active">🔄 Up Next</span>
+        </div>
+        <div class="rm-items">
+          <div class="rm-item"><span class="check">⬜</span> <strong>Multiple line items</strong> — workers can add extra compensation, adjustments, deductions (negative lines)</div>
+          <div class="rm-item"><span class="check">⬜</span> <strong>Expanded payment methods</strong> — crypto (coin + network + wallet) and PayPal email fields on Worker profile</div>
+          <div class="rm-item"><span class="check">⬜</span> <strong>Status change notifications</strong> — Slack alerts when invoice is Approved, Paid, or Void</div>
+          <div class="rm-item"><span class="check">⬜</span> <strong>Worker "Paid" email notification</strong> — employee receives email when invoice marked as Paid</div>
+          <div class="rm-item"><span class="check">⬜</span> <strong>Time Doctor email field</strong> on Worker profile — override email for TD matching</div>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="rm-phase">
+        <div class="rm-dot upcoming">2</div>
+        <div class="rm-header">
+          <span class="rm-title">Phase 2 — Time Doctor Integration</span>
+          <span class="rm-date">August 2026</span>
+          <span class="rm-tag upcoming">📅 Planned</span>
+        </div>
+        <div class="rm-items">
+          <div class="rm-item"><span class="check">⬜</span> Time Doctor credentials stored securely in platform settings (Admin only)</div>
+          <div class="rm-item"><span class="check">⬜</span> <code>/admin/settings/timedoctor</code> — connect, test, view sync status</div>
+          <div class="rm-item"><span class="check">⬜</span> Monthly sync: pull approved timesheets + pay rates → auto-generate invoices per worker</div>
+          <div class="rm-item"><span class="check">⬜</span> Idempotency guard — no duplicate invoices if sync runs twice</div>
+          <div class="rm-item"><span class="check">⬜</span> Admin dashboard: "Monthly Payment Summary" — total by currency, unmatched workers, anomalies</div>
+          <div class="rm-item"><span class="check">⬜</span> Vercel Cron scheduled sync (1st of month) — no n8n dependency</div>
+          <div class="rm-item"><span class="check">⬜</span> <em>Prerequisite: Time Doctor admin API token</em></div>
+        </div>
+      </div>
+
+      <!-- Phase 3 -->
+      <div class="rm-phase">
+        <div class="rm-dot upcoming">3</div>
+        <div class="rm-header">
+          <span class="rm-title">Phase 3 — Wise API Integration</span>
+          <span class="rm-date">September 2026</span>
+          <span class="rm-tag upcoming">📅 Planned</span>
+        </div>
+        <div class="rm-items">
+          <div class="rm-item"><span class="check">⬜</span> Wise API key stored in platform settings (env var, never in DB)</div>
+          <div class="rm-item"><span class="check">⬜</span> <code>/admin/settings/wise</code> — connect Wise, test connection, sandbox/production toggle</div>
+          <div class="rm-item"><span class="check">⬜</span> <strong>Wise capability spike</strong>: verify auth mode, API funding, Batch Groups, and whether API-created transfers can use Wise approval flows</div>
+          <div class="rm-item"><span class="check">⬜</span> <strong>Wise webhook subscription auto-registration</strong> — platform calls Wise API to register <code>/api/webhooks/wise</code> on first setup; Wise signature verified on every incoming event</div>
+          <div class="rm-item"><span class="check">⬜</span> Batch payment queue: Lorena selects invoices via checkboxes → Portal creates payment run → manual record baseline or verified Wise API execution</div>
+          <div class="rm-item"><span class="check">⬜</span> Wise recipient cache — <code>wiseRecipientId</code> stored on Worker to avoid re-creation; invalidated on bank detail change</div>
+          <div class="rm-item"><span class="check">⬜</span> Wise webhook: <code>outgoing_payment_sent</code> → Portal verifies signature, records event, and marks invoice PAID idempotently</div>
+          <div class="rm-item"><span class="check">⬜</span> Payment Run audit log — every batch is recorded with status, amounts, timestamps, triggered-by</div>
+          <div class="rm-item"><span class="check">⬜</span> Anomaly detection — flag workers with >30% hour variation before payment</div>
+          <div class="rm-item"><span class="check">⬜</span> Pre-flight balance check — verify Wise balance covers batch total before sending any transfers</div>
+          <div class="rm-item"><span class="check">⬜</span> <em>Prerequisite: Wise Business account + API key with Transfers scope. Confirm if Wise supports native approval flow for API-created transfers (contact Wise Business support).</em></div>
+        </div>
+      </div>
+
+      <!-- Phase 4 -->
+      <div class="rm-phase">
+        <div class="rm-dot upcoming">4</div>
+        <div class="rm-header">
+          <span class="rm-title">Phase 4 — Full Automation &amp; Reporting</span>
+          <span class="rm-date">Q4 2026</span>
+          <span class="rm-tag upcoming">📅 Future</span>
+        </div>
+        <div class="rm-items">
+          <div class="rm-item"><span class="check">⬜</span> Full unattended automation (TD sync + Wise payment) with anomaly-only human intervention</div>
+          <div class="rm-item"><span class="check">⬜</span> Monthly finance report — payments by currency, by team, reconciliation with Xero</div>
+          <div class="rm-item"><span class="check">⬜</span> Multi-currency reconciliation dashboard</div>
+          <div class="rm-item"><span class="check">⬜</span> Historical payment trends and analytics</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 4 — SECURITY FRAMEWORK
+  ══════════════════════════════════════════════════════════ -->
+  <section id="security">
+    <div class="section-title">
+      <div class="num">4</div>
+      <div>
+        <h2>Security Framework</h2>
+        <p>How we ensure financial data and real-money flows remain safe and auditable</p>
+      </div>
+    </div>
+
+    <!-- Overview diagram -->
+    <div class="diagram-label">Security Layers — Defence in Depth</div>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    subgraph EXTERNAL["External Services"]
+        TD["⏱️ Time Doctor\nRead Only"]
+        WISE["🏦 Wise API\nTransfers"]
+        XERO["📊 Xero\nAccounting"]
+    end
+
+    subgraph PLATFORM["Invoice Portal (Vercel)"]
+        direction TB
+        AUTH["🔐 Admin Auth\nrequireAdmin()"]
+        CRON["⏰ Vercel Cron\nCRON_SECRET header"]
+        GATE["👤 Human Approval\nLorena reviews before payment"]
+        SIG["✅ Webhook Signature\nWise signature verify"]
+        IDEM["🔒 Idempotency\ncustomerTransactionId = invoiceId"]
+        LOG["📋 Audit Log\nPaymentRun history"]
+    end
+
+    subgraph DB["Database (Neon)"]
+        KEYS["🔑 API Keys\nTD token in DB\nWise key in env var"]
+        DATA["📄 Financial Data\nInvoices + Workers"]
+        RUNLOG["📊 Payment Runs\nFull audit trail"]
+    end
+
+    CRON --> AUTH
+    AUTH --> GATE
+    GATE --> WISE
+    WISE --> SIG
+    SIG --> IDEM
+    IDEM --> LOG
+    TD --> PLATFORM
+    PLATFORM --> XERO
+    KEYS --> PLATFORM
+    PLATFORM --> RUNLOG
+
+    style GATE fill:#fef3c7,stroke:#fcd34d
+    style SIG  fill:#dcfce7,stroke:#86efac
+    style IDEM fill:#dbeafe,stroke:#93c5fd
+      </div>
+    </div>
+
+    <div class="security-grid">
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#fef2f2;">🚫</div>
+        <h4>1. Double-Payment Prevention</h4>
+        <p>Every Wise transfer is created with a unique <code>customerTransactionId</code> equal to the invoice's database ID. Wise guarantees idempotency — sending the same ID twice never results in a second charge.</p>
+        <div class="detail">customerTransactionId = invoice.id (UUID)<br>DB unique constraint: workerId + period + source</div>
+        <span class="risk-label risk-critical">Prevents: Duplicate Payment</span>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#fef3c7;">🔐</div>
+        <h4>2. Wise API Key Scope Limitation</h4>
+        <p>The Wise credential stored for Portal must use the least privilege model supported by the actual business account. Personal-token, OAuth, funding, and approval limitations must be verified before production automation is enabled.</p>
+        <div class="detail">Verify: auth model · transfer permissions · balance/funding access · approval behavior<br>Store production credential outside DB unless a future design explicitly approves encrypted storage</div>
+        <span class="risk-label risk-critical">Prevents: Unauthorized Account Drain</span>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#dcfce7;">✅</div>
+        <h4>3. Wise Webhook Signature Verification</h4>
+        <p>When Wise calls our webhook to confirm a payment, Portal verifies Wise's signature before updating any invoice status. An attacker cannot fake a "payment sent" notification to mark invoices as paid without actual money moving.</p>
+        <div class="detail">X-Signature-SHA256 + Wise public key verification<br>Reject any request with invalid signature → 401</div>
+        <span class="risk-label risk-critical">Prevents: Fake Payment Confirmation</span>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#dbeafe;">🔑</div>
+        <h4>4. Credential Storage Strategy</h4>
+        <p>API credentials are stored with different security levels based on their privilege:</p>
+        <div class="detail">
+          Xero OAuth tokens → Database (rotated automatically)<br>
+          Time Doctor token → Database (read-only, 6-month TTL)<br>
+          <strong>Wise API key → Environment variable only</strong><br>
+          &nbsp;&nbsp;&nbsp;Never stored in DB. Access requires server restart to change.
+        </div>
+        <span class="risk-label risk-high">Prevents: Key Exfiltration via DB Access</span>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#fef3c7;">👤</div>
+        <h4>5. Mandatory Human Approval Gate</h4>
+        <p>No money moves without Lorena (or an Admin) explicitly reviewing the monthly payment summary and clicking <strong>Approve Batch</strong>. This step cannot be bypassed by the scheduler. The platform can generate invoices automatically, but payment execution always requires a deliberate human action.</p>
+        <div class="detail">Cron → auto-generate invoices only<br>Payment → requires Admin session + explicit POST</div>
+        <span class="risk-label risk-high">Prevents: Unintended/Incorrect Payments</span>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#f3e8ff;">🚨</div>
+        <h4>6. Anomaly Detection &amp; Alerts</h4>
+        <p>Before presenting the payment summary to Lorena, the platform compares each worker's current month hours against their 3-month rolling average. Workers with >30% variation are highlighted with a warning — Lorena can review and override before payment proceeds.</p>
+        <div class="detail">
+          >30% vs avg → 🟡 Review flag<br>
+          >100% vs avg → 🔴 Block, require manual override<br>
+          New worker (no history) → 🔵 First payment flag
+        </div>
+        <span class="risk-label risk-medium">Prevents: Overpayment from Data Errors</span>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#dcfce7;">📋</div>
+        <h4>7. Full Audit Trail (Payment Runs)</h4>
+        <p>Every payment batch is recorded as a <strong>Payment Run</strong> — who triggered it, when, how many invoices, total amounts, which succeeded, which failed, and why. This log is immutable and stored independently from the invoices themselves.</p>
+        <div class="detail">
+          PaymentRun: id · period · triggeredBy<br>
+          &nbsp;&nbsp;· status · totalAmount · processedAt<br>
+          PaymentRunItem: invoiceId · wiseTransferId · status
+        </div>
+        <span class="risk-label risk-medium">Enables: Reconciliation &amp; Dispute Resolution</span>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#f3e8ff;">⚙️</div>
+        <h4>8. Dual Payment Mode — Configurable Safety Level</h4>
+        <p>The platform keeps manual payment recording as the safe baseline while Wise API capabilities are verified. API-created transfers, Batch Groups, funding, and approval behavior must be tested against the real Wise Business account before automatic payments are enabled.</p>
+        <div class="detail">
+          Baseline: External payment → Portal payment record → PAID<br>
+          Future: Portal Wise API → Wise webhook → verified Portal update<br>
+          n8n: notification-only after Portal state is saved.
+        </div>
+        <span class="risk-label risk-high">Enables: Segregation of Duties</span>
+      </div>
+
+      <div class="sec-card">
+        <div class="sec-icon" style="background:#fef2f2;">⏰</div>
+        <h4>9. Cron Endpoint Protection</h4>
+        <p>The scheduled sync endpoint (<code>/api/admin/sync/timedoctor</code>) is protected by a <code>CRON_SECRET</code> header that only Vercel's scheduler knows. Even if the URL is discovered, it cannot be triggered externally without the secret.</p>
+        <div class="detail">
+          Vercel adds: Authorization: Bearer {CRON_SECRET}<br>
+          Platform validates header before processing<br>
+          Returns 401 to all other callers
+        </div>
+        <span class="risk-label risk-high">Prevents: Unauthorized Sync Triggering</span>
+      </div>
+
+    </div>
+
+    <!-- Summary table -->
+    <div class="card" style="margin-top:24px;">
+      <div class="card-title">🛡️ Security Controls Summary</div>
+      <table class="remains-table">
+        <thead>
+          <tr><th>Risk</th><th>Likelihood</th><th>Control</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Double payment sent to same employee</td>
+            <td>🔴 High without control</td>
+            <td>Wise idempotency key (customerTransactionId)</td>
+            <td><span class="badge badge-auto">Designed</span></td>
+          </tr>
+          <tr>
+            <td>Fake webhook marks invoice as Paid</td>
+            <td>🔴 High if unprotected</td>
+            <td>Wise signature verification on Portal webhook</td>
+            <td><span class="badge badge-auto">Designed</span></td>
+          </tr>
+          <tr>
+            <td>Wise API key leak → unauthorized transfers</td>
+            <td>🟠 Medium</td>
+            <td>Key in env var only + scoped to Transfers only</td>
+            <td><span class="badge badge-auto">Designed</span></td>
+          </tr>
+          <tr>
+            <td>Wrong payment amount (TD data error)</td>
+            <td>🟠 Medium</td>
+            <td>Human review gate + anomaly detection</td>
+            <td><span class="badge badge-auto">Designed</span></td>
+          </tr>
+          <tr>
+            <td>Payment to wrong bank account</td>
+            <td>🟡 Low (worker sets own details)</td>
+            <td>Wise recipient confirmation + bank validation</td>
+            <td><span class="badge badge-partial">Wise handles</span></td>
+          </tr>
+          <tr>
+            <td>Wise balance insufficient mid-batch</td>
+            <td>🟡 Low</td>
+            <td>Pre-flight balance check + per-failure alerting</td>
+            <td><span class="badge badge-auto">Designed</span></td>
+          </tr>
+          <tr>
+            <td>Unauthorized sync trigger</td>
+            <td>🟡 Low</td>
+            <td>CRON_SECRET header on cron endpoints</td>
+            <td><span class="badge badge-auto">Designed</span></td>
+          </tr>
+          <tr>
+            <td>Unauthorized access to admin functions</td>
+            <td>🟡 Low</td>
+            <td>requireAdmin() on all /api/admin/* routes</td>
+            <td><span class="badge badge-auto">✅ Built</span></td>
+          </tr>
+          <tr>
+            <td>Payment executed without proper human review</td>
+            <td>🟠 Medium</td>
+            <td>Manual payment record baseline until Wise API approval/funding behavior is verified</td>
+            <td><span class="badge badge-auto">Designed</span></td>
+          </tr>
+          <tr>
+            <td>Fake webhook marks invoice as Paid (no money moved)</td>
+            <td>🔴 High if unprotected</td>
+            <td>Wise signature verification on every Wise webhook event</td>
+            <td><span class="badge badge-auto">Designed</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- footer -->
+  <div style="margin-top:48px; padding-top:24px; border-top:1px solid var(--gray-200); text-align:center; font-size:12px; color:var(--gray-400);">
+    Worker Invoice Portal — Confidential Internal Document · Generated June 2026
+  </div>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor:       '#dbeafe',
+      primaryTextColor:   '#1e3a8a',
+      primaryBorderColor: '#93c5fd',
+      lineColor:          '#6b7280',
+      secondaryColor:     '#f0fdf4',
+      tertiaryColor:      '#fef3c7',
+      fontSize:           '14px',
+    },
+    flowchart: { curve: 'basis', padding: 20, nodeSpacing: 160, rankSpacing: 60 }
+  });
+</script>
+</body>
+</html>

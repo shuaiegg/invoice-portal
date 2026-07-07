@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flow 2 — Automated Payment Cycle</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 32px 64px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 36px;
+      text-align: center;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 1100px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      min-width: 600px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="eyebrow">Automated Process — Phase 3 Complete</div>
+  <h1>Flow 2 — Automated Payment Cycle</h1>
+
+  <div class="card">
+    <div class="mermaid">
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontSize": "20px",
+    "primaryColor": "#dbeafe",
+    "primaryTextColor": "#1e3a8a",
+    "primaryBorderColor": "#93c5fd",
+    "lineColor": "#6b7280",
+    "secondaryColor": "#f0fdf4",
+    "tertiaryColor": "#fef3c7"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "padding": 24,
+    "nodeSpacing": 60,
+    "rankSpacing": 70
+  }
+}}%%
+flowchart TD
+    A([🤖 Vercel Cron · 1st of month]) --> B["📡 Pull from\nTime Doctor API"]
+    B --> C["📄 Auto-generate invoices\nper matched employee"]
+    C --> D["🔔 Slack alert to Lorena\n'152 invoices · €58,400'"]
+    D --> E["👀 Lorena reviews\nAdmin Dashboard"]
+    E --> F{{"Review\nOK?"}}
+    F -- "⚠️ Anomaly" --> G["🔍 Review &\nadjust"]
+    G --> E
+    F -- "✅ Approve" --> H{{"Payment\ntype?"}}
+    H -- "Wise / IBAN" --> I["🏦 Portal payment run\nmanual baseline or verified Wise API"]
+    H -- "Crypto / PayPal" --> J["💬 Lorena pays\nmanually"]
+    I --> IM{{"Payment\nMode?"}}
+    IM -- "Safe baseline" --> IA["👩 Finance pays externally\nthen records in Portal"]
+    IM -- "Future API mode" --> IB["⚡ Portal funds via Wise API\nafter verified spike"]
+    IA --> L["🧾 Portal payment record\nsaved"]
+    IB --> L
+    L --> M["✅ Invoice marked\nPAID in Portal"]
+    J --> N["✅ Lorena marks\nPaid in platform"]
+    M --> O["🔄 Xero auto-synced"]
+    N --> O
+    O --> P["📲 Worker email:\ninvoice paid"]
+    O --> Q["💬 Slack #finance\nrun complete"]
+    P --> R([✅ Month Complete])
+    Q --> R
+
+    style A  fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    style R  fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style E  fill:#fef3c7,stroke:#f59e0b,color:#78350f
+    style F  fill:#fef3c7,stroke:#f59e0b,color:#78350f
+    style G  fill:#fef3c7,stroke:#f59e0b,color:#78350f
+    style H  fill:#f3f4f6,stroke:#9ca3af,color:#374151
+    style IM fill:#f3e8ff,stroke:#c084fc,color:#6b21a8
+    style IA fill:#fef3c7,stroke:#f59e0b,color:#78350f
+    style IB fill:#dbeafe,stroke:#93c5fd,color:#1e3a8a
+    style L  fill:#dbeafe,stroke:#93c5fd,color:#1e3a8a
+    style M  fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style N  fill:#fef3c7,stroke:#f59e0b,color:#78350f
+    style O  fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style P  fill:#f0fdf4,stroke:#86efac,color:#166534
+    style Q  fill:#f0fdf4,stroke:#86efac,color:#166534
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+
+</body>
+</html>

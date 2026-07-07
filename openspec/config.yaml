@@ -1,20 +1,42 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Project: Worker Invoice Portal
+  Tech stack: Next.js 16 App Router, React 19, TypeScript, BetterAuth, Prisma 7, Neon/PostgreSQL, Tailwind/shadcn UI.
+  Domain: contractor invoice submission, finance review, accounting sync, and payment tracking.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Integration boundaries:
+  - Portal owns all business-critical finance integrations.
+  - Portal syncs Xero directly.
+  - Portal polls/syncs Time Doctor directly.
+  - Portal calls Wise directly and receives Wise webhooks directly.
+  - n8n is notification-only: Slack/email/operational fan-out.
+  - n8n must not create/update Xero records, generate invoices from Time Doctor, create/fund Wise payments, receive authoritative Wise webhooks, or mutate invoice/payment/accounting state.
+
+  Manual developer payment workflow:
+  - Developers may need invoice adjustments beyond Time Doctor hours or fixed monthly totals.
+  - Additional compensation and deductions must be represented as invoice line items.
+  - Felipe/Finance reviews developer adjustments before approval/payment.
+  - Portal must preserve audit logs for amount changes, review decisions, payment records, and external sync events.
+
+  API facts to preserve:
+  - Time Doctor sync is scheduled/polling; do not design it as webhook-driven.
+  - Time Doctor worker matching requires exact Portal-side email confirmation and should support timeDoctorEmail override.
+  - Wise sandbox base URL is https://api.wise-sandbox.com.
+  - Wise batch transfers/batch groups must be evaluated before designing one-transfer-per-worker loops.
+  - Wise API-created transfer approval behavior must be verified against the real business account before relying on "Portal creates, Wise UI approves".
+  - Wise webhook verification is signature-based and must be handled by Portal.
+
+rules:
+  proposal:
+    - Include Non-goals for every finance/integration change.
+    - State whether the change touches invoices, payments, Xero, Time Doctor, Wise, n8n, or permissions.
+  design:
+    - Include an Integration Boundary section for every external integration.
+    - Include a state machine for invoice/payment/review changes.
+    - Include audit, idempotency, and failure-handling requirements for finance state changes.
+    - Explicitly preserve n8n as notification-only unless the user has changed the architecture decision.
+  tasks:
+    - Include migration/backfill tasks when data models change.
+    - Include verification tasks for lint/build and at least one manual happy-path flow.
+    - Include sandbox/API spike tasks for unverified Wise account capabilities.
