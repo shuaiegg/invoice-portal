@@ -52,6 +52,9 @@ export async function GET(req: Request) {
       skip,
       take: limit,
       include: {
+        lines: {
+          orderBy: { order: "asc" },
+        },
         worker: {
           select: {
             name: true,

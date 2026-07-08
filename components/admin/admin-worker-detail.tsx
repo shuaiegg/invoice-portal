@@ -3,8 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { 
   ArrowLeft, 
   User, 
@@ -12,12 +21,12 @@ import {
   MapPin, 
   CreditCard, 
   ShieldCheck, 
-  ShieldAlert,
   History
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AdminInvoiceTable } from "./admin-invoice-table";
+import { PAYMENT_TYPE_LABELS } from "@/lib/payment-types";
 
 interface AdminWorkerDetailProps {
   worker: any;
@@ -26,7 +35,10 @@ interface AdminWorkerDetailProps {
 export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
   const router = useRouter();
   const [active, setActive] = useState(worker.user.active);
+  const [paymentType, setPaymentType] = useState(worker.paymentType || "MANUAL");
+  const [timeDoctorEmail, setTimeDoctorEmail] = useState(worker.timeDoctorEmail || "");
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const handleToggleActive = async () => {
     setLoading(true);
@@ -42,10 +54,33 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
       setActive(!active);
       toast.success(`Worker ${!active ? "activated" : "deactivated"} successfully`);
       router.refresh();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update status");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSavePaymentProfile = async () => {
+    setProfileLoading(true);
+    try {
+      const response = await fetch(`/api/admin/workers/${worker.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentType, timeDoctorEmail }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update payment profile");
+      }
+
+      toast.success("Payment profile updated");
+      router.refresh();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to update payment profile");
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -130,11 +165,56 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
                   <CreditCard className="h-4 w-4 text-secondary-text mt-0.5" />
                   <div className="space-y-1">
                     <div className="text-xs font-bold uppercase text-secondary-text tracking-wider">Payment</div>
-                    <div className="text-sm font-medium">{worker.paymentMethod || "N/A"}</div>
+                    <Badge variant={paymentType === "MANUAL" ? "outline" : "secondary"} className="mb-1">
+                      {PAYMENT_TYPE_LABELS[paymentType as keyof typeof PAYMENT_TYPE_LABELS] || "Manual"}
+                    </Badge>
+                    {worker.paymentMethod && (
+                      <Badge variant="outline" className="mb-1 ml-1 font-semibold">
+                        {worker.paymentMethod}
+                      </Badge>
+                    )}
                     <div className="text-xs font-mono text-secondary-text break-all">{worker.paymentAccount}</div>
+                    {timeDoctorEmail && (
+                      <div className="text-xs text-secondary-text break-all">TD: {timeDoctorEmail}</div>
+                    )}
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Payment Routing</CardTitle>
+              <CardDescription>Controls Time Doctor and manual payment handling</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="paymentType">Payment Type</Label>
+                <Select value={paymentType} onValueChange={setPaymentType}>
+                  <SelectTrigger id="paymentType">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TD_ONLY">TD Only</SelectItem>
+                    <SelectItem value="TD_PLUS">TD Plus</SelectItem>
+                    <SelectItem value="MANUAL">Manual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="timeDoctorEmail">Time Doctor Email</Label>
+                <Input
+                  id="timeDoctorEmail"
+                  type="email"
+                  value={timeDoctorEmail}
+                  onChange={(e) => setTimeDoctorEmail(e.target.value)}
+                  placeholder="timedoctor@example.com"
+                />
+              </div>
+              <Button className="w-full" onClick={handleSavePaymentProfile} disabled={profileLoading}>
+                {profileLoading ? "Saving..." : "Save Payment Routing"}
+              </Button>
             </CardContent>
           </Card>
         </div>

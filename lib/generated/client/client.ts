@@ -67,6 +67,11 @@ export type Worker = Prisma.WorkerModel
  */
 export type Invoice = Prisma.InvoiceModel
 /**
+ * Model InvoiceLine
+ * 
+ */
+export type InvoiceLine = Prisma.InvoiceLineModel
+/**
  * Model InvoiceCounter
  * 
  */

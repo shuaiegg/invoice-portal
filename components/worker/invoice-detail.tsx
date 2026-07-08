@@ -18,6 +18,16 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const { worker } = invoice;
+  const lines = invoice.lines?.length
+    ? invoice.lines
+    : [
+        {
+          description: invoice.description || "Invoice services",
+          quantity: invoice.quantity,
+          unitRate: invoice.rate,
+          amount: invoice.subtotal,
+        },
+      ];
 
   const handlePrint = () => {
     const original = document.title;
@@ -192,14 +202,18 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b">
-                  <td className="py-4 px-2 align-top max-w-md">
-                    <div className="font-medium text-text">{invoice.description}</div>
-                  </td>
-                  <td className="py-4 px-2 text-right align-top">{formatCurrency(invoice.rate)}</td>
-                  <td className="py-4 px-2 text-right align-top">{invoice.quantity}</td>
-                  <td className="py-4 px-2 text-right align-top font-bold text-text">{formatCurrency(invoice.subtotal)}</td>
-                </tr>
+                {lines.map((line: any) => (
+                  <tr key={line.id || line.description} className="border-b">
+                    <td className="py-4 px-2 align-top max-w-md">
+                      <div className="font-medium text-text">{line.description}</div>
+                    </td>
+                    <td className="py-4 px-2 text-right align-top">{formatCurrency(line.unitRate)}</td>
+                    <td className="py-4 px-2 text-right align-top">{line.quantity}</td>
+                    <td className={`py-4 px-2 text-right align-top font-bold ${line.amount < 0 ? "text-error" : "text-text"}`}>
+                      {formatCurrency(line.amount)}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

@@ -39,6 +39,16 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
   useEffect(() => { setMounted(true); }, []);
 
   const { worker } = invoice;
+  const lines = invoice.lines?.length
+    ? invoice.lines
+    : [
+        {
+          description: invoice.description || "Invoice services",
+          quantity: invoice.quantity,
+          unitRate: invoice.rate,
+          amount: invoice.subtotal,
+        },
+      ];
 
   const handleSaveStatus = async () => {
     if (status === invoice.status) return;
@@ -80,7 +90,7 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
+      currency: invoice.currency || "USD",
     }).format(amount);
   };
 
@@ -143,21 +153,44 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
                   <div className="font-semibold">{invoice.period}</div>
                 </div>
                 <div className="p-6 space-y-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">Quantity</div>
-                  <div className="font-semibold">{invoice.quantity}</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">Lines</div>
+                  <div className="font-semibold">{lines.length}</div>
                 </div>
                 <div className="p-6 space-y-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">Rate</div>
-                  <div className="font-semibold">{formatCurrency(invoice.rate)}</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">Subtotal</div>
+                  <div className="font-semibold">{formatCurrency(invoice.subtotal)}</div>
                 </div>
                 <div className="p-6 space-y-1">
                   <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">VAT Rate</div>
                   <div className="font-semibold">{invoice.vatRate}%</div>
                 </div>
               </div>
-              <div className="p-6 space-y-2">
-                <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">Description</div>
-                <div className="text-text leading-relaxed">{invoice.description}</div>
+              <div className="p-6">
+                <div className="mb-3 text-xs font-bold uppercase tracking-wider text-secondary-text">Line Items</div>
+                <div className="overflow-hidden rounded-lg border">
+                  <table className="w-full text-sm">
+                    <thead className="bg-accent/50 text-xs uppercase tracking-wider text-secondary-text">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Description</th>
+                        <th className="px-3 py-2 text-right">Qty</th>
+                        <th className="px-3 py-2 text-right">Rate</th>
+                        <th className="px-3 py-2 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lines.map((line: any) => (
+                        <tr key={line.id || line.description} className="border-t">
+                          <td className="px-3 py-3 font-medium">{line.description}</td>
+                          <td className="px-3 py-3 text-right">{line.quantity}</td>
+                          <td className="px-3 py-3 text-right">{formatCurrency(line.unitRate)}</td>
+                          <td className={`px-3 py-3 text-right font-semibold ${line.amount < 0 ? "text-error" : ""}`}>
+                            {formatCurrency(line.amount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </CardContent>
           </Card>

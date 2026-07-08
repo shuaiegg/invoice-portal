@@ -23,6 +23,9 @@ export default async function InvoiceDetailsPage({
     where: { id },
     include: {
       worker: true,
+      lines: {
+        orderBy: { order: "asc" },
+      },
     },
   });
 

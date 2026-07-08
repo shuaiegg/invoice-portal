@@ -19,6 +19,12 @@ enum InvoiceStatus {
   VOID
 }
 
+enum PaymentType {
+  TD_ONLY
+  TD_PLUS
+  MANUAL
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -83,6 +89,12 @@ model Worker {
   swiftCode      String?
   postCode       String?
   secondaryPayment String?
+  paymentType    PaymentType @default(MANUAL)
+  timeDoctorEmail String?
+  cryptoCoin     String?
+  cryptoNetwork  String?
+  cryptoWallet   String?
+  paypalEmail    String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -99,7 +111,7 @@ model Invoice {
   serviceDate    DateTime?
   status         InvoiceStatus @default(SUBMITTED)
 
-  description    String
+  description    String?
   period         String
   quantity       Float
   rate           Float
@@ -121,10 +133,27 @@ model Invoice {
   updatedAt      DateTime      @updatedAt
 
   worker         Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  lines          InvoiceLine[]
 
   @@index([workerId])
   @@index([status])
   @@index([invoiceDate])
+}
+
+model InvoiceLine {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Float
+  unitRate    Float
+  amount      Float
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
 }
 
 model InvoiceCounter {

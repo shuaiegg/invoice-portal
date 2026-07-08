@@ -51,6 +51,12 @@ export type WorkerMinAggregateOutputType = {
   swiftCode: string | null
   postCode: string | null
   secondaryPayment: string | null
+  paymentType: $Enums.PaymentType | null
+  timeDoctorEmail: string | null
+  cryptoCoin: string | null
+  cryptoNetwork: string | null
+  cryptoWallet: string | null
+  paypalEmail: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -72,6 +78,12 @@ export type WorkerMaxAggregateOutputType = {
   swiftCode: string | null
   postCode: string | null
   secondaryPayment: string | null
+  paymentType: $Enums.PaymentType | null
+  timeDoctorEmail: string | null
+  cryptoCoin: string | null
+  cryptoNetwork: string | null
+  cryptoWallet: string | null
+  paypalEmail: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -93,6 +105,12 @@ export type WorkerCountAggregateOutputType = {
   swiftCode: number
   postCode: number
   secondaryPayment: number
+  paymentType: number
+  timeDoctorEmail: number
+  cryptoCoin: number
+  cryptoNetwork: number
+  cryptoWallet: number
+  paypalEmail: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -124,6 +142,12 @@ export type WorkerMinAggregateInputType = {
   swiftCode?: true
   postCode?: true
   secondaryPayment?: true
+  paymentType?: true
+  timeDoctorEmail?: true
+  cryptoCoin?: true
+  cryptoNetwork?: true
+  cryptoWallet?: true
+  paypalEmail?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -145,6 +169,12 @@ export type WorkerMaxAggregateInputType = {
   swiftCode?: true
   postCode?: true
   secondaryPayment?: true
+  paymentType?: true
+  timeDoctorEmail?: true
+  cryptoCoin?: true
+  cryptoNetwork?: true
+  cryptoWallet?: true
+  paypalEmail?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -166,6 +196,12 @@ export type WorkerCountAggregateInputType = {
   swiftCode?: true
   postCode?: true
   secondaryPayment?: true
+  paymentType?: true
+  timeDoctorEmail?: true
+  cryptoCoin?: true
+  cryptoNetwork?: true
+  cryptoWallet?: true
+  paypalEmail?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -274,6 +310,12 @@ export type WorkerGroupByOutputType = {
   swiftCode: string | null
   postCode: string | null
   secondaryPayment: string | null
+  paymentType: $Enums.PaymentType
+  timeDoctorEmail: string | null
+  cryptoCoin: string | null
+  cryptoNetwork: string | null
+  cryptoWallet: string | null
+  paypalEmail: string | null
   createdAt: Date
   updatedAt: Date
   _count: WorkerCountAggregateOutputType | null
@@ -318,6 +360,12 @@ export type WorkerWhereInput = {
   swiftCode?: Prisma.StringNullableFilter<"Worker"> | string | null
   postCode?: Prisma.StringNullableFilter<"Worker"> | string | null
   secondaryPayment?: Prisma.StringNullableFilter<"Worker"> | string | null
+  paymentType?: Prisma.EnumPaymentTypeFilter<"Worker"> | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.StringNullableFilter<"Worker"> | string | null
+  cryptoCoin?: Prisma.StringNullableFilter<"Worker"> | string | null
+  cryptoNetwork?: Prisma.StringNullableFilter<"Worker"> | string | null
+  cryptoWallet?: Prisma.StringNullableFilter<"Worker"> | string | null
+  paypalEmail?: Prisma.StringNullableFilter<"Worker"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Worker"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Worker"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -341,6 +389,12 @@ export type WorkerOrderByWithRelationInput = {
   swiftCode?: Prisma.SortOrderInput | Prisma.SortOrder
   postCode?: Prisma.SortOrderInput | Prisma.SortOrder
   secondaryPayment?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
+  timeDoctorEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  cryptoCoin?: Prisma.SortOrderInput | Prisma.SortOrder
+  cryptoNetwork?: Prisma.SortOrderInput | Prisma.SortOrder
+  cryptoWallet?: Prisma.SortOrderInput | Prisma.SortOrder
+  paypalEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -367,6 +421,12 @@ export type WorkerWhereUniqueInput = Prisma.AtLeast<{
   swiftCode?: Prisma.StringNullableFilter<"Worker"> | string | null
   postCode?: Prisma.StringNullableFilter<"Worker"> | string | null
   secondaryPayment?: Prisma.StringNullableFilter<"Worker"> | string | null
+  paymentType?: Prisma.EnumPaymentTypeFilter<"Worker"> | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.StringNullableFilter<"Worker"> | string | null
+  cryptoCoin?: Prisma.StringNullableFilter<"Worker"> | string | null
+  cryptoNetwork?: Prisma.StringNullableFilter<"Worker"> | string | null
+  cryptoWallet?: Prisma.StringNullableFilter<"Worker"> | string | null
+  paypalEmail?: Prisma.StringNullableFilter<"Worker"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Worker"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Worker"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -390,6 +450,12 @@ export type WorkerOrderByWithAggregationInput = {
   swiftCode?: Prisma.SortOrderInput | Prisma.SortOrder
   postCode?: Prisma.SortOrderInput | Prisma.SortOrder
   secondaryPayment?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
+  timeDoctorEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  cryptoCoin?: Prisma.SortOrderInput | Prisma.SortOrder
+  cryptoNetwork?: Prisma.SortOrderInput | Prisma.SortOrder
+  cryptoWallet?: Prisma.SortOrderInput | Prisma.SortOrder
+  paypalEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.WorkerCountOrderByAggregateInput
@@ -419,6 +485,12 @@ export type WorkerScalarWhereWithAggregatesInput = {
   swiftCode?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
   postCode?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
   secondaryPayment?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
+  paymentType?: Prisma.EnumPaymentTypeWithAggregatesFilter<"Worker"> | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
+  cryptoCoin?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
+  cryptoNetwork?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
+  cryptoWallet?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
+  paypalEmail?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Worker"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Worker"> | Date | string
 }
@@ -439,6 +511,12 @@ export type WorkerCreateInput = {
   swiftCode?: string | null
   postCode?: string | null
   secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  timeDoctorEmail?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutWorkerInput
@@ -462,6 +540,12 @@ export type WorkerUncheckedCreateInput = {
   swiftCode?: string | null
   postCode?: string | null
   secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  timeDoctorEmail?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutWorkerInput
@@ -483,6 +567,12 @@ export type WorkerUpdateInput = {
   swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutWorkerNestedInput
@@ -506,6 +596,12 @@ export type WorkerUncheckedUpdateInput = {
   swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutWorkerNestedInput
@@ -528,6 +624,12 @@ export type WorkerCreateManyInput = {
   swiftCode?: string | null
   postCode?: string | null
   secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  timeDoctorEmail?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -548,6 +650,12 @@ export type WorkerUpdateManyMutationInput = {
   swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -569,6 +677,12 @@ export type WorkerUncheckedUpdateManyInput = {
   swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -595,6 +709,12 @@ export type WorkerCountOrderByAggregateInput = {
   swiftCode?: Prisma.SortOrder
   postCode?: Prisma.SortOrder
   secondaryPayment?: Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
+  timeDoctorEmail?: Prisma.SortOrder
+  cryptoCoin?: Prisma.SortOrder
+  cryptoNetwork?: Prisma.SortOrder
+  cryptoWallet?: Prisma.SortOrder
+  paypalEmail?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -620,6 +740,12 @@ export type WorkerMaxOrderByAggregateInput = {
   swiftCode?: Prisma.SortOrder
   postCode?: Prisma.SortOrder
   secondaryPayment?: Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
+  timeDoctorEmail?: Prisma.SortOrder
+  cryptoCoin?: Prisma.SortOrder
+  cryptoNetwork?: Prisma.SortOrder
+  cryptoWallet?: Prisma.SortOrder
+  paypalEmail?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -641,6 +767,12 @@ export type WorkerMinOrderByAggregateInput = {
   swiftCode?: Prisma.SortOrder
   postCode?: Prisma.SortOrder
   secondaryPayment?: Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
+  timeDoctorEmail?: Prisma.SortOrder
+  cryptoCoin?: Prisma.SortOrder
+  cryptoNetwork?: Prisma.SortOrder
+  cryptoWallet?: Prisma.SortOrder
+  paypalEmail?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -694,6 +826,10 @@ export type FloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type EnumPaymentTypeFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentType
+}
+
 export type WorkerCreateNestedOneWithoutInvoicesInput = {
   create?: Prisma.XOR<Prisma.WorkerCreateWithoutInvoicesInput, Prisma.WorkerUncheckedCreateWithoutInvoicesInput>
   connectOrCreate?: Prisma.WorkerCreateOrConnectWithoutInvoicesInput
@@ -724,6 +860,12 @@ export type WorkerCreateWithoutUserInput = {
   swiftCode?: string | null
   postCode?: string | null
   secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  timeDoctorEmail?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   invoices?: Prisma.InvoiceCreateNestedManyWithoutWorkerInput
@@ -745,6 +887,12 @@ export type WorkerUncheckedCreateWithoutUserInput = {
   swiftCode?: string | null
   postCode?: string | null
   secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  timeDoctorEmail?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutWorkerInput
@@ -782,6 +930,12 @@ export type WorkerUpdateWithoutUserInput = {
   swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invoices?: Prisma.InvoiceUpdateManyWithoutWorkerNestedInput
@@ -803,6 +957,12 @@ export type WorkerUncheckedUpdateWithoutUserInput = {
   swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutWorkerNestedInput
@@ -824,6 +984,12 @@ export type WorkerCreateWithoutInvoicesInput = {
   swiftCode?: string | null
   postCode?: string | null
   secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  timeDoctorEmail?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutWorkerInput
@@ -846,6 +1012,12 @@ export type WorkerUncheckedCreateWithoutInvoicesInput = {
   swiftCode?: string | null
   postCode?: string | null
   secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  timeDoctorEmail?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -882,6 +1054,12 @@ export type WorkerUpdateWithoutInvoicesInput = {
   swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutWorkerNestedInput
@@ -904,6 +1082,12 @@ export type WorkerUncheckedUpdateWithoutInvoicesInput = {
   swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -956,6 +1140,12 @@ export type WorkerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   swiftCode?: boolean
   postCode?: boolean
   secondaryPayment?: boolean
+  paymentType?: boolean
+  timeDoctorEmail?: boolean
+  cryptoCoin?: boolean
+  cryptoNetwork?: boolean
+  cryptoWallet?: boolean
+  paypalEmail?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -980,6 +1170,12 @@ export type WorkerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   swiftCode?: boolean
   postCode?: boolean
   secondaryPayment?: boolean
+  paymentType?: boolean
+  timeDoctorEmail?: boolean
+  cryptoCoin?: boolean
+  cryptoNetwork?: boolean
+  cryptoWallet?: boolean
+  paypalEmail?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1002,6 +1198,12 @@ export type WorkerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   swiftCode?: boolean
   postCode?: boolean
   secondaryPayment?: boolean
+  paymentType?: boolean
+  timeDoctorEmail?: boolean
+  cryptoCoin?: boolean
+  cryptoNetwork?: boolean
+  cryptoWallet?: boolean
+  paypalEmail?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1024,11 +1226,17 @@ export type WorkerSelectScalar = {
   swiftCode?: boolean
   postCode?: boolean
   secondaryPayment?: boolean
+  paymentType?: boolean
+  timeDoctorEmail?: boolean
+  cryptoCoin?: boolean
+  cryptoNetwork?: boolean
+  cryptoWallet?: boolean
+  paypalEmail?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type WorkerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "team" | "address" | "city" | "country" | "vatNumber" | "vatRate" | "paymentMethod" | "paymentAccount" | "paymentNotes" | "bankName" | "swiftCode" | "postCode" | "secondaryPayment" | "createdAt" | "updatedAt", ExtArgs["result"]["worker"]>
+export type WorkerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "team" | "address" | "city" | "country" | "vatNumber" | "vatRate" | "paymentMethod" | "paymentAccount" | "paymentNotes" | "bankName" | "swiftCode" | "postCode" | "secondaryPayment" | "paymentType" | "timeDoctorEmail" | "cryptoCoin" | "cryptoNetwork" | "cryptoWallet" | "paypalEmail" | "createdAt" | "updatedAt", ExtArgs["result"]["worker"]>
 export type WorkerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   invoices?: boolean | Prisma.Worker$invoicesArgs<ExtArgs>
@@ -1064,6 +1272,12 @@ export type $WorkerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     swiftCode: string | null
     postCode: string | null
     secondaryPayment: string | null
+    paymentType: $Enums.PaymentType
+    timeDoctorEmail: string | null
+    cryptoCoin: string | null
+    cryptoNetwork: string | null
+    cryptoWallet: string | null
+    paypalEmail: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["worker"]>
@@ -1507,6 +1721,12 @@ export interface WorkerFieldRefs {
   readonly swiftCode: Prisma.FieldRef<"Worker", 'String'>
   readonly postCode: Prisma.FieldRef<"Worker", 'String'>
   readonly secondaryPayment: Prisma.FieldRef<"Worker", 'String'>
+  readonly paymentType: Prisma.FieldRef<"Worker", 'PaymentType'>
+  readonly timeDoctorEmail: Prisma.FieldRef<"Worker", 'String'>
+  readonly cryptoCoin: Prisma.FieldRef<"Worker", 'String'>
+  readonly cryptoNetwork: Prisma.FieldRef<"Worker", 'String'>
+  readonly cryptoWallet: Prisma.FieldRef<"Worker", 'String'>
+  readonly paypalEmail: Prisma.FieldRef<"Worker", 'String'>
   readonly createdAt: Prisma.FieldRef<"Worker", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Worker", 'DateTime'>
 }

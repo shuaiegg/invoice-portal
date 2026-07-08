@@ -25,7 +25,7 @@ export default async function NewInvoicePage() {
 
   if (!isProfileComplete) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <PageHeader title="New Invoice" />
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-amber-900">
           <div className="flex items-center gap-3 mb-2">
@@ -47,7 +47,7 @@ export default async function NewInvoicePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <PageHeader 
         title="New Invoice" 
         subtitle="Submit a new invoice for services rendered"

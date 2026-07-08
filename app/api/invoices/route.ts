@@ -1,10 +1,14 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateInvoiceNumber } from "@/lib/invoice-number";
-import { syncInvoiceToXero } from "@/lib/xero";
-import { notifySlack } from "@/lib/slack";
+import { invoiceSubmitted } from "@/lib/slack";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
+import {
+  calculateInvoiceAmounts,
+  getLegacyInvoiceFields,
+  normalizeInvoiceLines,
+} from "@/lib/invoice-lines";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -36,6 +40,11 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
       skip,
       take: limit,
+      include: {
+        lines: {
+          orderBy: { order: "asc" },
+        },
+      },
     }),
     db.invoice.count({
       where: { workerId: worker.id },
@@ -70,31 +79,28 @@ export async function POST(req: Request) {
   const data = await req.json();
 
   // Basic validation
-  const required = ["description", "period", "quantity", "rate", "invoiceDate"];
+  const required = ["period", "invoiceDate"];
   for (const field of required) {
     if (data[field] === undefined || data[field] === null || data[field] === "") {
       return NextResponse.json({ error: `${field} is required` }, { status: 400 });
     }
   }
 
-  const quantity = parseFloat(data.quantity);
-  const rate = parseFloat(data.rate);
+  const normalized = normalizeInvoiceLines(data.lines);
+  if (!normalized.lines) {
+    return NextResponse.json({ error: normalized.error }, { status: 422 });
+  }
+  const lines = normalized.lines;
+
+  const lineSubtotal = lines.reduce((sum, line) => sum + line.amount, 0);
   const vatRate = parseFloat(data.vatRate) || 0;
   const vatInclusive = data.vatInclusive === true || data.vatInclusive === "true";
-
-  if (isNaN(quantity) || quantity <= 0) return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
-  if (isNaN(rate) || rate <= 0) return NextResponse.json({ error: "Invalid rate" }, { status: 400 });
-
-  let subtotal: number, vatAmount: number, totalAmount: number;
-  if (vatRate > 0 && vatInclusive) {
-    totalAmount = quantity * rate;
-    subtotal = totalAmount / (1 + vatRate / 100);
-    vatAmount = totalAmount - subtotal;
-  } else {
-    subtotal = quantity * rate;
-    vatAmount = subtotal * (vatRate / 100);
-    totalAmount = subtotal + vatAmount;
-  }
+  const { subtotal, vatAmount, totalAmount } = calculateInvoiceAmounts(
+    lineSubtotal,
+    vatRate,
+    vatInclusive,
+  );
+  const legacyFields = getLegacyInvoiceFields(lines);
 
   let invoiceDate: Date;
   try {
@@ -112,51 +118,52 @@ export async function POST(req: Request) {
 
   const invoiceNumber = await generateInvoiceNumber(year);
 
-  const invoice = await db.invoice.create({
-    data: {
-      workerId: worker.id,
-      invoiceNumber,
-      invoiceDate,
-      dueDate,
-      serviceDate: data.serviceDate ? parseDateInput(data.serviceDate) : null,
-      description: data.description,
-      period: data.period,
-      quantity,
-      rate,
-      subtotal,
-      vatAmount,
-      totalAmount,
-      vatRate,
-      vatInclusive,
-      currency: data.currency || "EUR",
-      status: "SUBMITTED",
-    },
-    include: {
-      worker: true,
-    },
+  const invoice = await db.$transaction(async (tx) => {
+    return tx.invoice.create({
+      data: {
+        workerId: worker.id,
+        invoiceNumber,
+        invoiceDate,
+        dueDate,
+        serviceDate: data.serviceDate ? parseDateInput(data.serviceDate) : null,
+        description: legacyFields.description,
+        period: data.period,
+        quantity: legacyFields.quantity,
+        rate: legacyFields.rate,
+        subtotal,
+        vatAmount,
+        totalAmount,
+        vatRate,
+        vatInclusive,
+        currency: data.currency || "EUR",
+        status: "SUBMITTED",
+        lines: {
+          create: lines.map((line) => ({
+            description: line.description,
+            quantity: line.quantity,
+            unitRate: line.unitRate,
+            amount: line.amount,
+            order: line.order,
+          })),
+        },
+      },
+      include: {
+        worker: true,
+        lines: {
+          orderBy: { order: "asc" },
+        },
+      },
+    });
   });
 
-  // Synchronous Xero sync
-  try {
-    await syncInvoiceToXero(invoice, worker);
-  } catch (error) {
-    console.error("Xero sync failed during submission:", error);
-    return NextResponse.json({
-      error: "Invoice saved but Xero sync failed. Please contact support or try again later.",
-      invoiceId: invoice.id,
-    }, { status: 500 });
-  }
-
-  // Fire-and-forget: n8n webhook (Slack notification etc.) + direct Slack fallback
+  // Fire-and-forget: webhook + Slack
   dispatchWebhook("invoice.submitted", {
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
     worker: { id: worker.id, name: worker.name },
     invoice: { period: invoice.period, totalAmount: invoice.totalAmount, currency: invoice.currency },
   });
-  notifySlack({
-    text: `📄 New invoice submitted\n*${worker.name}* | ${invoice.period}\nAmount: ${invoice.totalAmount} ${invoice.currency}\nInvoice #: ${invoice.invoiceNumber}\nXero: Created ✅`,
-  });
+  invoiceSubmitted(invoice, worker);
 
   return NextResponse.json({ invoiceId: invoice.id });
 }

@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
+import { invoicePaidWorkerNotification, invoiceStatusChanged } from "@/lib/slack";
+import { syncInvoiceToXero } from "@/lib/xero";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -22,13 +24,41 @@ export async function POST(req: Request) {
       id: { in: invoiceIds },
       status: "APPROVED",
     },
-    data: {
+    data: { status: "PAID" },
+  });
+
+  // Re-fetch after update so Xero sync and notifications only fire for actually updated invoices
+  const updatedInvoices = await db.invoice.findMany({
+    where: {
+      id: { in: invoiceIds },
       status: "PAID",
+    },
+    include: {
+      worker: {
+        include: {
+          user: { select: { email: true } },
+        },
+      },
+      lines: { orderBy: { order: "asc" } },
     },
   });
 
-  return NextResponse.json({ 
-    success: true, 
-    count: result.count 
+  const xeroErrors: string[] = [];
+  for (const invoice of updatedInvoices) {
+    // Xero sync at PAID — fire-and-forget per invoice, log failures
+    syncInvoiceToXero(invoice, invoice.worker).catch((err) => {
+      console.error(`Xero sync failed for invoice ${invoice.invoiceNumber}:`, err);
+      xeroErrors.push(invoice.invoiceNumber);
+    });
+
+    invoiceStatusChanged(invoice, invoice.worker, "APPROVED", "PAID");
+    if (invoice.worker.paymentType === "MANUAL") {
+      invoicePaidWorkerNotification(invoice, invoice.worker);
+    }
+  }
+
+  return NextResponse.json({
+    success: true,
+    count: result.count,
   });
 }

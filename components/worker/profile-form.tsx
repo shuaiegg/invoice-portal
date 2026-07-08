@@ -7,9 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
+
+const PAYMENT_METHODS = [
+  { value: "Bank Transfer", label: "Bank Transfer" },
+  { value: "Wise",          label: "Wise" },
+  { value: "PayPal",        label: "PayPal" },
+  { value: "Crypto",        label: "Crypto" },
+  { value: "Revolut",       label: "Revolut" },
+  { value: "Other",         label: "Other (see Payment Notes)" },
+] as const;
 
 interface ProfileFormProps {
   initialData: {
@@ -27,6 +36,11 @@ interface ProfileFormProps {
     swiftCode: string | null;
     postCode: string | null;
     secondaryPayment: string | null;
+    timeDoctorEmail: string | null;
+    cryptoCoin: string | null;
+    cryptoNetwork: string | null;
+    cryptoWallet: string | null;
+    paypalEmail: string | null;
   };
 }
 
@@ -55,8 +69,8 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
       toast.success("Profile updated successfully");
       router.refresh();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -181,14 +195,21 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         <CardContent className="grid gap-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="paymentMethod">Payment Method</Label>
-              <Input
-                id="paymentMethod"
+              <Label htmlFor="paymentMethod">Preferred Payment Method</Label>
+              <Select
                 value={formData.paymentMethod || ""}
-                onChange={handleChange}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, paymentMethod: value }))}
                 disabled={loading}
-                placeholder="e.g. Bank Transfer, PayPal"
-              />
+              >
+                <SelectTrigger id="paymentMethod">
+                  <SelectValue placeholder="Select preferred method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_METHODS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="paymentAccount">Account Details / IBAN</Label>
@@ -198,6 +219,30 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                 onChange={handleChange}
                 disabled={loading}
                 placeholder="FR76 1234 5678 ..."
+              />
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="paypalEmail">PayPal Email (Optional)</Label>
+              <Input
+                id="paypalEmail"
+                type="email"
+                value={formData.paypalEmail || ""}
+                onChange={handleChange}
+                disabled={loading}
+                placeholder="paypal@example.com"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="timeDoctorEmail">Time Doctor Email (Optional)</Label>
+              <Input
+                id="timeDoctorEmail"
+                type="email"
+                value={formData.timeDoctorEmail || ""}
+                onChange={handleChange}
+                disabled={loading}
+                placeholder="timedoctor@example.com"
               />
             </div>
           </div>
@@ -263,6 +308,44 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               disabled={loading}
               placeholder="e.g. AliPay: 86-13424371741 / user@email.com"
             />
+          </div>
+          <div className="rounded-lg border p-4">
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold">Crypto Details</h3>
+              <p className="text-xs text-muted-foreground">Only fill these fields if crypto is your payment method.</p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="cryptoCoin">Coin</Label>
+                <Input
+                  id="cryptoCoin"
+                  value={formData.cryptoCoin || ""}
+                  onChange={handleChange}
+                  disabled={loading}
+                  placeholder="e.g. USDT"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="cryptoNetwork">Network</Label>
+                <Input
+                  id="cryptoNetwork"
+                  value={formData.cryptoNetwork || ""}
+                  onChange={handleChange}
+                  disabled={loading}
+                  placeholder="e.g. TRC20"
+                />
+              </div>
+              <div className="grid gap-2 md:col-span-2">
+                <Label htmlFor="cryptoWallet">Wallet Address</Label>
+                <Input
+                  id="cryptoWallet"
+                  value={formData.cryptoWallet || ""}
+                  onChange={handleChange}
+                  disabled={loading}
+                  placeholder="Wallet address"
+                />
+              </div>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="border-t px-6 py-4 flex justify-end">

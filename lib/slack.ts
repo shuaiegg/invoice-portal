@@ -1,7 +1,22 @@
 export interface SlackMessage {
   text: string;
-  blocks?: any[];
+  blocks?: unknown[];
 }
+
+type SlackInvoice = {
+  invoiceNumber: string;
+  period: string;
+  totalAmount: number;
+  currency: string;
+};
+
+type SlackWorker = {
+  name: string;
+  paymentType?: string;
+  user?: {
+    email?: string | null;
+  } | null;
+};
 
 /**
  * Fires a fire-and-forget notification to Slack using an Incoming Webhook.
@@ -23,5 +38,59 @@ export function notifySlack(payload: SlackMessage): void {
     body: JSON.stringify(payload),
   }).catch((err) => {
     console.error("Slack notification failed:", err);
+  });
+}
+
+export function invoiceSubmitted(invoice: SlackInvoice, worker: SlackWorker): void {
+  notifySlack({
+    text: [
+      "New invoice created",
+      `Worker: ${worker.name}`,
+      `Period: ${invoice.period}`,
+      `Amount: ${invoice.totalAmount} ${invoice.currency}`,
+      `Invoice #: ${invoice.invoiceNumber}`,
+    ].join("\n"),
+  });
+}
+
+export function invoiceStatusChanged(
+  invoice: SlackInvoice,
+  worker: SlackWorker,
+  oldStatus: string,
+  newStatus: string,
+): void {
+  notifySlack({
+    text: [
+      "Invoice status changed",
+      `Worker: ${worker.name}`,
+      `Invoice #: ${invoice.invoiceNumber}`,
+      `Status: ${oldStatus} -> ${newStatus}`,
+      `Amount: ${invoice.totalAmount} ${invoice.currency}`,
+    ].join("\n"),
+  });
+}
+
+export function invoiceUpdated(invoice: SlackInvoice, worker: SlackWorker): void {
+  notifySlack({
+    text: [
+      "Invoice updated",
+      `Worker: ${worker.name}`,
+      `Invoice #: ${invoice.invoiceNumber}`,
+      `Period: ${invoice.period}`,
+      `Amount: ${invoice.totalAmount} ${invoice.currency}`,
+      "Xero: Updated ✅",
+    ].join("\n"),
+  });
+}
+
+export function invoicePaidWorkerNotification(invoice: SlackInvoice, worker: SlackWorker): void {
+  notifySlack({
+    text: [
+      "Manual invoice marked as paid",
+      `Worker: ${worker.name}${worker.user?.email ? ` (${worker.user.email})` : ""}`,
+      `Invoice #: ${invoice.invoiceNumber}`,
+      `Period: ${invoice.period}`,
+      `Amount: ${invoice.totalAmount} ${invoice.currency}`,
+    ].join("\n"),
   });
 }

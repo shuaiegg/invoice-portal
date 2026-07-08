@@ -389,6 +389,7 @@ export const ModelName = {
   Account: 'Account',
   Worker: 'Worker',
   Invoice: 'Invoice',
+  InvoiceLine: 'InvoiceLine',
   InvoiceCounter: 'InvoiceCounter',
   XeroToken: 'XeroToken',
   WebhookConfig: 'WebhookConfig'
@@ -407,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "worker" | "invoice" | "invoiceCounter" | "xeroToken" | "webhookConfig"
+    modelProps: "user" | "session" | "account" | "worker" | "invoice" | "invoiceLine" | "invoiceCounter" | "xeroToken" | "webhookConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -781,6 +782,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    InvoiceLine: {
+      payload: Prisma.$InvoiceLinePayload<ExtArgs>
+      fields: Prisma.InvoiceLineFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.InvoiceLineFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.InvoiceLineFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>
+        }
+        findFirst: {
+          args: Prisma.InvoiceLineFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.InvoiceLineFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>
+        }
+        findMany: {
+          args: Prisma.InvoiceLineFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>[]
+        }
+        create: {
+          args: Prisma.InvoiceLineCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>
+        }
+        createMany: {
+          args: Prisma.InvoiceLineCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.InvoiceLineCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>[]
+        }
+        delete: {
+          args: Prisma.InvoiceLineDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>
+        }
+        update: {
+          args: Prisma.InvoiceLineUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>
+        }
+        deleteMany: {
+          args: Prisma.InvoiceLineDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.InvoiceLineUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.InvoiceLineUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>[]
+        }
+        upsert: {
+          args: Prisma.InvoiceLineUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InvoiceLinePayload>
+        }
+        aggregate: {
+          args: Prisma.InvoiceLineAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateInvoiceLine>
+        }
+        groupBy: {
+          args: Prisma.InvoiceLineGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InvoiceLineGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.InvoiceLineCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InvoiceLineCountAggregateOutputType> | number
+        }
+      }
+    }
     InvoiceCounter: {
       payload: Prisma.$InvoiceCounterPayload<ExtArgs>
       fields: Prisma.InvoiceCounterFieldRefs
@@ -1107,6 +1182,12 @@ export const WorkerScalarFieldEnum = {
   swiftCode: 'swiftCode',
   postCode: 'postCode',
   secondaryPayment: 'secondaryPayment',
+  paymentType: 'paymentType',
+  timeDoctorEmail: 'timeDoctorEmail',
+  cryptoCoin: 'cryptoCoin',
+  cryptoNetwork: 'cryptoNetwork',
+  cryptoWallet: 'cryptoWallet',
+  paypalEmail: 'paypalEmail',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1140,6 +1221,21 @@ export const InvoiceScalarFieldEnum = {
 } as const
 
 export type InvoiceScalarFieldEnum = (typeof InvoiceScalarFieldEnum)[keyof typeof InvoiceScalarFieldEnum]
+
+
+export const InvoiceLineScalarFieldEnum = {
+  id: 'id',
+  invoiceId: 'invoiceId',
+  description: 'description',
+  quantity: 'quantity',
+  unitRate: 'unitRate',
+  amount: 'amount',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type InvoiceLineScalarFieldEnum = (typeof InvoiceLineScalarFieldEnum)[keyof typeof InvoiceLineScalarFieldEnum]
 
 
 export const InvoiceCounterScalarFieldEnum = {
@@ -1268,6 +1364,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentType'
+ */
+export type EnumPaymentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentType'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentType[]'
+ */
+export type ListEnumPaymentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentType[]'>
     
 
 
@@ -1413,6 +1523,7 @@ export type GlobalOmitConfig = {
   account?: Prisma.AccountOmit
   worker?: Prisma.WorkerOmit
   invoice?: Prisma.InvoiceOmit
+  invoiceLine?: Prisma.InvoiceLineOmit
   invoiceCounter?: Prisma.InvoiceCounterOmit
   xeroToken?: Prisma.XeroTokenOmit
   webhookConfig?: Prisma.WebhookConfigOmit

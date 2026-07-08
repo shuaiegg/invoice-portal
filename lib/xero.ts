@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { Invoice, Worker } from "./generated/client/client";
+import { Invoice, InvoiceLine, Worker } from "./generated/client/client";
 
 const XERO_TOKEN_URL = "https://identity.xero.com/connect/token";
 const XERO_API_BASE = "https://api.xero.com/api.xro/2.0";
@@ -164,15 +164,28 @@ export async function createXeroDraftBill(
   accessToken: string,
   tenantId: string,
   invoice: Invoice,
-  contactId: string
+  contactId: string,
+  lines?: InvoiceLine[]
 ): Promise<string> {
-  const lineItems: object[] = [
-    {
-      Description: `${invoice.description} | ${invoice.period}`,
-      Quantity: invoice.quantity,
-      UnitAmount: invoice.subtotal / invoice.quantity, // always net unit amount
-    },
-  ];
+  let lineItems: object[];
+
+  if (lines && lines.length > 0) {
+    // Send actual invoice line items to Xero for proper breakdown
+    lineItems = lines.map((line) => ({
+      Description: line.description,
+      Quantity: line.quantity,
+      UnitAmount: line.unitRate,
+    }));
+  } else {
+    // Legacy fallback for invoices without line data
+    lineItems = [
+      {
+        Description: `${invoice.description} | ${invoice.period}`,
+        Quantity: invoice.quantity,
+        UnitAmount: invoice.subtotal / invoice.quantity,
+      },
+    ];
+  }
 
   if (invoice.vatAmount > 0) {
     lineItems.push({
@@ -219,12 +232,21 @@ export async function createXeroDraftBill(
   return data.Invoices[0].InvoiceID;
 }
 
-export async function syncInvoiceToXero(invoice: Invoice, worker: Worker): Promise<void> {
+export async function syncInvoiceToXero(
+  invoice: Invoice & { lines?: InvoiceLine[] },
+  worker: Worker
+): Promise<void> {
   try {
     const accessToken = await getAccessToken();
     const tenantId = await getTenantId();
     const contactId = await upsertXeroContact(accessToken, tenantId, worker);
-    const xeroInvoiceId = await createXeroDraftBill(accessToken, tenantId, invoice, contactId);
+    const xeroInvoiceId = await createXeroDraftBill(
+      accessToken,
+      tenantId,
+      invoice,
+      contactId,
+      invoice.lines
+    );
 
     await db.invoice.update({
       where: { id: invoice.id },

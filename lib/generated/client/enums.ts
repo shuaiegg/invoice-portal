@@ -25,3 +25,12 @@ export const InvoiceStatus = {
 } as const
 
 export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus]
+
+
+export const PaymentType = {
+  TD_ONLY: 'TD_ONLY',
+  TD_PLUS: 'TD_PLUS',
+  MANUAL: 'MANUAL'
+} as const
+
+export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]

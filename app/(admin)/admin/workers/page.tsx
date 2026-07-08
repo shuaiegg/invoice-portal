@@ -62,6 +62,8 @@ export default async function AdminWorkersPage({
     team: w.team,
     email: w.user.email,
     active: w.user.active,
+    paymentType: w.paymentType,
+    timeDoctorEmail: w.timeDoctorEmail,
     invoiceCount: w._count.invoices,
     lastSubmission: w.invoices[0]?.invoiceDate || null,
     joinedAt: w.user.createdAt,

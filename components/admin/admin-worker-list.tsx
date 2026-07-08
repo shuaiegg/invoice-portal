@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, UserCheck, UserX, ExternalLink } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { PAYMENT_TYPE_LABELS } from "@/lib/payment-types";
 
 interface AdminWorkerListProps {
   workers: any[];
@@ -67,6 +68,7 @@ export function AdminWorkerList({ workers }: AdminWorkerListProps) {
             <TableRow className="bg-accent/50">
               <TableHead>Worker Name</TableHead>
               <TableHead>Team</TableHead>
+              <TableHead>Payment Type</TableHead>
               <TableHead>Email</TableHead>
               <TableHead className="text-center">Invoices</TableHead>
               <TableHead>Last Submission</TableHead>
@@ -91,6 +93,11 @@ export function AdminWorkerList({ workers }: AdminWorkerListProps) {
                   <TableCell className="font-bold">{worker.name}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{worker.team || "No Team"}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={worker.paymentType === "MANUAL" ? "outline" : "secondary"}>
+                      {PAYMENT_TYPE_LABELS[worker.paymentType as keyof typeof PAYMENT_TYPE_LABELS] || "Manual"}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-secondary-text">{worker.email}</TableCell>
                   <TableCell className="text-center font-medium">{worker.invoiceCount}</TableCell>

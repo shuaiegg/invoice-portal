@@ -24,6 +24,9 @@ export default async function EditInvoicePage({
     where: { id },
     include: {
       worker: true,
+      lines: {
+        orderBy: { order: "asc" },
+      },
     },
   });
 
@@ -42,7 +45,7 @@ export default async function EditInvoicePage({
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <PageHeader 
         title={`Edit Invoice ${invoice.invoiceNumber}`} 
         subtitle="Update your invoice details before it's approved"

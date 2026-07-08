@@ -22,6 +22,9 @@ export default async function AdminInvoiceDetailsPage({
   const invoice = await db.invoice.findUnique({
     where: { id },
     include: {
+      lines: {
+        orderBy: { order: "asc" },
+      },
       worker: {
         include: {
           user: {

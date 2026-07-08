@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -16,7 +15,27 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Plus, Send, Trash2 } from "lucide-react";
+
+type InvoiceFormLine = {
+  description: string;
+  quantity: number;
+  unitRate: number;
+};
+
+type InitialInvoiceData = {
+  id: string;
+  description?: string | null;
+  period?: string | null;
+  serviceDate?: string | Date | null;
+  invoiceDate?: string | Date | null;
+  quantity?: number | null;
+  rate?: number | null;
+  vatRate?: number | null;
+  vatInclusive?: boolean | null;
+  currency?: string | null;
+  lines?: Array<InvoiceFormLine & { id?: string; rate?: number | null }>;
+};
 
 interface NewInvoiceFormProps {
   worker: {
@@ -30,7 +49,7 @@ interface NewInvoiceFormProps {
     paymentMethod: string | null;
     paymentAccount: string | null;
   };
-  initialData?: any; // For edit case
+  initialData?: InitialInvoiceData;
 }
 
 export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
@@ -66,54 +85,77 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
     initialData ? (initialData.vatInclusive ?? false) : false
   );
 
+  const initialLines: InvoiceFormLine[] =
+    initialData?.lines?.length
+      ? initialData.lines.map((line) => ({
+          description: line.description || "",
+          quantity: line.quantity || 1,
+          unitRate: line.unitRate ?? line.rate ?? 0,
+        }))
+      : [
+          {
+            description: initialData?.description || "",
+            quantity: initialData?.quantity || 1,
+            unitRate: initialData?.rate || 0,
+          },
+        ];
+
+  const [lines, setLines] = useState<InvoiceFormLine[]>(initialLines);
+  const initialVatRate = initialData?.vatRate && initialData.vatRate > 0 ? initialData.vatRate : defaultVatRate;
+
   const [formData, setFormData] = useState({
-    description: initialData?.description || "",
     period: initialData?.period || "",
     serviceDate: initialData?.serviceDate ? formatDateForInput(initialData.serviceDate) : "",
-    // Empty string on server; set to today (Paris) after mount to avoid hydration mismatch
-    invoiceDate: initialData?.invoiceDate ? formatDateForInput(initialData.invoiceDate) : "",
-    quantity: initialData?.quantity || 1,
-    rate: initialData?.rate || 0,
-    vatRate: (initialData?.vatRate ?? 0) > 0 ? initialData.vatRate : defaultVatRate,
+    invoiceDate: initialData?.invoiceDate ? formatDateForInput(initialData.invoiceDate) : getTodayInParis(),
+    vatRate: initialVatRate,
     currency: initialData?.currency || "USD",
   });
 
-  useEffect(() => {
-    if (!initialData?.invoiceDate) {
-      setFormData(prev => ({ ...prev, invoiceDate: getTodayInParis() }));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const [amounts, setAmounts] = useState({
-    subtotal: 0,
-    vatAmount: 0,
-    totalAmount: 0,
-  });
-
-  useEffect(() => {
+  const amounts = useMemo(() => {
     const effectiveVatRate = applyVat ? formData.vatRate : 0;
+    const lineSubtotal = lines.reduce((sum, line) => sum + (line.quantity || 0) * (line.unitRate || 0), 0);
     let subtotal: number, vatAmount: number, totalAmount: number;
     if (applyVat && vatInclusive) {
       // Inclusive: user enters gross amount, extract VAT from it
-      totalAmount = formData.quantity * formData.rate;
+      totalAmount = lineSubtotal;
       subtotal = totalAmount / (1 + effectiveVatRate / 100);
       vatAmount = totalAmount - subtotal;
     } else {
       // Exclusive: VAT added on top of subtotal
-      subtotal = formData.quantity * formData.rate;
+      subtotal = lineSubtotal;
       vatAmount = subtotal * (effectiveVatRate / 100);
       totalAmount = subtotal + vatAmount;
     }
-    setAmounts({ subtotal, vatAmount, totalAmount });
-  }, [formData.quantity, formData.rate, formData.vatRate, applyVat, vatInclusive]);
+    return { subtotal, vatAmount, totalAmount };
+  }, [lines, formData.vatRate, applyVat, vatInclusive]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [id]: ["quantity", "rate", "vatRate"].includes(id) ? parseFloat(value) || 0 : value,
+      [id]: id === "vatRate" ? parseFloat(value) || 0 : value,
     }));
+  };
+
+  const handleLineChange = (index: number, field: keyof InvoiceFormLine, value: string) => {
+    setLines((prev) =>
+      prev.map((line, lineIndex) =>
+        lineIndex === index
+          ? {
+              ...line,
+              [field]: field === "description" ? value : parseFloat(value) || 0,
+            }
+          : line
+      )
+    );
+  };
+
+  const addLine = () => {
+    setLines((prev) => [...prev, { description: "", quantity: 1, unitRate: 0 }]);
+  };
+
+  const removeLine = (index: number) => {
+    setLines((prev) => (prev.length > 1 ? prev.filter((_, lineIndex) => lineIndex !== index) : prev));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,6 +173,7 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
         },
         body: JSON.stringify({
           ...formData,
+          lines,
           vatRate: applyVat ? formData.vatRate : 0,
           vatInclusive: applyVat ? vatInclusive : false,
         }),
@@ -141,11 +184,11 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
         throw new Error(error.error || "Failed to submit invoice");
       }
 
-      const result = await response.json();
+      const result = await response.json() as { invoiceId: string };
       toast.success(initialData ? "Invoice updated" : "Invoice submitted");
       window.location.href = `/invoice/${initialData ? initialData.id : result.invoiceId}`;
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to submit invoice");
     } finally {
       setLoading(false);
     }
@@ -165,20 +208,9 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
           <Card>
             <CardHeader>
               <CardTitle>Invoice Details</CardTitle>
-              <CardDescription>Description of services provided</CardDescription>
+              <CardDescription>Billing period and service dates</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. Software development services for June 2026"
-                  className="min-h-[100px]"
-                />
-              </div>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="period">Billing Period</Label>
@@ -205,37 +237,97 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Quantities & Rates</CardTitle>
-              <CardDescription>Calculate your invoice totals</CardDescription>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Line Items</CardTitle>
+                  <CardDescription>Services, additional compensation, and deductions</CardDescription>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addLine}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Line
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="quantity">Quantity (e.g. Days/Hours)</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    step="0.01"
-                    value={formData.quantity}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="rate">
+              <div className="space-y-1">
+                {/* Column headers — shown once above the first row */}
+                <div className="hidden md:grid md:grid-cols-[2fr_80px_110px_110px_40px] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  <span>Description</span>
+                  <span>Qty</span>
+                  <span>
                     Rate
                     {applyVat && vatInclusive && (
-                      <span className="ml-1.5 text-xs font-normal text-muted-foreground">(VAT incl.)</span>
+                      <span className="ml-1 normal-case font-normal">(VAT incl.)</span>
                     )}
-                  </Label>
-                  <Input
-                    id="rate"
-                    type="number"
-                    step="0.01"
-                    value={formData.rate}
-                    onChange={handleChange}
-                    required
-                  />
+                  </span>
+                  <span>Amount</span>
+                  <span />
+                </div>
+
+                <div className="space-y-2">
+                  {lines.map((line, index) => {
+                    const amount = (line.quantity || 0) * (line.unitRate || 0);
+
+                    return (
+                      <div key={index} className="grid gap-2 rounded-lg border p-2 md:grid-cols-[2fr_80px_110px_110px_40px] md:items-center">
+                        {/* Mobile labels only */}
+                        <div className="grid gap-1">
+                          <Label htmlFor={`line-description-${index}`} className="md:hidden text-xs text-muted-foreground">Description</Label>
+                          <Input
+                            id={`line-description-${index}`}
+                            value={line.description}
+                            onChange={(e) => handleLineChange(index, "description", e.target.value)}
+                            required
+                            maxLength={500}
+                            placeholder="e.g. Software development services"
+                          />
+                        </div>
+                        <div className="grid gap-1">
+                          <Label htmlFor={`line-quantity-${index}`} className="md:hidden text-xs text-muted-foreground">Qty</Label>
+                          <Input
+                            id={`line-quantity-${index}`}
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            value={line.quantity}
+                            onChange={(e) => handleLineChange(index, "quantity", e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="grid gap-1">
+                          <Label htmlFor={`line-rate-${index}`} className="md:hidden text-xs text-muted-foreground">Rate</Label>
+                          <Input
+                            id={`line-rate-${index}`}
+                            type="number"
+                            step="0.01"
+                            value={line.unitRate}
+                            onChange={(e) => handleLineChange(index, "unitRate", e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="grid gap-1">
+                          <Label className="md:hidden text-xs text-muted-foreground">Amount</Label>
+                          <div className={`h-10 rounded-md border bg-accent/30 px-3 py-2 text-right text-sm font-semibold ${amount < 0 ? "text-destructive" : ""}`}>
+                            {formatCurrency(amount)}
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeLine(index)}
+                          disabled={lines.length === 1}
+                          aria-label="Remove line"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-end text-sm font-semibold">
+                  <span className="mr-3 text-muted-foreground">Line total</span>
+                  <span>{formatCurrency(lines.reduce((sum, line) => sum + (line.quantity || 0) * (line.unitRate || 0), 0))}</span>
                 </div>
               </div>
 
@@ -334,6 +426,13 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                     <SelectItem value="USD">USD - US Dollar</SelectItem>
                     <SelectItem value="EUR">EUR - Euro</SelectItem>
                     <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                    <SelectItem value="COP">COP - Colombian Peso</SelectItem>
+                    <SelectItem value="BRL">BRL - Brazilian Real</SelectItem>
+                    <SelectItem value="MXN">MXN - Mexican Peso</SelectItem>
+                    <SelectItem value="INR">INR - Indian Rupee</SelectItem>
+                    <SelectItem value="PHP">PHP - Philippine Peso</SelectItem>
+                    <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
+                    <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
