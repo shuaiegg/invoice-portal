@@ -7,18 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
-
-const PAYMENT_METHODS = [
-  { value: "Bank Transfer", label: "Bank Transfer" },
-  { value: "Wise",          label: "Wise" },
-  { value: "PayPal",        label: "PayPal" },
-  { value: "Crypto",        label: "Crypto" },
-  { value: "Revolut",       label: "Revolut" },
-  { value: "Other",         label: "Other (see Payment Notes)" },
-] as const;
+import { PaymentAccountList } from "@/components/worker/payment-account-list";
+import type { PaymentAccount } from "@/components/worker/payment-account-form";
 
 interface ProfileFormProps {
   initialData: {
@@ -29,22 +21,14 @@ interface ProfileFormProps {
     country: string | null;
     vatNumber: string | null;
     vatRate: number;
-    paymentMethod: string | null;
-    paymentAccount: string | null;
     paymentNotes: string | null;
-    bankName: string | null;
-    swiftCode: string | null;
-    postCode: string | null;
-    secondaryPayment: string | null;
     timeDoctorEmail: string | null;
-    cryptoCoin: string | null;
-    cryptoNetwork: string | null;
-    cryptoWallet: string | null;
-    paypalEmail: string | null;
   };
+  paymentAccounts: PaymentAccount[];
+  hasLegacyPaymentData: boolean;
 }
 
-export function ProfileForm({ initialData }: ProfileFormProps) {
+export function ProfileForm({ initialData, paymentAccounts, hasLegacyPaymentData }: ProfileFormProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [formData, setFormData] = useState(initialData);
@@ -187,53 +171,18 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         </CardContent>
       </Card>
 
+      <PaymentAccountList
+        accounts={paymentAccounts}
+        hasLegacyPaymentData={hasLegacyPaymentData}
+      />
+
       <Card>
         <CardHeader>
-          <CardTitle>Payment Details</CardTitle>
-          <CardDescription>How you want to be paid</CardDescription>
+          <CardTitle>Payment Notes</CardTitle>
+          <CardDescription>Optional routing details outside payment methods</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="paymentMethod">Preferred Payment Method</Label>
-              <Select
-                value={formData.paymentMethod || ""}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, paymentMethod: value }))}
-                disabled={loading}
-              >
-                <SelectTrigger id="paymentMethod">
-                  <SelectValue placeholder="Select preferred method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAYMENT_METHODS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="paymentAccount">Account Details / IBAN</Label>
-              <Input
-                id="paymentAccount"
-                value={formData.paymentAccount || ""}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="FR76 1234 5678 ..."
-              />
-            </div>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="paypalEmail">PayPal Email (Optional)</Label>
-              <Input
-                id="paypalEmail"
-                type="email"
-                value={formData.paypalEmail || ""}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="paypal@example.com"
-              />
-            </div>
             <div className="grid gap-2">
               <Label htmlFor="timeDoctorEmail">Time Doctor Email (Optional)</Label>
               <Input
@@ -255,97 +204,6 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               disabled={loading}
               placeholder="Any additional instructions for the finance team"
             />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Banking Details</CardTitle>
-          <CardDescription>Detailed information for international bank transfers</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="bankName">Bank Name</Label>
-              <Input
-                id="bankName"
-                value={formData.bankName || ""}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="e.g. PING AN BANK CO.,LTD"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="swiftCode">SWIFT / BIC Code</Label>
-              <Input
-                id="swiftCode"
-                value={formData.swiftCode || ""}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="e.g. SZDBCNBS"
-              />
-            </div>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="postCode">Post Code</Label>
-              <Input
-                id="postCode"
-                value={formData.postCode || ""}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="e.g. 518000"
-              />
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="secondaryPayment">Secondary Payment Method (Optional)</Label>
-            <Textarea
-              id="secondaryPayment"
-              value={formData.secondaryPayment || ""}
-              onChange={handleChange}
-              disabled={loading}
-              placeholder="e.g. AliPay: 86-13424371741 / user@email.com"
-            />
-          </div>
-          <div className="rounded-lg border p-4">
-            <div className="mb-4">
-              <h3 className="text-sm font-semibold">Crypto Details</h3>
-              <p className="text-xs text-muted-foreground">Only fill these fields if crypto is your payment method.</p>
-            </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="cryptoCoin">Coin</Label>
-                <Input
-                  id="cryptoCoin"
-                  value={formData.cryptoCoin || ""}
-                  onChange={handleChange}
-                  disabled={loading}
-                  placeholder="e.g. USDT"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="cryptoNetwork">Network</Label>
-                <Input
-                  id="cryptoNetwork"
-                  value={formData.cryptoNetwork || ""}
-                  onChange={handleChange}
-                  disabled={loading}
-                  placeholder="e.g. TRC20"
-                />
-              </div>
-              <div className="grid gap-2 md:col-span-2">
-                <Label htmlFor="cryptoWallet">Wallet Address</Label>
-                <Input
-                  id="cryptoWallet"
-                  value={formData.cryptoWallet || ""}
-                  onChange={handleChange}
-                  disabled={loading}
-                  placeholder="Wallet address"
-                />
-              </div>
-            </div>
           </div>
         </CardContent>
         <CardFooter className="border-t px-6 py-4 flex justify-end">

@@ -32,6 +32,9 @@ export default async function AdminWorkerDetailsPage({
       invoices: {
         orderBy: { createdAt: "desc" },
       },
+      paymentAccounts: {
+        orderBy: [{ isPreferred: "desc" }, { createdAt: "desc" }],
+      },
     },
   });
 

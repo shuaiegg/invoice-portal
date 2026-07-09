@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Printer, Edit, ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { formatPaymentAccountKeyDetail, PAYMENT_ACCOUNT_TYPE_LABELS, type PaymentAccountType } from "@/lib/payment-accounts";
 
 interface InvoiceDetailProps {
   invoice: any;
@@ -163,26 +164,66 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
                   {worker.vatNumber && <p className="text-secondary-text">VAT: {worker.vatNumber}</p>}
                 </div>
                 
-                <div className="space-y-1 text-sm border-l pl-8 border-dashed">
-                  {worker.bankName && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-text">Bank:</span>
-                      <span className="font-medium text-text">{worker.bankName}</span>
-                    </div>
+                <div className="space-y-3 text-sm border-l pl-8 border-dashed">
+                  {(worker.paymentAccounts?.length ?? 0) > 0 ? (
+                    worker.paymentAccounts.map((account: any, index: number) => (
+                      <div key={account.id} className={index > 0 ? "pt-3 mt-1 border-t border-dashed border-gray-100" : ""}>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-secondary-text mb-1">
+                          {index === 0 ? "Preferred" : "Alternate"} · {PAYMENT_ACCOUNT_TYPE_LABELS[account.type as PaymentAccountType] ?? account.type}
+                          {account.label ? ` (${account.label})` : ""}
+                        </div>
+                        {account.type === "OTHER" ? (
+                          <div className="text-text whitespace-pre-wrap break-all">
+                            {account.notes || account.label || "See payment notes"}
+                          </div>
+                        ) : (
+                          <>
+                            <div className="font-medium text-text break-all">
+                              {formatPaymentAccountKeyDetail(account)}
+                            </div>
+                            {account.type === "BANK_TRANSFER" && account.bankName && (
+                              <div className="text-secondary-text">Bank: {account.bankName}</div>
+                            )}
+                            {account.type === "BANK_TRANSFER" && account.swiftCode && (
+                              <div className="text-secondary-text">SWIFT: {account.swiftCode}</div>
+                            )}
+                          </>
+                        )}
+                        {account.type !== "OTHER" && account.notes && (
+                          <div className="text-secondary-text text-xs italic whitespace-pre-wrap">{account.notes}</div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      {worker.bankName && (
+                        <div className="flex justify-between">
+                          <span className="text-secondary-text">Bank:</span>
+                          <span className="font-medium text-text">{worker.bankName}</span>
+                        </div>
+                      )}
+                      {worker.swiftCode && (
+                        <div className="flex justify-between">
+                          <span className="text-secondary-text">SWIFT:</span>
+                          <span className="font-medium text-text">{worker.swiftCode}</span>
+                        </div>
+                      )}
+                      {worker.paymentAccount && (
+                        <div className="flex justify-between">
+                          <span className="text-secondary-text">Account:</span>
+                          <span className="font-medium text-text">{worker.paymentAccount}</span>
+                        </div>
+                      )}
+                      {worker.secondaryPayment && (
+                        <div className="pt-2 mt-2 border-t border-dashed border-gray-100 italic text-secondary-text text-xs whitespace-pre-wrap">
+                          {worker.secondaryPayment}
+                        </div>
+                      )}
+                    </>
                   )}
-                  {worker.swiftCode && (
-                    <div className="flex justify-between">
-                      <span className="text-secondary-text">SWIFT:</span>
-                      <span className="font-medium text-text">{worker.swiftCode}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-secondary-text">Account:</span>
-                    <span className="font-medium text-text">{worker.paymentAccount}</span>
-                  </div>
-                  {worker.secondaryPayment && (
-                    <div className="pt-2 mt-2 border-t border-dashed border-gray-100 italic text-secondary-text text-xs whitespace-pre-wrap">
-                      {worker.secondaryPayment}
+                  {worker.paymentNotes && (
+                    <div className="pt-2 mt-1 border-t border-dashed border-gray-100 italic text-secondary-text text-xs whitespace-pre-wrap">
+                      {worker.paymentNotes}
                     </div>
                   )}
                 </div>

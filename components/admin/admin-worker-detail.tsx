@@ -27,6 +27,10 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { AdminInvoiceTable } from "./admin-invoice-table";
 import { PAYMENT_TYPE_LABELS } from "@/lib/payment-types";
+import {
+  formatPaymentAccountKeyDetail,
+  PAYMENT_ACCOUNT_TYPE_LABELS,
+} from "@/lib/payment-accounts";
 
 interface AdminWorkerDetailProps {
   worker: any;
@@ -39,6 +43,8 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
   const [timeDoctorEmail, setTimeDoctorEmail] = useState(worker.timeDoctorEmail || "");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+  const paymentAccounts = worker.paymentAccounts || [];
+  const preferredAccount = paymentAccounts.find((account: any) => account.isPreferred);
 
   const handleToggleActive = async () => {
     setLoading(true);
@@ -168,12 +174,20 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
                     <Badge variant={paymentType === "MANUAL" ? "outline" : "secondary"} className="mb-1">
                       {PAYMENT_TYPE_LABELS[paymentType as keyof typeof PAYMENT_TYPE_LABELS] || "Manual"}
                     </Badge>
-                    {worker.paymentMethod && (
-                      <Badge variant="outline" className="mb-1 ml-1 font-semibold">
-                        {worker.paymentMethod}
-                      </Badge>
+                    {preferredAccount ? (
+                      <>
+                        <Badge variant="outline" className="mb-1 ml-1 font-semibold">
+                          {PAYMENT_ACCOUNT_TYPE_LABELS[preferredAccount.type as keyof typeof PAYMENT_ACCOUNT_TYPE_LABELS]}
+                        </Badge>
+                        <div className="text-xs font-mono text-secondary-text break-all">
+                          {formatPaymentAccountKeyDetail(preferredAccount)}
+                        </div>
+                      </>
+                    ) : paymentAccounts.length > 0 ? (
+                      <div className="text-xs text-muted-foreground">No preferred account set</div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">No payment accounts added</div>
                     )}
-                    <div className="text-xs font-mono text-secondary-text break-all">{worker.paymentAccount}</div>
                     {timeDoctorEmail && (
                       <div className="text-xs text-secondary-text break-all">TD: {timeDoctorEmail}</div>
                     )}

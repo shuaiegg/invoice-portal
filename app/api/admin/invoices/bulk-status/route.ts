@@ -43,12 +43,9 @@ export async function POST(req: Request) {
     },
   });
 
-  const xeroErrors: string[] = [];
   for (const invoice of updatedInvoices) {
-    // Xero sync at PAID — fire-and-forget per invoice, log failures
     syncInvoiceToXero(invoice, invoice.worker).catch((err) => {
       console.error(`Xero sync failed for invoice ${invoice.invoiceNumber}:`, err);
-      xeroErrors.push(invoice.invoiceNumber);
     });
 
     invoiceStatusChanged(invoice, invoice.worker, "APPROVED", "PAID");

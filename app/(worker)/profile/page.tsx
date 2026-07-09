@@ -18,6 +18,11 @@ export default async function ProfilePage() {
 
   let worker = await db.worker.findUnique({
     where: { userId },
+    include: {
+      paymentAccounts: {
+        orderBy: [{ isPreferred: "desc" }, { createdAt: "desc" }],
+      },
+    },
   });
 
   if (!worker) {
@@ -26,8 +31,24 @@ export default async function ProfilePage() {
         userId,
         name: session.user.name || "Worker",
       },
+      include: {
+        paymentAccounts: true,
+      },
     });
   }
+
+  const hasLegacyPaymentData = [
+    worker.paymentMethod,
+    worker.paymentAccount,
+    worker.bankName,
+    worker.swiftCode,
+    worker.postCode,
+    worker.secondaryPayment,
+    worker.paypalEmail,
+    worker.cryptoCoin,
+    worker.cryptoNetwork,
+    worker.cryptoWallet,
+  ].some(Boolean) && worker.paymentAccounts.length === 0;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -35,7 +56,11 @@ export default async function ProfilePage() {
         title="My Profile" 
         subtitle="Manage your personal, address, tax, and payment information"
       />
-      <ProfileForm initialData={worker} />
+      <ProfileForm
+        initialData={worker}
+        paymentAccounts={worker.paymentAccounts}
+        hasLegacyPaymentData={hasLegacyPaymentData}
+      />
     </div>
   );
 }

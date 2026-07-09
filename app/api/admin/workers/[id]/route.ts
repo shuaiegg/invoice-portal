@@ -1,11 +1,8 @@
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
 import { parsePaymentType } from "@/lib/payment-types";
+import { optionalString } from "@/lib/utils";
 import { NextResponse } from "next/server";
-
-function optionalString(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
 
 export async function GET(
   req: Request,
@@ -28,6 +25,9 @@ export async function GET(
       },
       invoices: {
         orderBy: { createdAt: "desc" },
+      },
+      paymentAccounts: {
+        orderBy: [{ isPreferred: "desc" }, { createdAt: "desc" }],
       },
     },
   });
@@ -63,6 +63,7 @@ export async function GET(
     updatedAt: worker.updatedAt,
     user: worker.user,
     invoices: worker.invoices,
+    paymentAccounts: worker.paymentAccounts,
   });
 }
 

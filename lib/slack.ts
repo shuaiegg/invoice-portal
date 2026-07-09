@@ -78,7 +78,6 @@ export function invoiceUpdated(invoice: SlackInvoice, worker: SlackWorker): void
       `Invoice #: ${invoice.invoiceNumber}`,
       `Period: ${invoice.period}`,
       `Amount: ${invoice.totalAmount} ${invoice.currency}`,
-      "Xero: Updated ✅",
     ].join("\n"),
   });
 }

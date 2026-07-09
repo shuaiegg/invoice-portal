@@ -25,6 +25,15 @@ enum PaymentType {
   MANUAL
 }
 
+enum PaymentAccountType {
+  BANK_TRANSFER
+  WISE
+  PAYPAL
+  CRYPTO
+  REVOLUT
+  OTHER
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -100,6 +109,30 @@ model Worker {
 
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   invoices       Invoice[]
+  paymentAccounts PaymentAccount[]
+}
+
+model PaymentAccount {
+  id             String             @id @default(cuid())
+  workerId       String
+  type           PaymentAccountType
+  label          String?
+  isPreferred    Boolean            @default(false)
+  accountNumber  String?
+  bankName       String?
+  swiftCode      String?
+  email          String?
+  cryptoCoin     String?
+  cryptoNetwork  String?
+  cryptoWallet   String?
+  notes          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  worker         Worker             @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@index([workerId, isPreferred])
 }
 
 model Invoice {

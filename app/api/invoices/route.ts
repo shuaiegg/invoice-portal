@@ -111,10 +111,14 @@ export async function POST(req: Request) {
 
   const year = invoiceDate.getFullYear();
 
-  // Due Date (default 30 days)
-  const dueDate = data.dueDate
-    ? parseDateInput(data.dueDate)
-    : new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+  let dueDate: Date;
+  try {
+    dueDate = data.dueDate
+      ? parseDateInput(data.dueDate)
+      : new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+  } catch {
+    return NextResponse.json({ error: "Invalid dueDate" }, { status: 400 });
+  }
 
   const invoiceNumber = await generateInvoiceNumber(year);
 

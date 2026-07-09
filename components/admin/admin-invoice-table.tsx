@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   Table, 
   TableBody, 
@@ -14,10 +14,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
-  ChevronLeft, 
+  CheckCircle2,
+  AlertCircle,
+  ChevronLeft,
   ChevronRight,
   Download,
   CreditCard
@@ -42,9 +41,6 @@ export function AdminInvoiceTable({
   const searchParams = useSearchParams();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkLoading, setBulkLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
@@ -98,6 +94,9 @@ export function AdminInvoiceTable({
   };
 
   const getXeroStatus = (invoice: any) => {
+    // Xero sync only happens at PAID — don't show sync status for other statuses
+    if (invoice.status !== "PAID") return null;
+
     if (invoice.xeroSynced) {
       return (
         <Badge variant="outline" className="text-success border-success/30 bg-success/5 gap-1.5 py-0.5">
@@ -105,22 +104,10 @@ export function AdminInvoiceTable({
         </Badge>
       );
     }
-    
-    if (mounted) {
-      const createdAt = new Date(invoice.createdAt);
-      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
-      if (createdAt < thirtyMinAgo) {
-        return (
-          <Badge variant="outline" className="text-error border-error/30 bg-error/5 gap-1.5 py-0.5">
-            <AlertCircle className="h-3 w-3" /> Sync Failed
-          </Badge>
-        );
-      }
-    }
 
     return (
-      <Badge variant="outline" className="text-warning border-warning/30 bg-warning/5 gap-1.5 py-0.5">
-        <Clock className="h-3 w-3" /> Pending
+      <Badge variant="outline" className="text-error border-error/30 bg-error/5 gap-1.5 py-0.5">
+        <AlertCircle className="h-3 w-3" /> Sync Failed
       </Badge>
     );
   };

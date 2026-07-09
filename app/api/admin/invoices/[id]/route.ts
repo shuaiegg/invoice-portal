@@ -50,28 +50,13 @@ export async function PUT(
 
   const invoice = await db.invoice.findUnique({
     where: { id },
-    include: {
-      worker: {
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      },
-    },
+    select: { id: true, status: true },
   });
 
   if (!invoice) {
     return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
   }
 
-  // Validate status transition
-  // Valid transitions: 
-  // SUBMITTED -> APPROVED
-  // APPROVED -> PAID
-  // ANY -> VOID
   const currentStatus = invoice.status;
   let isValid = false;
 

@@ -34,3 +34,15 @@ export const PaymentType = {
 } as const
 
 export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
+
+
+export const PaymentAccountType = {
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  WISE: 'WISE',
+  PAYPAL: 'PAYPAL',
+  CRYPTO: 'CRYPTO',
+  REVOLUT: 'REVOLUT',
+  OTHER: 'OTHER'
+} as const
+
+export type PaymentAccountType = (typeof PaymentAccountType)[keyof typeof PaymentAccountType]

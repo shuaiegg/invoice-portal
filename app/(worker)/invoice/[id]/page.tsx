@@ -22,7 +22,14 @@ export default async function InvoiceDetailsPage({
   const invoice = await db.invoice.findUnique({
     where: { id },
     include: {
-      worker: true,
+      worker: {
+        include: {
+          paymentAccounts: {
+            orderBy: [{ isPreferred: "desc" }, { createdAt: "asc" }],
+            take: 2,
+          },
+        },
+      },
       lines: {
         orderBy: { order: "asc" },
       },
