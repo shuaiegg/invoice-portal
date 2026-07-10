@@ -5,8 +5,8 @@
 - [x] 1.3 Add `timeDoctorEmail`, `cryptoCoin`, `cryptoNetwork`, `cryptoWallet`, `paypalEmail` fields to `Worker` model
 - [x] 1.4 Make `Invoice.amount` and `Invoice.description` nullable (shadow columns for migration)
 - [x] 1.5 Add `Invoice.totalAmount` field (computed-on-write)
-- [ ] 1.6 Run `npx prisma migrate dev --name phase1-invoice-line-items`
-- [ ] 1.7 Write and run data migration script: convert all existing invoices to single-line `InvoiceLine` records
+- [x] 1.6 Run `npx prisma migrate dev --name phase1-invoice-line-items`
+- [x] 1.7 Write and run data migration script: convert all existing invoices to single-line `InvoiceLine` records
 
 ## 2. API — Invoice Endpoints
 
@@ -54,6 +54,6 @@
 
 ## 8. Cleanup
 
-- [ ] 8.1 Write follow-up migration to drop legacy `Invoice.amount` and `Invoice.description` nullable columns
+- [x] 8.1 Write follow-up migration to drop legacy `Invoice.amount` and `Invoice.description` nullable columns
 - [x] 8.2 Update TypeScript types and Prisma client usage across codebase after schema change
-- [ ] 8.3 Manual QA: submit invoice with 3 lines including one deduction, verify total, verify PDF layout
+- [x] 8.3 Manual QA: submit invoice with 3 lines including one deduction, verify total, verify PDF layout

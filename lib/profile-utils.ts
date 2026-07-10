@@ -3,14 +3,12 @@ export function isWorkerProfileComplete(worker: {
   address?: string | null;
   city?: string | null;
   country?: string | null;
-  paymentMethod?: string | null;
 } | null | undefined): boolean {
   return !!(
     worker &&
     worker.name &&
     worker.address &&
     worker.city &&
-    worker.country &&
-    worker.paymentMethod
+    worker.country
   );
 }
