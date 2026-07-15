@@ -8,10 +8,10 @@
 
 ## 2. TD sync transparency
 
-- [ ] 2.1 `lib/td-sync.ts`: count `skippedExisting` in the existing-invoice branch, persist on the run record, include in the returned result and in `tdSyncSummary`
-- [ ] 2.2 `POST /api/admin/td-sync/run`: accept optional `{year, month}` (validate: complete past month within 24 months), default previous month
-- [ ] 2.3 `td-sync-panel.tsx`: month selector (last 12 months, default previous), toast reads "N created · M already existed", add Skipped-existing to last-run summary and run-history table (include `skippedExisting` in the status endpoint payload if absent)
-- [ ] 2.4 Extend `tests/` coverage for the sync counter (re-run over an already-synced month reports created=missing-only, skippedExisting=rest)
+- [x] 2.1 `lib/td-sync.ts`: count `skippedExisting` in the existing-invoice branch, persist on the run record, include in the returned result and in `tdSyncSummary`
+- [x] 2.2 `POST /api/admin/td-sync/run`: accept optional `{year, month}` (validate: complete past month within 24 months), default previous month
+- [x] 2.3 `td-sync-panel.tsx`: month selector (last 12 months, default previous), toast reads "N created · M already existed", add Skipped-existing to last-run summary and run-history table (include `skippedExisting` in the status endpoint payload if absent)
+- [x] 2.4 Extend `tests/` coverage for the sync counter (re-run over an already-synced month reports created=missing-only, skippedExisting=rest)
 
 ## 3. Payment channel derivation
 

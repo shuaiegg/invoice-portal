@@ -110,8 +110,8 @@ export function tdPlusDraftReady(invoice: SlackInvoice, worker: SlackWorker): vo
   notifySlack({ text: `Your invoice for ${invoice.period} is ready, ${worker.name}. Please review and add any additional items, then submit.` });
 }
 
-export function tdSyncSummary(result: { invoicesCreated: number; totalAmount: number; matchFailed: number; inactiveSkipped: number; ignoredSkipped: number }): void {
-  notifySlack({ text: `${result.invoicesCreated} invoices generated · €${result.totalAmount.toFixed(2)} total · ${result.matchFailed} unmatched · ${result.inactiveSkipped} inactive skipped · ${result.ignoredSkipped} ignored` });
+export function tdSyncSummary(result: { invoicesCreated: number; skippedExisting: number; totalAmount: number; matchFailed: number; inactiveSkipped: number; ignoredSkipped: number }): void {
+  notifySlack({ text: `${result.invoicesCreated} invoices generated · ${result.skippedExisting} already existed · €${result.totalAmount.toFixed(2)} total · ${result.matchFailed} unmatched · ${result.inactiveSkipped} inactive skipped · ${result.ignoredSkipped} ignored` });
 }
 
 export function tdSyncFailure(): void {

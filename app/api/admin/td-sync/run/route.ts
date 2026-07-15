@@ -1,17 +1,28 @@
 import { requireAdmin } from "@/lib/admin-guard";
 import { runTdSync } from "@/lib/td-sync";
+import { resolveTdSyncMonth } from "@/lib/td-sync-month";
 import { NextResponse } from "next/server";
 import { after } from "next/server";
 
 export const maxDuration = 300;
 
-export async function POST() {
+export async function POST(request: Request) {
   const guard = await requireAdmin();
   if (!guard.authorized) return guard.response;
-  const now = new Date();
-  const previous = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+
+  let target;
+  try {
+    const text = await request.text();
+    target = resolveTdSyncMonth(text ? JSON.parse(text) : undefined);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Invalid sync month" },
+      { status: 400 },
+    );
+  }
+
   after(() => runTdSync({
-    year: previous.getUTCFullYear(), month: previous.getUTCMonth() + 1, triggeredBy: guard.session!.user.id,
+    ...target, triggeredBy: guard.session!.user.id,
   }));
   return NextResponse.json({ started: true }, { status: 202 });
 }

@@ -8,12 +8,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { formatParisDateTime } from "@/lib/date-format";
 
-type Run = { id: string; runAt: string; status: string; invoicesCreated: number; matchFailed: number; inactiveSkipped: number; ignoredSkipped: number; totalAmount: number; triggeredByName: string };
+type Run = { id: string; runAt: string; status: string; invoicesCreated: number; skippedExisting: number; matchFailed: number; inactiveSkipped: number; ignoredSkipped: number; totalAmount: number; triggeredByName: string };
 type Failure = { id: string; tdName: string; tdEmail: string };
 type Worker = { id: string; name: string };
 
 export function TdSyncPanel({ runs, failures, workers }: { runs: Run[]; failures: Failure[]; workers: Worker[] }) {
-  const router = useRouter(); const [pending, setPending] = useState(false); const [links, setLinks] = useState<Record<string, string>>({});
+  const now = new Date();
+  const monthOptions = Array.from({ length: 12 }, (_, offset) => {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset - 1, 1));
+    const value = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+    return { value, label: date.toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }) };
+  });
+  const router = useRouter(); const [pending, setPending] = useState(false); const [links, setLinks] = useState<Record<string, string>>({}); const [selectedMonth, setSelectedMonth] = useState(monthOptions[0].value);
   async function pollForResult(previousRunId: string | undefined, attempts = 0): Promise<void> {
     const response = await fetch("/api/admin/td-sync/status", { cache: "no-store" });
     const result = await response.json();
@@ -21,7 +27,7 @@ export function TdSyncPanel({ runs, failures, workers }: { runs: Run[]; failures
     if (completed) {
       setPending(false);
       if (result.lastRun.status === "FAILED") toast.error("Time Doctor sync failed");
-      else toast.success(`${result.lastRun.invoicesCreated} invoices generated`);
+      else toast.success(`${result.lastRun.invoicesCreated} created · ${result.lastRun.skippedExisting} already existed`);
       router.refresh();
       return;
     }
@@ -34,7 +40,12 @@ export function TdSyncPanel({ runs, failures, workers }: { runs: Run[]; failures
   }
   async function run() {
     setPending(true);
-    const response = await fetch("/api/admin/td-sync/run", { method: "POST" });
+    const [year, month] = selectedMonth.split("-").map(Number);
+    const response = await fetch("/api/admin/td-sync/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year, month }),
+    });
     const result = await response.json();
     if (!response.ok) {
       setPending(false);
@@ -59,8 +70,8 @@ export function TdSyncPanel({ runs, failures, workers }: { runs: Run[]; failures
     router.refresh();
   }
   const last = runs[0];
-  return <div className="flex flex-col gap-6"><Card><CardHeader><CardTitle>Time Doctor sync</CardTitle><CardDescription>{last ? `${last.invoicesCreated} invoices generated · €${last.totalAmount.toFixed(2)} · ${last.matchFailed} unmatched · ${last.inactiveSkipped} inactive skipped · ${last.ignoredSkipped} ignored · ${last.triggeredByName}` : "No sync runs yet"}</CardDescription></CardHeader><CardContent><Button onClick={run} disabled={pending}>{pending ? "Running sync…" : "Run Sync Now"}</Button></CardContent></Card>
+  return <div className="flex flex-col gap-6"><Card><CardHeader><CardTitle>Time Doctor sync</CardTitle><CardDescription>{last ? `${last.invoicesCreated} invoices generated · ${last.skippedExisting} already existed · €${last.totalAmount.toFixed(2)} · ${last.matchFailed} unmatched · ${last.inactiveSkipped} inactive skipped · ${last.ignoredSkipped} ignored · ${last.triggeredByName}` : "No sync runs yet"}</CardDescription></CardHeader><CardContent className="flex items-center gap-3"><Select value={selectedMonth} onValueChange={setSelectedMonth} disabled={pending}><SelectTrigger className="w-52"><SelectValue /></SelectTrigger><SelectContent>{monthOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select><Button onClick={run} disabled={pending}>{pending ? "Running sync…" : "Run Sync Now"}</Button></CardContent></Card>
     {failures.length ? <Card><CardHeader><CardTitle>Match failures</CardTitle><CardDescription>&quot;Ignore&quot; is permanent — use it for TD accounts that should never generate an invoice (e.g. the company owner).</CardDescription></CardHeader><CardContent className="flex flex-col gap-3">{failures.map((failure) => <div key={failure.id} className="flex items-center gap-2"><span className="min-w-64 text-sm">{failure.tdName} · {failure.tdEmail}</span><Select onValueChange={(value) => setLinks((current) => ({ ...current, [failure.id]: value }))}><SelectTrigger><SelectValue placeholder="Select worker" /></SelectTrigger><SelectContent>{workers.map((worker) => <SelectItem key={worker.id} value={worker.id}>{worker.name}</SelectItem>)}</SelectContent></Select><Button size="sm" disabled={!links[failure.id]} onClick={() => resolve(failure.id, "link")}>Link</Button><Button size="sm" variant="outline" onClick={() => resolve(failure.id, "dismiss")}>Dismiss</Button><Button size="sm" variant="outline" onClick={() => resolve(failure.id, "ignore")}>Ignore permanently</Button></div>)}</CardContent></Card> : null}
-    <Card><CardHeader><CardTitle>Last 12 runs</CardTitle></CardHeader><CardContent><Table><TableHeader><TableRow><TableHead>Run</TableHead><TableHead>Status</TableHead><TableHead>Invoices</TableHead><TableHead>Unmatched</TableHead><TableHead>Inactive</TableHead><TableHead>Ignored</TableHead><TableHead>Triggered by</TableHead></TableRow></TableHeader><TableBody>{runs.map((run) => <TableRow key={run.id}><TableCell>{formatParisDateTime(run.runAt)}</TableCell><TableCell>{run.status}</TableCell><TableCell>{run.invoicesCreated}</TableCell><TableCell>{run.matchFailed}</TableCell><TableCell>{run.inactiveSkipped}</TableCell><TableCell>{run.ignoredSkipped}</TableCell><TableCell>{run.triggeredByName}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card>
+    <Card><CardHeader><CardTitle>Last 12 runs</CardTitle></CardHeader><CardContent><Table><TableHeader><TableRow><TableHead>Run</TableHead><TableHead>Status</TableHead><TableHead>Invoices</TableHead><TableHead>Already existed</TableHead><TableHead>Unmatched</TableHead><TableHead>Inactive</TableHead><TableHead>Ignored</TableHead><TableHead>Triggered by</TableHead></TableRow></TableHeader><TableBody>{runs.map((run) => <TableRow key={run.id}><TableCell>{formatParisDateTime(run.runAt)}</TableCell><TableCell>{run.status}</TableCell><TableCell>{run.invoicesCreated}</TableCell><TableCell>{run.skippedExisting}</TableCell><TableCell>{run.matchFailed}</TableCell><TableCell>{run.inactiveSkipped}</TableCell><TableCell>{run.ignoredSkipped}</TableCell><TableCell>{run.triggeredByName}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card>
   </div>;
 }

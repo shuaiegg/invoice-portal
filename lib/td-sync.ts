@@ -4,6 +4,7 @@ import { reserveInvoiceNumbers } from "./invoice-number";
 import { tdPlusDraftReady, tdSyncFailure, tdSyncSummary } from "./slack";
 import { fetchMonthlyHours, hoursFromSeconds } from "./timedoctor";
 import { buildTdWorkerMatcher } from "./td-worker-matching";
+import { partitionExistingWorkerIds } from "./td-sync-month";
 
 export type TdSyncOptions = { year: number; month: number; triggeredBy?: string | null };
 
@@ -13,6 +14,7 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
   const invoiceDate = new Date(Date.UTC(year, month, 0));
   const dueDate = new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000);
   let invoicesCreated = 0;
+  let skippedExisting = 0;
   let matchFailed = 0;
   let inactiveSkipped = 0;
   let ignoredSkipped = 0;
@@ -76,7 +78,11 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
         matchFailed += 1;
         continue;
       }
-      if (existingInvoiceWorkerIds.has(activeWorker.id)) continue;
+      const existing = partitionExistingWorkerIds([activeWorker.id], existingInvoiceWorkerIds);
+      if (existing.skippedExisting) {
+        skippedExisting += existing.skippedExisting;
+        continue;
+      }
 
       const quantity = hoursFromSeconds(tdUser.totalSec);
       const subtotal = Math.round(quantity * activeWorker.hourlyRate * 100) / 100;
@@ -123,7 +129,7 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
     }
 
     const status = errors.length || matchFailed ? "PARTIAL" : "SUCCESS";
-    const result = { invoicesCreated, matchFailed, inactiveSkipped, ignoredSkipped, totalAmount };
+    const result = { invoicesCreated, skippedExisting, matchFailed, inactiveSkipped, ignoredSkipped, totalAmount };
     await Promise.all([
       db.tdSyncRun.update({ where: { id: run.id }, data: { ...result, status, errorLog: errors.join("\n") || null } }),
       db.timeDoctorConfig.update({ where: { id: "singleton" }, data: { lastSyncAt: new Date(), lastSyncStatus: status } }),
