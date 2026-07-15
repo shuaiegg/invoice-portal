@@ -106,6 +106,25 @@ export function invoicePaidWorkerNotification(invoice: SlackInvoice, worker: Sla
   });
 }
 
+export function bulkOperationDigest(input: {
+  action: string;
+  count: number;
+  totalsByCurrency: Record<string, number>;
+  channelBreakdown: Record<string, number>;
+  xeroFailed: number;
+}): void {
+  const totals = Object.entries(input.totalsByCurrency).map(([currency, amount]) => `${amount.toFixed(2)} ${currency}`).join(" + ");
+  const channels = Object.entries(input.channelBreakdown).map(([channel, count]) => `${channel}: ${count}`).join(" · ");
+  notifySlack({
+    text: [
+      `Bulk ${input.action}: ${input.count} invoices`,
+      `Totals: ${totals || "none"}`,
+      `Channels: ${channels}`,
+      `Xero failures: ${input.xeroFailed}`,
+    ].join("\n"),
+  });
+}
+
 export function tdPlusDraftReady(invoice: SlackInvoice, worker: SlackWorker): void {
   notifySlack({ text: `Your invoice for ${invoice.period} is ready, ${worker.name}. Please review and add any additional items, then submit.` });
 }

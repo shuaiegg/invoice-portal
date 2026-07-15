@@ -28,12 +28,12 @@
 
 ## 5. Bulk operations API
 
-- [ ] 5.1 Extend `POST /api/admin/invoices/bulk-status`: `action: "APPROVE" | "MARK_PAID"`, accept `invoiceIds` or `filter` object (server-resolved), per-row guarded transitions via `lib/invoice-status.ts`, response `{targeted, transitioned, skippedWrongStatus, xeroSynced, xeroFailed, failedInvoices}`
-- [ ] 5.2 Add `dryRun: true` mode returning targeted count, per-currency totals, and `paymentIncomplete` workers (per design D4); execution accepts `excludeWorkerIds`
-- [ ] 5.3 MARK_PAID path: await Xero syncs with bounded concurrency (~5), set `maxDuration`, report per-invoice outcomes (keep PAID-on-failure semantics)
-- [ ] 5.4 New `POST /api/admin/invoices/retry-xero`: IDs or filter, re-sync without status change, same outcome summary shape
-- [ ] 5.5 `lib/slack.ts`: `bulkOperationDigest(...)` (one message: action, count, per-currency totals, channel breakdown, xero failures); bulk route stops calling `invoiceStatusChanged` per invoice but keeps per-invoice `invoicePaidWorkerNotification` for MANUAL workers
-- [ ] 5.6 Tests: filter-scoped resolution, mixed-status skip counting, dry-run pre-check flags missing Wise/PayPal email, concurrent-status-change race (guard skips, never corrupts)
+- [x] 5.1 Extend `POST /api/admin/invoices/bulk-status`: `action: "APPROVE" | "MARK_PAID"`, accept `invoiceIds` or `filter` object (server-resolved), per-row guarded transitions via `lib/invoice-status.ts`, response `{targeted, transitioned, skippedWrongStatus, xeroSynced, xeroFailed, failedInvoices}`
+- [x] 5.2 Add `dryRun: true` mode returning targeted count, per-currency totals, and `paymentIncomplete` workers (per design D4); execution accepts `excludeWorkerIds`
+- [x] 5.3 MARK_PAID path: await Xero syncs with bounded concurrency (~5), set `maxDuration`, report per-invoice outcomes (keep PAID-on-failure semantics)
+- [x] 5.4 New `POST /api/admin/invoices/retry-xero`: IDs or filter, re-sync without status change, same outcome summary shape
+- [x] 5.5 `lib/slack.ts`: `bulkOperationDigest(...)` (one message: action, count, per-currency totals, channel breakdown, xero failures); bulk route stops calling `invoiceStatusChanged` per invoice but keeps per-invoice `invoicePaidWorkerNotification` for MANUAL workers
+- [x] 5.6 Tests: filter-scoped resolution, mixed-status skip counting, dry-run pre-check flags missing Wise/PayPal email, concurrent-status-change race (guard skips, never corrupts)
 
 ## 6. Bulk operations UI
 

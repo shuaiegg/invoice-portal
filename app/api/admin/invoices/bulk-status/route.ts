@@ -1,61 +1,86 @@
-import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin-guard";
-import { invoicePaidWorkerNotification, invoiceStatusChanged } from "@/lib/slack";
-import { syncInvoiceToXero } from "@/lib/xero";
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-guard";
+import { db } from "@/lib/db";
+import {
+  findPaymentIncomplete,
+  runGuardedTransitions,
+  transitionForAction,
+  type BulkAction,
+} from "@/lib/bulk-invoices";
+import {
+  resolveBulkInvoiceTargets,
+  summarizeInvoices,
+  syncBulkInvoicesToXero,
+} from "@/lib/bulk-invoice-server";
+import { bulkOperationDigest, invoicePaidWorkerNotification } from "@/lib/slack";
+
+export const maxDuration = 300;
 
 export async function POST(req: Request) {
   const { authorized, response } = await requireAdmin();
   if (!authorized) return response;
 
-  const { invoiceIds, status } = await req.json();
-
-  if (!invoiceIds || !Array.isArray(invoiceIds) || invoiceIds.length === 0) {
-    return NextResponse.json({ error: "No invoice IDs provided" }, { status: 400 });
+  const body = await req.json();
+  const action = body.action as BulkAction;
+  if (action !== "APPROVE" && action !== "MARK_PAID") {
+    return NextResponse.json({ error: "Invalid bulk action" }, { status: 400 });
   }
 
-  if (status !== "PAID") {
-    return NextResponse.json({ error: "Only bulk PAID status is supported" }, { status: 400 });
+  let resolved;
+  try {
+    resolved = await resolveBulkInvoiceTargets(body);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid target" }, { status: 400 });
   }
 
-  // Only allowed transition is APPROVED -> PAID
-  const result = await db.invoice.updateMany({
-    where: {
-      id: { in: invoiceIds },
-      status: "APPROVED",
-    },
-    data: { status: "PAID" },
-  });
+  const excludedWorkerIds = new Set(
+    Array.isArray(body.excludeWorkerIds)
+      ? body.excludeWorkerIds.filter((id: unknown): id is string => typeof id === "string")
+      : [],
+  );
+  const targets = resolved.filter((invoice) => !excludedWorkerIds.has(invoice.workerId));
+  const summary = summarizeInvoices(targets);
 
-  // Re-fetch after update so Xero sync and notifications only fire for actually updated invoices
-  const updatedInvoices = await db.invoice.findMany({
-    where: {
-      id: { in: invoiceIds },
-      status: "PAID",
-    },
-    include: {
-      worker: {
-        include: {
-          user: { select: { email: true } },
-        },
-      },
-      lines: { orderBy: { order: "asc" } },
-    },
-  });
-
-  for (const invoice of updatedInvoices) {
-    syncInvoiceToXero(invoice, invoice.worker).catch((err) => {
-      console.error(`Xero sync failed for invoice ${invoice.invoiceNumber}:`, err);
+  if (body.dryRun === true) {
+    return NextResponse.json({
+      targeted: targets.length,
+      ...summary,
+      paymentIncomplete: action === "APPROVE" ? findPaymentIncomplete(targets) : [],
     });
+  }
 
-    invoiceStatusChanged(invoice, invoice.worker, "APPROVED", "PAID");
-    if (invoice.worker.paymentType === "MANUAL") {
-      invoicePaidWorkerNotification(invoice, invoice.worker);
+  const transition = transitionForAction(action);
+  const transitionResult = await runGuardedTransitions(targets, action, async (id, expected, target) => {
+    const result = await db.invoice.updateMany({ where: { id, status: expected }, data: { status: target } });
+    return result.count === 1;
+  });
+  const transitionedIds = new Set(transitionResult.transitionedIds);
+  const transitionedInvoices = targets
+    .filter((invoice) => transitionedIds.has(invoice.id))
+    .map((invoice) => ({ ...invoice, status: transition.target }));
+
+  const xero = action === "MARK_PAID"
+    ? await syncBulkInvoicesToXero(transitionedInvoices)
+    : { xeroSynced: 0, xeroFailed: 0, failedInvoices: [] };
+
+  if (action === "MARK_PAID") {
+    for (const invoice of transitionedInvoices) {
+      if (invoice.worker.paymentType === "MANUAL") invoicePaidWorkerNotification(invoice, invoice.worker);
     }
+  }
+  if (transitionedInvoices.length > 0) {
+    bulkOperationDigest({
+      action,
+      count: transitionedInvoices.length,
+      ...summarizeInvoices(transitionedInvoices),
+      xeroFailed: xero.xeroFailed,
+    });
   }
 
   return NextResponse.json({
-    success: true,
-    count: result.count,
+    targeted: targets.length,
+    transitioned: transitionedInvoices.length,
+    skippedWrongStatus: transitionResult.skippedWrongStatus,
+    ...xero,
   });
 }
