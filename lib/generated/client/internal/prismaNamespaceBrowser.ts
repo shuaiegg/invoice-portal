@@ -238,6 +238,7 @@ export const TdSyncRunScalarFieldEnum = {
   runAt: 'runAt',
   status: 'status',
   invoicesCreated: 'invoicesCreated',
+  skippedExisting: 'skippedExisting',
   matchFailed: 'matchFailed',
   inactiveSkipped: 'inactiveSkipped',
   ignoredSkipped: 'ignoredSkipped',

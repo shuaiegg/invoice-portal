@@ -4,6 +4,7 @@ import { generateInvoiceNumber } from "@/lib/invoice-number";
 import { invoiceSubmitted } from "@/lib/slack";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
+import { deriveBillingMonth } from "@/lib/billing-month";
 import {
   calculateInvoiceAmounts,
   getLegacyInvoiceFields,
@@ -103,10 +104,12 @@ export async function POST(req: Request) {
   const legacyFields = getLegacyInvoiceFields(lines);
 
   let invoiceDate: Date;
+  let serviceDate: Date | null;
   try {
     invoiceDate = parseDateInput(data.invoiceDate);
+    serviceDate = data.serviceDate ? parseDateInput(data.serviceDate) : null;
   } catch {
-    return NextResponse.json({ error: "Invalid invoiceDate" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid invoiceDate or serviceDate" }, { status: 400 });
   }
 
   const year = invoiceDate.getFullYear();
@@ -128,8 +131,9 @@ export async function POST(req: Request) {
         workerId: worker.id,
         invoiceNumber,
         invoiceDate,
+        billingMonth: deriveBillingMonth(invoiceDate, serviceDate),
         dueDate,
-        serviceDate: data.serviceDate ? parseDateInput(data.serviceDate) : null,
+        serviceDate,
         description: legacyFields.description,
         period: data.period,
         quantity: legacyFields.quantity,

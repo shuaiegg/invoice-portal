@@ -28,6 +28,7 @@ export type AggregateTdSyncRun = {
 
 export type TdSyncRunAvgAggregateOutputType = {
   invoicesCreated: number | null
+  skippedExisting: number | null
   matchFailed: number | null
   inactiveSkipped: number | null
   ignoredSkipped: number | null
@@ -36,6 +37,7 @@ export type TdSyncRunAvgAggregateOutputType = {
 
 export type TdSyncRunSumAggregateOutputType = {
   invoicesCreated: number | null
+  skippedExisting: number | null
   matchFailed: number | null
   inactiveSkipped: number | null
   ignoredSkipped: number | null
@@ -47,6 +49,7 @@ export type TdSyncRunMinAggregateOutputType = {
   runAt: Date | null
   status: string | null
   invoicesCreated: number | null
+  skippedExisting: number | null
   matchFailed: number | null
   inactiveSkipped: number | null
   ignoredSkipped: number | null
@@ -60,6 +63,7 @@ export type TdSyncRunMaxAggregateOutputType = {
   runAt: Date | null
   status: string | null
   invoicesCreated: number | null
+  skippedExisting: number | null
   matchFailed: number | null
   inactiveSkipped: number | null
   ignoredSkipped: number | null
@@ -73,6 +77,7 @@ export type TdSyncRunCountAggregateOutputType = {
   runAt: number
   status: number
   invoicesCreated: number
+  skippedExisting: number
   matchFailed: number
   inactiveSkipped: number
   ignoredSkipped: number
@@ -85,6 +90,7 @@ export type TdSyncRunCountAggregateOutputType = {
 
 export type TdSyncRunAvgAggregateInputType = {
   invoicesCreated?: true
+  skippedExisting?: true
   matchFailed?: true
   inactiveSkipped?: true
   ignoredSkipped?: true
@@ -93,6 +99,7 @@ export type TdSyncRunAvgAggregateInputType = {
 
 export type TdSyncRunSumAggregateInputType = {
   invoicesCreated?: true
+  skippedExisting?: true
   matchFailed?: true
   inactiveSkipped?: true
   ignoredSkipped?: true
@@ -104,6 +111,7 @@ export type TdSyncRunMinAggregateInputType = {
   runAt?: true
   status?: true
   invoicesCreated?: true
+  skippedExisting?: true
   matchFailed?: true
   inactiveSkipped?: true
   ignoredSkipped?: true
@@ -117,6 +125,7 @@ export type TdSyncRunMaxAggregateInputType = {
   runAt?: true
   status?: true
   invoicesCreated?: true
+  skippedExisting?: true
   matchFailed?: true
   inactiveSkipped?: true
   ignoredSkipped?: true
@@ -130,6 +139,7 @@ export type TdSyncRunCountAggregateInputType = {
   runAt?: true
   status?: true
   invoicesCreated?: true
+  skippedExisting?: true
   matchFailed?: true
   inactiveSkipped?: true
   ignoredSkipped?: true
@@ -230,6 +240,7 @@ export type TdSyncRunGroupByOutputType = {
   runAt: Date
   status: string
   invoicesCreated: number
+  skippedExisting: number
   matchFailed: number
   inactiveSkipped: number
   ignoredSkipped: number
@@ -266,6 +277,7 @@ export type TdSyncRunWhereInput = {
   runAt?: Prisma.DateTimeFilter<"TdSyncRun"> | Date | string
   status?: Prisma.StringFilter<"TdSyncRun"> | string
   invoicesCreated?: Prisma.IntFilter<"TdSyncRun"> | number
+  skippedExisting?: Prisma.IntFilter<"TdSyncRun"> | number
   matchFailed?: Prisma.IntFilter<"TdSyncRun"> | number
   inactiveSkipped?: Prisma.IntFilter<"TdSyncRun"> | number
   ignoredSkipped?: Prisma.IntFilter<"TdSyncRun"> | number
@@ -281,6 +293,7 @@ export type TdSyncRunOrderByWithRelationInput = {
   runAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
+  skippedExisting?: Prisma.SortOrder
   matchFailed?: Prisma.SortOrder
   inactiveSkipped?: Prisma.SortOrder
   ignoredSkipped?: Prisma.SortOrder
@@ -299,6 +312,7 @@ export type TdSyncRunWhereUniqueInput = Prisma.AtLeast<{
   runAt?: Prisma.DateTimeFilter<"TdSyncRun"> | Date | string
   status?: Prisma.StringFilter<"TdSyncRun"> | string
   invoicesCreated?: Prisma.IntFilter<"TdSyncRun"> | number
+  skippedExisting?: Prisma.IntFilter<"TdSyncRun"> | number
   matchFailed?: Prisma.IntFilter<"TdSyncRun"> | number
   inactiveSkipped?: Prisma.IntFilter<"TdSyncRun"> | number
   ignoredSkipped?: Prisma.IntFilter<"TdSyncRun"> | number
@@ -314,6 +328,7 @@ export type TdSyncRunOrderByWithAggregationInput = {
   runAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
+  skippedExisting?: Prisma.SortOrder
   matchFailed?: Prisma.SortOrder
   inactiveSkipped?: Prisma.SortOrder
   ignoredSkipped?: Prisma.SortOrder
@@ -335,6 +350,7 @@ export type TdSyncRunScalarWhereWithAggregatesInput = {
   runAt?: Prisma.DateTimeWithAggregatesFilter<"TdSyncRun"> | Date | string
   status?: Prisma.StringWithAggregatesFilter<"TdSyncRun"> | string
   invoicesCreated?: Prisma.IntWithAggregatesFilter<"TdSyncRun"> | number
+  skippedExisting?: Prisma.IntWithAggregatesFilter<"TdSyncRun"> | number
   matchFailed?: Prisma.IntWithAggregatesFilter<"TdSyncRun"> | number
   inactiveSkipped?: Prisma.IntWithAggregatesFilter<"TdSyncRun"> | number
   ignoredSkipped?: Prisma.IntWithAggregatesFilter<"TdSyncRun"> | number
@@ -348,6 +364,7 @@ export type TdSyncRunCreateInput = {
   runAt?: Date | string
   status?: string
   invoicesCreated?: number
+  skippedExisting?: number
   matchFailed?: number
   inactiveSkipped?: number
   ignoredSkipped?: number
@@ -363,6 +380,7 @@ export type TdSyncRunUncheckedCreateInput = {
   runAt?: Date | string
   status?: string
   invoicesCreated?: number
+  skippedExisting?: number
   matchFailed?: number
   inactiveSkipped?: number
   ignoredSkipped?: number
@@ -378,6 +396,7 @@ export type TdSyncRunUpdateInput = {
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
+  skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
   matchFailed?: Prisma.IntFieldUpdateOperationsInput | number
   inactiveSkipped?: Prisma.IntFieldUpdateOperationsInput | number
   ignoredSkipped?: Prisma.IntFieldUpdateOperationsInput | number
@@ -393,6 +412,7 @@ export type TdSyncRunUncheckedUpdateInput = {
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
+  skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
   matchFailed?: Prisma.IntFieldUpdateOperationsInput | number
   inactiveSkipped?: Prisma.IntFieldUpdateOperationsInput | number
   ignoredSkipped?: Prisma.IntFieldUpdateOperationsInput | number
@@ -408,6 +428,7 @@ export type TdSyncRunCreateManyInput = {
   runAt?: Date | string
   status?: string
   invoicesCreated?: number
+  skippedExisting?: number
   matchFailed?: number
   inactiveSkipped?: number
   ignoredSkipped?: number
@@ -421,6 +442,7 @@ export type TdSyncRunUpdateManyMutationInput = {
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
+  skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
   matchFailed?: Prisma.IntFieldUpdateOperationsInput | number
   inactiveSkipped?: Prisma.IntFieldUpdateOperationsInput | number
   ignoredSkipped?: Prisma.IntFieldUpdateOperationsInput | number
@@ -434,6 +456,7 @@ export type TdSyncRunUncheckedUpdateManyInput = {
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
+  skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
   matchFailed?: Prisma.IntFieldUpdateOperationsInput | number
   inactiveSkipped?: Prisma.IntFieldUpdateOperationsInput | number
   ignoredSkipped?: Prisma.IntFieldUpdateOperationsInput | number
@@ -452,6 +475,7 @@ export type TdSyncRunCountOrderByAggregateInput = {
   runAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
+  skippedExisting?: Prisma.SortOrder
   matchFailed?: Prisma.SortOrder
   inactiveSkipped?: Prisma.SortOrder
   ignoredSkipped?: Prisma.SortOrder
@@ -462,6 +486,7 @@ export type TdSyncRunCountOrderByAggregateInput = {
 
 export type TdSyncRunAvgOrderByAggregateInput = {
   invoicesCreated?: Prisma.SortOrder
+  skippedExisting?: Prisma.SortOrder
   matchFailed?: Prisma.SortOrder
   inactiveSkipped?: Prisma.SortOrder
   ignoredSkipped?: Prisma.SortOrder
@@ -473,6 +498,7 @@ export type TdSyncRunMaxOrderByAggregateInput = {
   runAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
+  skippedExisting?: Prisma.SortOrder
   matchFailed?: Prisma.SortOrder
   inactiveSkipped?: Prisma.SortOrder
   ignoredSkipped?: Prisma.SortOrder
@@ -486,6 +512,7 @@ export type TdSyncRunMinOrderByAggregateInput = {
   runAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
+  skippedExisting?: Prisma.SortOrder
   matchFailed?: Prisma.SortOrder
   inactiveSkipped?: Prisma.SortOrder
   ignoredSkipped?: Prisma.SortOrder
@@ -496,6 +523,7 @@ export type TdSyncRunMinOrderByAggregateInput = {
 
 export type TdSyncRunSumOrderByAggregateInput = {
   invoicesCreated?: Prisma.SortOrder
+  skippedExisting?: Prisma.SortOrder
   matchFailed?: Prisma.SortOrder
   inactiveSkipped?: Prisma.SortOrder
   ignoredSkipped?: Prisma.SortOrder
@@ -550,6 +578,7 @@ export type TdSyncRunCreateWithoutInvoicesInput = {
   runAt?: Date | string
   status?: string
   invoicesCreated?: number
+  skippedExisting?: number
   matchFailed?: number
   inactiveSkipped?: number
   ignoredSkipped?: number
@@ -564,6 +593,7 @@ export type TdSyncRunUncheckedCreateWithoutInvoicesInput = {
   runAt?: Date | string
   status?: string
   invoicesCreated?: number
+  skippedExisting?: number
   matchFailed?: number
   inactiveSkipped?: number
   ignoredSkipped?: number
@@ -594,6 +624,7 @@ export type TdSyncRunUpdateWithoutInvoicesInput = {
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
+  skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
   matchFailed?: Prisma.IntFieldUpdateOperationsInput | number
   inactiveSkipped?: Prisma.IntFieldUpdateOperationsInput | number
   ignoredSkipped?: Prisma.IntFieldUpdateOperationsInput | number
@@ -608,6 +639,7 @@ export type TdSyncRunUncheckedUpdateWithoutInvoicesInput = {
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
+  skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
   matchFailed?: Prisma.IntFieldUpdateOperationsInput | number
   inactiveSkipped?: Prisma.IntFieldUpdateOperationsInput | number
   ignoredSkipped?: Prisma.IntFieldUpdateOperationsInput | number
@@ -622,6 +654,7 @@ export type TdSyncRunCreateWithoutMatchFailuresInput = {
   runAt?: Date | string
   status?: string
   invoicesCreated?: number
+  skippedExisting?: number
   matchFailed?: number
   inactiveSkipped?: number
   ignoredSkipped?: number
@@ -636,6 +669,7 @@ export type TdSyncRunUncheckedCreateWithoutMatchFailuresInput = {
   runAt?: Date | string
   status?: string
   invoicesCreated?: number
+  skippedExisting?: number
   matchFailed?: number
   inactiveSkipped?: number
   ignoredSkipped?: number
@@ -666,6 +700,7 @@ export type TdSyncRunUpdateWithoutMatchFailuresInput = {
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
+  skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
   matchFailed?: Prisma.IntFieldUpdateOperationsInput | number
   inactiveSkipped?: Prisma.IntFieldUpdateOperationsInput | number
   ignoredSkipped?: Prisma.IntFieldUpdateOperationsInput | number
@@ -680,6 +715,7 @@ export type TdSyncRunUncheckedUpdateWithoutMatchFailuresInput = {
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
+  skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
   matchFailed?: Prisma.IntFieldUpdateOperationsInput | number
   inactiveSkipped?: Prisma.IntFieldUpdateOperationsInput | number
   ignoredSkipped?: Prisma.IntFieldUpdateOperationsInput | number
@@ -734,6 +770,7 @@ export type TdSyncRunSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   runAt?: boolean
   status?: boolean
   invoicesCreated?: boolean
+  skippedExisting?: boolean
   matchFailed?: boolean
   inactiveSkipped?: boolean
   ignoredSkipped?: boolean
@@ -750,6 +787,7 @@ export type TdSyncRunSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   runAt?: boolean
   status?: boolean
   invoicesCreated?: boolean
+  skippedExisting?: boolean
   matchFailed?: boolean
   inactiveSkipped?: boolean
   ignoredSkipped?: boolean
@@ -763,6 +801,7 @@ export type TdSyncRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   runAt?: boolean
   status?: boolean
   invoicesCreated?: boolean
+  skippedExisting?: boolean
   matchFailed?: boolean
   inactiveSkipped?: boolean
   ignoredSkipped?: boolean
@@ -776,6 +815,7 @@ export type TdSyncRunSelectScalar = {
   runAt?: boolean
   status?: boolean
   invoicesCreated?: boolean
+  skippedExisting?: boolean
   matchFailed?: boolean
   inactiveSkipped?: boolean
   ignoredSkipped?: boolean
@@ -784,7 +824,7 @@ export type TdSyncRunSelectScalar = {
   triggeredBy?: boolean
 }
 
-export type TdSyncRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runAt" | "status" | "invoicesCreated" | "matchFailed" | "inactiveSkipped" | "ignoredSkipped" | "totalAmount" | "errorLog" | "triggeredBy", ExtArgs["result"]["tdSyncRun"]>
+export type TdSyncRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runAt" | "status" | "invoicesCreated" | "skippedExisting" | "matchFailed" | "inactiveSkipped" | "ignoredSkipped" | "totalAmount" | "errorLog" | "triggeredBy", ExtArgs["result"]["tdSyncRun"]>
 export type TdSyncRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   invoices?: boolean | Prisma.TdSyncRun$invoicesArgs<ExtArgs>
   matchFailures?: boolean | Prisma.TdSyncRun$matchFailuresArgs<ExtArgs>
@@ -804,6 +844,7 @@ export type $TdSyncRunPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     runAt: Date
     status: string
     invoicesCreated: number
+    skippedExisting: number
     matchFailed: number
     inactiveSkipped: number
     ignoredSkipped: number
@@ -1239,6 +1280,7 @@ export interface TdSyncRunFieldRefs {
   readonly runAt: Prisma.FieldRef<"TdSyncRun", 'DateTime'>
   readonly status: Prisma.FieldRef<"TdSyncRun", 'String'>
   readonly invoicesCreated: Prisma.FieldRef<"TdSyncRun", 'Int'>
+  readonly skippedExisting: Prisma.FieldRef<"TdSyncRun", 'Int'>
   readonly matchFailed: Prisma.FieldRef<"TdSyncRun", 'Int'>
   readonly inactiveSkipped: Prisma.FieldRef<"TdSyncRun", 'Int'>
   readonly ignoredSkipped: Prisma.FieldRef<"TdSyncRun", 'Int'>

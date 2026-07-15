@@ -2,9 +2,9 @@
 
 ## 1. Data foundation (migration + billingMonth)
 
-- [ ] 1.1 Prisma migration: add `TdSyncRun.skippedExisting Int @default(0)`; in the same migration, backfill `Invoice."billingMonth" = to_char("invoiceDate", 'YYYY-MM')` where null; run `npx prisma generate`
-- [ ] 1.2 Inspect worker invoice create/edit routes (`app/api/invoices/...`) to determine the service-period source (explicit month field vs `serviceDate`/`period` text vs `invoiceDate` fallback) and write `billingMonth` on both paths
-- [ ] 1.3 Unit-test billingMonth derivation for the manual-submission edge case (July submission for June work → `2026-06`)
+- [x] 1.1 Prisma migration: add `TdSyncRun.skippedExisting Int @default(0)`; in the same migration, backfill `Invoice."billingMonth" = to_char("invoiceDate", 'YYYY-MM')` where null; run `npx prisma generate`
+- [x] 1.2 Inspect worker invoice create/edit routes (`app/api/invoices/...`) to determine the service-period source (explicit month field vs `serviceDate`/`period` text vs `invoiceDate` fallback) and write `billingMonth` on both paths
+- [x] 1.3 Unit-test billingMonth derivation for the manual-submission edge case (July submission for June work → `2026-06`)
 
 ## 2. TD sync transparency
 

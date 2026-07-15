@@ -5,6 +5,7 @@ import { invoiceUpdated } from "@/lib/slack";
 import { isWorkerInvoiceEditable } from "@/lib/invoice-status";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
+import { deriveBillingMonth } from "@/lib/billing-month";
 import {
   calculateInvoiceAmounts,
   getLegacyInvoiceFields,
@@ -101,10 +102,12 @@ export async function PUT(
   const legacyFields = getLegacyInvoiceFields(lines);
 
   let invoiceDate: Date;
+  let serviceDate: Date | null;
   try {
     invoiceDate = parseDateInput(data.invoiceDate);
+    serviceDate = data.serviceDate ? parseDateInput(data.serviceDate) : null;
   } catch {
-    return NextResponse.json({ error: "Invalid invoiceDate" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid invoiceDate or serviceDate" }, { status: 400 });
   }
 
   const updatedInvoice = await db.$transaction(async (tx) => {
@@ -120,7 +123,8 @@ export async function PUT(
       where: { id },
       data: {
         invoiceDate,
-        serviceDate: data.serviceDate ? parseDateInput(data.serviceDate) : null,
+        billingMonth: deriveBillingMonth(invoiceDate, serviceDate),
+        serviceDate,
         description: legacyFields.description,
         period: data.period,
         quantity: legacyFields.quantity,

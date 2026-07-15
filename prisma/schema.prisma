@@ -206,6 +206,7 @@ model TdSyncRun {
   runAt           DateTime         @default(now())
   status          String           @default("RUNNING")
   invoicesCreated Int              @default(0)
+  skippedExisting Int              @default(0)
   matchFailed     Int              @default(0)
   inactiveSkipped Int              @default(0)
   ignoredSkipped  Int              @default(0)
