@@ -44,9 +44,9 @@
 
 ## 7. Dashboard settlement card
 
-- [ ] 7.1 `app/(admin)/admin/page.tsx`: settlement card for selectable `billingMonth` (default previous month, Europe/Paris) — status breakdown, per-currency totals, unresolved match failures, xero-failed count, link to pre-filtered invoice list
-- [ ] 7.2 Derived completion indicator (all non-VOID PAID + no unresolved match failures) with progress display
-- [ ] 7.3 Rebase/absorb the existing "Invoices This Month" and "Paid This Month" stats onto `billingMonth` so dashboard numbers match the invoice list
+- [x] 7.1 `app/(admin)/admin/page.tsx`: settlement card for selectable `billingMonth` (default previous month, Europe/Paris) — status breakdown, per-currency totals, unresolved match failures, xero-failed count, link to pre-filtered invoice list
+- [x] 7.2 Derived completion indicator (all non-VOID PAID + no unresolved match failures) with progress display
+- [x] 7.3 Rebase/absorb the existing "Invoices This Month" and "Paid This Month" stats onto `billingMonth` so dashboard numbers match the invoice list
 
 ## 8. Verification
 
