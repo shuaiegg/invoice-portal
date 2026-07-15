@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# sensitive TD payroll exports (real employee names/emails/pay rates — never commit)
+docs/Payroll for*/
+

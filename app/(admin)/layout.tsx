@@ -1,9 +1,9 @@
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { isAdminUser } from "@/lib/auth-role";
 import { Users, FileText, Settings, LayoutDashboard, ShieldCheck } from "lucide-react";
 
 export default async function AdminLayout({
@@ -19,19 +19,8 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  // Smart role check: Skip DB role lookup if JWT already says ADMIN
-  const sessionUserRole = (session.user as any).role;
-  
-  if (sessionUserRole !== "ADMIN") {
-    // JWT says WORKER — could be stale (first-user case). Check DB.
-    const dbUser = await db.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    });
-
-    if (dbUser?.role !== "ADMIN") {
-      redirect("/dashboard");
-    }
+  if (!(await isAdminUser(session.user.id))) {
+    redirect("/dashboard");
   }
 
   return (

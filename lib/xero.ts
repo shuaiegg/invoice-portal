@@ -92,11 +92,13 @@ export async function upsertXeroContact(
   tenantId: string,
   worker: Worker
 ): Promise<string> {
-  const user = await db.user.findUnique({
-    where: { id: worker.userId },
-    select: { email: true }
-  });
-  const workerEmail = user?.email || "";
+  const user = worker.userId
+    ? await db.user.findUnique({
+        where: { id: worker.userId },
+        select: { email: true },
+      })
+    : null;
+  const workerEmail = user?.email || worker.timeDoctorEmail || "";
 
   // 1. Search for contact by email
   const searchResponse = await fetch(

@@ -18,6 +18,7 @@ export type Role = (typeof Role)[keyof typeof Role]
 
 
 export const InvoiceStatus = {
+  DRAFT: 'DRAFT',
   SUBMITTED: 'SUBMITTED',
   APPROVED: 'APPROVED',
   PAID: 'PAID',
@@ -25,6 +26,14 @@ export const InvoiceStatus = {
 } as const
 
 export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus]
+
+
+export const HourlyRateSource = {
+  TD_IMPORT: 'TD_IMPORT',
+  MANUAL: 'MANUAL'
+} as const
+
+export type HourlyRateSource = (typeof HourlyRateSource)[keyof typeof HourlyRateSource]
 
 
 export const PaymentType = {

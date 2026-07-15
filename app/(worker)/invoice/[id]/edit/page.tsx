@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { NewInvoiceForm } from "@/components/worker/new-invoice-form";
 import { PageHeader } from "@/components/shared/page-header";
+import { isWorkerInvoiceEditable } from "@/lib/invoice-status";
 
 export default async function EditInvoicePage({
   params,
@@ -39,8 +40,7 @@ export default async function EditInvoicePage({
     redirect("/dashboard");
   }
 
-  // Status check: only SUBMITTED can be edited
-  if (invoice.status !== "SUBMITTED") {
+  if (!isWorkerInvoiceEditable(invoice.status)) {
     redirect(`/invoice/${id}`);
   }
 

@@ -1,5 +1,5 @@
 import { auth } from "./auth";
-import { db } from "./db";
+import { isAdminUser } from "./auth-role";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -15,13 +15,7 @@ export async function requireAdmin() {
     };
   }
 
-  // JWT is minted before DB hooks fire; read role from DB for accuracy
-  const dbUser = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-
-  if (dbUser?.role !== "ADMIN") {
+  if (!(await isAdminUser(session.user.id))) {
     return {
       authorized: false,
       response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),

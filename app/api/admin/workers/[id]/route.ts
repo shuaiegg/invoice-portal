@@ -8,8 +8,8 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { authorized, response } = await requireAdmin();
-  if (!authorized) return response;
+  const guard = await requireAdmin();
+  if (!guard.authorized) return guard.response;
 
   const { id } = await params;
 
@@ -55,6 +55,9 @@ export async function GET(
     secondaryPayment: worker.secondaryPayment,
     paymentType: worker.paymentType,
     timeDoctorEmail: worker.timeDoctorEmail,
+    hourlyRate: worker.hourlyRate,
+    hourlyRateSource: worker.hourlyRateSource,
+    currency: worker.currency,
     cryptoCoin: worker.cryptoCoin,
     cryptoNetwork: worker.cryptoNetwork,
     cryptoWallet: worker.cryptoWallet,
@@ -71,11 +74,12 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { authorized, response } = await requireAdmin();
-  if (!authorized) return response;
+  const guard = await requireAdmin();
+  if (!guard.authorized) return guard.response;
+  const session = guard.session!;
 
   const { id } = await params;
-  const { active, paymentType: rawPaymentType, timeDoctorEmail } = await req.json();
+  const { active, paymentType: rawPaymentType, timeDoctorEmail, hourlyRate } = await req.json();
   const paymentType = parsePaymentType(rawPaymentType);
 
   if (active !== undefined && typeof active !== "boolean") {
@@ -86,37 +90,54 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid payment type" }, { status: 400 });
   }
 
-  const worker = await db.worker.findUnique({
-    where: { id },
-    select: { userId: true, paymentType: true, timeDoctorEmail: true },
-  });
-
-  if (!worker) {
-    return NextResponse.json({ error: "Worker not found" }, { status: 404 });
+  if (hourlyRate !== undefined && (typeof hourlyRate !== "number" || !Number.isFinite(hourlyRate) || hourlyRate < 0)) {
+    return NextResponse.json({ error: "Invalid hourly rate" }, { status: 400 });
   }
 
-  const [updatedWorker] = await db.$transaction([
-    db.worker.update({
+  const result = await db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "Worker" WHERE "id" = ${id} FOR UPDATE`;
+    const worker = await tx.worker.findUnique({
+      where: { id },
+      select: { userId: true, hourlyRate: true },
+    });
+    if (!worker) return { kind: "not_found" as const };
+    if (active !== undefined && !worker.userId) return { kind: "pending" as const };
+
+    const updatedWorker = await tx.worker.update({
       where: { id },
       data: {
         ...(paymentType ? { paymentType } : {}),
         ...(timeDoctorEmail !== undefined ? { timeDoctorEmail: optionalString(timeDoctorEmail) } : {}),
+        ...(hourlyRate !== undefined && hourlyRate !== worker.hourlyRate
+          ? {
+              hourlyRate,
+              hourlyRateSource: "MANUAL" as const,
+              hourlyRateUpdatedAt: new Date(),
+              hourlyRateUpdatedBy: session.user.id,
+            }
+          : {}),
       },
-    }),
-    ...(active !== undefined
-      ? [
-          db.user.update({
-            where: { id: worker.userId },
-            data: { active },
-          }),
-        ]
-      : []),
-  ]);
+    });
+    if (active !== undefined) {
+      await tx.user.update({ where: { id: worker.userId! }, data: { active } });
+    }
+    return { kind: "updated" as const, worker: updatedWorker };
+  }, { maxWait: 10_000, timeout: 30_000 });
+
+  if (result.kind === "not_found") {
+    return NextResponse.json({ error: "Worker not found" }, { status: 404 });
+  }
+  if (result.kind === "pending") {
+    return NextResponse.json({ error: "Pending workers do not have an account status" }, { status: 400 });
+  }
+  const updatedWorker = result.worker;
 
   return NextResponse.json({
     success: true,
     active,
     paymentType: updatedWorker.paymentType,
     timeDoctorEmail: updatedWorker.timeDoctorEmail,
+    hourlyRate: updatedWorker.hourlyRate,
+    hourlyRateSource: updatedWorker.hourlyRateSource,
   });
 }

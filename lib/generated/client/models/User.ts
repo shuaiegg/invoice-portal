@@ -419,6 +419,11 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput
 }
 
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -473,10 +478,12 @@ export type UserCreateNestedOneWithoutWorkerInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateOneRequiredWithoutWorkerNestedInput = {
+export type UserUpdateOneWithoutWorkerNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutWorkerInput, Prisma.UserUncheckedCreateWithoutWorkerInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutWorkerInput
   upsert?: Prisma.UserUpsertWithoutWorkerInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWorkerInput, Prisma.UserUpdateWithoutWorkerInput>, Prisma.UserUncheckedUpdateWithoutWorkerInput>
 }

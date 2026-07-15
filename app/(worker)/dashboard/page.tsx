@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { InvoiceDashboard } from "@/components/worker/invoice-dashboard";
 import { PageHeader } from "@/components/shared/page-header";
 import { isWorkerProfileComplete } from "@/lib/profile-utils";
+import { isAdminUser } from "@/lib/auth-role";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
@@ -18,23 +19,14 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Smart role check: Skip DB role lookup if JWT already says ADMIN
-  const sessionUserRole = (session.user as any).role;
-  const shouldCheckDbRole = sessionUserRole !== "ADMIN";
-
-  const [dbUser, worker] = await Promise.all([
-    shouldCheckDbRole
-      ? db.user.findUnique({
-          where: { id: session.user.id },
-          select: { role: true },
-        })
-      : null,
+  const [isAdmin, worker] = await Promise.all([
+    isAdminUser(session.user.id),
     db.worker.findUnique({
       where: { userId: session.user.id },
     }),
   ]);
 
-  if (sessionUserRole === "ADMIN" || dbUser?.role === "ADMIN") {
+  if (isAdmin) {
     redirect("/admin");
   }
 

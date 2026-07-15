@@ -38,9 +38,10 @@ interface AdminWorkerDetailProps {
 
 export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
   const router = useRouter();
-  const [active, setActive] = useState(worker.user.active);
+  const [active, setActive] = useState(worker.user?.active ?? false);
   const [paymentType, setPaymentType] = useState(worker.paymentType || "MANUAL");
   const [timeDoctorEmail, setTimeDoctorEmail] = useState(worker.timeDoctorEmail || "");
+  const [hourlyRate, setHourlyRate] = useState(worker.hourlyRate?.toString() || "");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const paymentAccounts = worker.paymentAccounts || [];
@@ -73,7 +74,11 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
       const response = await fetch(`/api/admin/workers/${worker.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentType, timeDoctorEmail }),
+        body: JSON.stringify({
+          paymentType,
+          timeDoctorEmail,
+          ...(hourlyRate !== "" ? { hourlyRate: Number(hourlyRate) } : {}),
+        }),
       });
 
       if (!response.ok) {
@@ -137,7 +142,7 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
                 </div>
                 <div>
                   <CardTitle className="text-xl">{worker.name}</CardTitle>
-                  <CardDescription>Joined {formatDate(worker.user.createdAt)}</CardDescription>
+                  <CardDescription>{worker.user ? `Joined ${formatDate(worker.user.createdAt)}` : "Pending registration"}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -147,7 +152,7 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
                   <Mail className="h-4 w-4 text-secondary-text mt-0.5" />
                   <div className="space-y-1">
                     <div className="text-xs font-bold uppercase text-secondary-text tracking-wider">Email</div>
-                    <div className="text-sm font-medium">{worker.user.email}</div>
+                    <div className="text-sm font-medium">{worker.user?.email || worker.timeDoctorEmail}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -215,6 +220,21 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
                     <SelectItem value="MANUAL">Manual</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="hourlyRate">Hourly Rate</Label>
+                <Input
+                  id="hourlyRate"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={hourlyRate}
+                  onChange={(event) => setHourlyRate(event.target.value)}
+                  placeholder="0.00"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Source: {worker.hourlyRateSource === "MANUAL" ? "Portal override" : "TD import"}
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="timeDoctorEmail">Time Doctor Email</Label>

@@ -8,6 +8,7 @@ interface StatusBadgeProps {
 }
 
 const statusConfig: Record<InvoiceStatus, { label: string; variant: "secondary" | "default" | "success" | "destructive" }> = {
+  DRAFT: { label: "Draft", variant: "secondary" },
   SUBMITTED: { label: "Submitted", variant: "secondary" },
   APPROVED: { label: "Approved", variant: "default" },
   PAID: { label: "Paid", variant: "success" },

@@ -23,12 +23,13 @@ export default async function AdminInvoicesPage({
   }
 
   const params = await searchParams;
-  
+
   // Parse filters from URL
   const status = params.status ? (params.status as string).split(",") : undefined;
   const period = params.period as string;
   const workerName = params.workerName as string;
-  
+  const month = params.month as string; // "YYYY-MM", filters by invoiceDate
+
   // Pagination
   const page = parseInt((params.page as string) || "1");
   const limit = 20;
@@ -46,12 +47,16 @@ export default async function AdminInvoicesPage({
   if (workerName) {
     workerFilter.name = { contains: workerName, mode: "insensitive" };
   }
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const [y, m] = month.split("-").map(Number);
+    where.invoiceDate = { gte: new Date(Date.UTC(y, m - 1, 1)), lt: new Date(Date.UTC(y, m, 1)) };
+  }
 
   if (Object.keys(workerFilter).length > 0) {
     where.worker = workerFilter;
   }
 
-  const [invoices, total] = await Promise.all([
+  const [invoices, total, monthSum, availableMonths] = await Promise.all([
     db.invoice.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -67,6 +72,10 @@ export default async function AdminInvoicesPage({
       },
     }),
     db.invoice.count({ where }),
+    db.invoice.aggregate({ where, _sum: { totalAmount: true } }),
+    db.$queryRaw<{ month: string }[]>`
+      SELECT DISTINCT to_char("invoiceDate", 'YYYY-MM') AS month FROM "Invoice" ORDER BY month DESC
+    `,
   ]);
 
   const totalPages = Math.ceil(total / limit);
@@ -76,12 +85,21 @@ export default async function AdminInvoicesPage({
   if (status) exportParams.set("status", status.join(","));
   if (period) exportParams.set("period", period);
   if (workerName) exportParams.set("workerName", workerName);
+  if (month) exportParams.set("month", month);
+
+  const monthLabel = month
+    ? new Intl.DateTimeFormat("en", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-02`))
+    : null;
 
   return (
     <div className="space-y-8">
-      <PageHeader 
-        title="Manage Invoices" 
-        subtitle="Review, approve, and track payment status of all worker invoices"
+      <PageHeader
+        title="Manage Invoices"
+        subtitle={
+          month
+            ? `${monthLabel}: ${total} invoice${total === 1 ? "" : "s"} · €${(monthSum._sum.totalAmount ?? 0).toFixed(2)}`
+            : "Review, approve, and track payment status of all worker invoices"
+        }
         action={
           <a href={`/api/admin/invoices/export?${exportParams.toString()}`} download>
             <Button variant="outline">
@@ -92,10 +110,10 @@ export default async function AdminInvoicesPage({
         }
       />
 
-      <InvoiceFilters />
+      <InvoiceFilters availableMonths={availableMonths.map((row) => row.month)} />
 
-      <AdminInvoiceTable 
-        invoices={invoices} 
+      <AdminInvoiceTable
+        invoices={invoices}
         total={total}
         page={page}
         totalPages={totalPages}

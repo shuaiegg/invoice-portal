@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isAdminUser } from "@/lib/auth-role";
 import { invoiceUpdated } from "@/lib/slack";
+import { isWorkerInvoiceEditable } from "@/lib/invoice-status";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
 import {
@@ -41,7 +43,7 @@ export async function GET(
 
   // Security check: must be the worker who created it OR an admin
   const isOwner = invoice.worker.userId === session.user.id;
-  const isAdmin = (session.user as any).role === "ADMIN";
+  const isAdmin = isOwner ? false : await isAdminUser(session.user.id);
 
   if (!isOwner && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -78,8 +80,8 @@ export async function PUT(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (invoice.status !== "SUBMITTED") {
-    return NextResponse.json({ error: "Only submitted invoices can be edited" }, { status: 400 });
+  if (!isWorkerInvoiceEditable(invoice.status)) {
+    return NextResponse.json({ error: "Only draft or submitted invoices can be edited" }, { status: 400 });
   }
 
   const normalized = normalizeInvoiceLines(data.lines);
@@ -108,7 +110,7 @@ export async function PUT(
   const updatedInvoice = await db.$transaction(async (tx) => {
     // Re-check status inside transaction — guards against concurrent admin approval
     const current = await tx.invoice.findUnique({ where: { id }, select: { status: true } });
-    if (current?.status !== "SUBMITTED") {
+    if (!current || !isWorkerInvoiceEditable(current.status)) {
       throw new Error("CONCURRENT_MODIFICATION");
     }
 
@@ -129,6 +131,7 @@ export async function PUT(
         vatRate,
         vatInclusive,
         currency: data.currency || "EUR",
+        ...(invoice.status === "DRAFT" ? { status: "SUBMITTED" as const } : {}),
         lines: {
           create: lines.map((line) => ({
             description: line.description,

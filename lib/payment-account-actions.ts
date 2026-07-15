@@ -3,7 +3,7 @@ import {
   type PaymentAccountInput,
   validatePaymentAccountInput,
 } from "./payment-accounts.ts";
-import { db } from "./db";
+import { db } from "./db.ts";
 
 type ActionResult = {
   status: number;

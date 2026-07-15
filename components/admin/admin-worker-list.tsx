@@ -12,29 +12,33 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, UserCheck, UserX, ExternalLink } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, UserCheck, UserX, ExternalLink, Clock } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { PAYMENT_TYPE_LABELS } from "@/lib/payment-types";
 
 interface AdminWorkerListProps {
   workers: any[];
 }
+
+const PAYMENT_METHOD_FILTERS = ["Wise", "PayPal", "Manual"];
 
 export function AdminWorkerList({ workers }: AdminWorkerListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") || "");
+  const paymentMethod = searchParams.get("paymentMethod") || "all";
 
-  const handleSearch = () => {
+  const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (search) {
-      params.set("search", search);
-    } else {
-      params.delete("search");
+    for (const [key, value] of Object.entries(updates)) {
+      if (value && value !== "all") params.set(key, value);
+      else params.delete(key);
     }
     router.push(`${pathname}?${params.toString()}`);
   };
+
+  const handleSearch = () => updateParams({ search });
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return "Never";
@@ -59,6 +63,17 @@ export function AdminWorkerList({ workers }: AdminWorkerListProps) {
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
         </div>
+        <Select value={paymentMethod} onValueChange={(value) => updateParams({ paymentMethod: value })}>
+          <SelectTrigger className="w-44 bg-accent/30">
+            <SelectValue placeholder="Payment method" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All payment methods</SelectItem>
+            {PAYMENT_METHOD_FILTERS.map((method) => (
+              <SelectItem key={method} value={method}>{method}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button onClick={handleSearch}>Search</Button>
       </div>
 
@@ -68,7 +83,7 @@ export function AdminWorkerList({ workers }: AdminWorkerListProps) {
             <TableRow className="bg-accent/50">
               <TableHead>Worker Name</TableHead>
               <TableHead>Team</TableHead>
-              <TableHead>Payment Type</TableHead>
+              <TableHead>Payment Method</TableHead>
               <TableHead>Email</TableHead>
               <TableHead className="text-center">Invoices</TableHead>
               <TableHead>Last Submission</TableHead>
@@ -95,15 +110,19 @@ export function AdminWorkerList({ workers }: AdminWorkerListProps) {
                     <Badge variant="secondary">{worker.team || "No Team"}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={worker.paymentType === "MANUAL" ? "outline" : "secondary"}>
-                      {PAYMENT_TYPE_LABELS[worker.paymentType as keyof typeof PAYMENT_TYPE_LABELS] || "Manual"}
+                    <Badge variant={worker.paymentMethod ? "secondary" : "outline"}>
+                      {worker.paymentMethod || "Not set"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-secondary-text">{worker.email}</TableCell>
                   <TableCell className="text-center font-medium">{worker.invoiceCount}</TableCell>
                   <TableCell className="text-sm text-secondary-text">{formatDate(worker.lastSubmission)}</TableCell>
                   <TableCell>
-                    {worker.active ? (
+                    {!worker.claimed ? (
+                      <Badge variant="outline" className="text-warning border-warning/30 bg-warning/5 gap-1.5">
+                        <Clock className="h-3 w-3" /> Pending registration
+                      </Badge>
+                    ) : worker.active ? (
                       <Badge variant="outline" className="text-success border-success/30 bg-success/5 gap-1.5">
                         <UserCheck className="h-3 w-3" /> Active
                       </Badge>

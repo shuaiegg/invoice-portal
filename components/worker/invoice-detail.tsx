@@ -9,6 +9,7 @@ import { Printer, Edit, ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { formatPaymentAccountKeyDetail, PAYMENT_ACCOUNT_TYPE_LABELS, type PaymentAccountType } from "@/lib/payment-accounts";
+import { isWorkerInvoiceEditable } from "@/lib/invoice-status";
 
 interface InvoiceDetailProps {
   invoice: any;
@@ -99,7 +100,7 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
           <StatusBadge status={invoice.status} />
         </div>
         <div className="flex items-center gap-2">
-          {invoice.status === "SUBMITTED" && !isAdmin && (
+          {isWorkerInvoiceEditable(invoice.status) && !isAdmin && (
             <Link href={`/invoice/${invoice.id}/edit`}>
               <Button variant="outline" size="sm">
                 <Edit className="mr-2 h-4 w-4" />

@@ -17,6 +17,7 @@ export async function GET(req: Request) {
       { name: { contains: search, mode: "insensitive" } },
       { team: { contains: search, mode: "insensitive" } },
       { user: { email: { contains: search, mode: "insensitive" } } },
+      { timeDoctorEmail: { contains: search, mode: "insensitive" } },
     ];
   }
 
@@ -48,13 +49,14 @@ export async function GET(req: Request) {
     id: w.id,
     name: w.name,
     team: w.team,
-    email: w.user.email,
-    active: w.user.active,
+    email: w.user?.email ?? w.timeDoctorEmail,
+    active: w.user?.active ?? false,
+    claimed: Boolean(w.userId),
     paymentType: w.paymentType,
     timeDoctorEmail: w.timeDoctorEmail,
     invoiceCount: w._count.invoices,
     lastSubmission: w.invoices[0]?.invoiceDate || null,
-    joinedAt: w.user.createdAt,
+    joinedAt: w.user?.createdAt ?? w.createdAt,
   }));
 
   return NextResponse.json(formattedWorkers);

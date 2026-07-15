@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { InvoiceDetail } from "@/components/worker/invoice-detail";
+import { isAdminUser } from "@/lib/auth-role";
 
 export default async function InvoiceDetailsPage({
   params,
@@ -42,7 +43,7 @@ export default async function InvoiceDetailsPage({
 
   // Security check: must be owner or admin
   const isOwner = invoice.worker.userId === session.user.id;
-  const isAdmin = (session.user as any).role === "ADMIN";
+  const isAdmin = isOwner ? false : await isAdminUser(session.user.id);
 
   if (!isOwner && !isAdmin) {
     redirect("/dashboard");

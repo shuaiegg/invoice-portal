@@ -11,6 +11,7 @@ export async function GET(req: Request) {
   const status = searchParams.get("status")?.split(",") as any[];
   const period = searchParams.get("period");
   const workerName = searchParams.get("workerName");
+  const month = searchParams.get("month"); // "YYYY-MM"
 
   const where: Prisma.InvoiceWhereInput = {};
   const workerFilter: Prisma.WorkerWhereInput = {};
@@ -21,7 +22,11 @@ export async function GET(req: Request) {
   if (period) {
     where.period = { contains: period, mode: "insensitive" };
   }
-  
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const [y, m] = month.split("-").map(Number);
+    where.invoiceDate = { gte: new Date(Date.UTC(y, m - 1, 1)), lt: new Date(Date.UTC(y, m, 1)) };
+  }
+
   if (workerName) {
     workerFilter.name = { contains: workerName, mode: "insensitive" };
   }

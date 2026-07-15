@@ -56,7 +56,7 @@ export const PAYMENT_ACCOUNT_TYPE_LABELS: Record<PaymentAccountType, string> = {
   OTHER: "Other",
 };
 
-import { optionalString } from "./utils";
+import { optionalString } from "./utils.ts";
 
 export function isPaymentAccountType(value: unknown): value is PaymentAccountType {
   return typeof value === "string" && PAYMENT_ACCOUNT_TYPES.includes(value as PaymentAccountType);

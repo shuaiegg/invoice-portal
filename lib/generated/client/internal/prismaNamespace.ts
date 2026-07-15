@@ -390,6 +390,12 @@ export const ModelName = {
   Worker: 'Worker',
   PaymentAccount: 'PaymentAccount',
   Invoice: 'Invoice',
+  TimeDoctorConfig: 'TimeDoctorConfig',
+  TdSyncRun: 'TdSyncRun',
+  TdMatchFailure: 'TdMatchFailure',
+  TdIgnoredEmail: 'TdIgnoredEmail',
+  WorkerImportBatch: 'WorkerImportBatch',
+  WorkerRateConflict: 'WorkerRateConflict',
   InvoiceLine: 'InvoiceLine',
   InvoiceCounter: 'InvoiceCounter',
   XeroToken: 'XeroToken',
@@ -409,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "worker" | "paymentAccount" | "invoice" | "invoiceLine" | "invoiceCounter" | "xeroToken" | "webhookConfig"
+    modelProps: "user" | "session" | "account" | "worker" | "paymentAccount" | "invoice" | "timeDoctorConfig" | "tdSyncRun" | "tdMatchFailure" | "tdIgnoredEmail" | "workerImportBatch" | "workerRateConflict" | "invoiceLine" | "invoiceCounter" | "xeroToken" | "webhookConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -857,6 +863,450 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TimeDoctorConfig: {
+      payload: Prisma.$TimeDoctorConfigPayload<ExtArgs>
+      fields: Prisma.TimeDoctorConfigFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TimeDoctorConfigFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TimeDoctorConfigFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>
+        }
+        findFirst: {
+          args: Prisma.TimeDoctorConfigFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TimeDoctorConfigFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>
+        }
+        findMany: {
+          args: Prisma.TimeDoctorConfigFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>[]
+        }
+        create: {
+          args: Prisma.TimeDoctorConfigCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>
+        }
+        createMany: {
+          args: Prisma.TimeDoctorConfigCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TimeDoctorConfigCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>[]
+        }
+        delete: {
+          args: Prisma.TimeDoctorConfigDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>
+        }
+        update: {
+          args: Prisma.TimeDoctorConfigUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>
+        }
+        deleteMany: {
+          args: Prisma.TimeDoctorConfigDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TimeDoctorConfigUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TimeDoctorConfigUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>[]
+        }
+        upsert: {
+          args: Prisma.TimeDoctorConfigUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TimeDoctorConfigPayload>
+        }
+        aggregate: {
+          args: Prisma.TimeDoctorConfigAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTimeDoctorConfig>
+        }
+        groupBy: {
+          args: Prisma.TimeDoctorConfigGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TimeDoctorConfigGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TimeDoctorConfigCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TimeDoctorConfigCountAggregateOutputType> | number
+        }
+      }
+    }
+    TdSyncRun: {
+      payload: Prisma.$TdSyncRunPayload<ExtArgs>
+      fields: Prisma.TdSyncRunFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TdSyncRunFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TdSyncRunFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>
+        }
+        findFirst: {
+          args: Prisma.TdSyncRunFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TdSyncRunFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>
+        }
+        findMany: {
+          args: Prisma.TdSyncRunFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>[]
+        }
+        create: {
+          args: Prisma.TdSyncRunCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>
+        }
+        createMany: {
+          args: Prisma.TdSyncRunCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TdSyncRunCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>[]
+        }
+        delete: {
+          args: Prisma.TdSyncRunDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>
+        }
+        update: {
+          args: Prisma.TdSyncRunUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>
+        }
+        deleteMany: {
+          args: Prisma.TdSyncRunDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TdSyncRunUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TdSyncRunUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>[]
+        }
+        upsert: {
+          args: Prisma.TdSyncRunUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdSyncRunPayload>
+        }
+        aggregate: {
+          args: Prisma.TdSyncRunAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTdSyncRun>
+        }
+        groupBy: {
+          args: Prisma.TdSyncRunGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TdSyncRunGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TdSyncRunCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TdSyncRunCountAggregateOutputType> | number
+        }
+      }
+    }
+    TdMatchFailure: {
+      payload: Prisma.$TdMatchFailurePayload<ExtArgs>
+      fields: Prisma.TdMatchFailureFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TdMatchFailureFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TdMatchFailureFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>
+        }
+        findFirst: {
+          args: Prisma.TdMatchFailureFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TdMatchFailureFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>
+        }
+        findMany: {
+          args: Prisma.TdMatchFailureFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>[]
+        }
+        create: {
+          args: Prisma.TdMatchFailureCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>
+        }
+        createMany: {
+          args: Prisma.TdMatchFailureCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TdMatchFailureCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>[]
+        }
+        delete: {
+          args: Prisma.TdMatchFailureDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>
+        }
+        update: {
+          args: Prisma.TdMatchFailureUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>
+        }
+        deleteMany: {
+          args: Prisma.TdMatchFailureDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TdMatchFailureUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TdMatchFailureUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>[]
+        }
+        upsert: {
+          args: Prisma.TdMatchFailureUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdMatchFailurePayload>
+        }
+        aggregate: {
+          args: Prisma.TdMatchFailureAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTdMatchFailure>
+        }
+        groupBy: {
+          args: Prisma.TdMatchFailureGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TdMatchFailureGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TdMatchFailureCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TdMatchFailureCountAggregateOutputType> | number
+        }
+      }
+    }
+    TdIgnoredEmail: {
+      payload: Prisma.$TdIgnoredEmailPayload<ExtArgs>
+      fields: Prisma.TdIgnoredEmailFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TdIgnoredEmailFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TdIgnoredEmailFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>
+        }
+        findFirst: {
+          args: Prisma.TdIgnoredEmailFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TdIgnoredEmailFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>
+        }
+        findMany: {
+          args: Prisma.TdIgnoredEmailFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>[]
+        }
+        create: {
+          args: Prisma.TdIgnoredEmailCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>
+        }
+        createMany: {
+          args: Prisma.TdIgnoredEmailCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TdIgnoredEmailCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>[]
+        }
+        delete: {
+          args: Prisma.TdIgnoredEmailDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>
+        }
+        update: {
+          args: Prisma.TdIgnoredEmailUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>
+        }
+        deleteMany: {
+          args: Prisma.TdIgnoredEmailDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TdIgnoredEmailUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TdIgnoredEmailUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>[]
+        }
+        upsert: {
+          args: Prisma.TdIgnoredEmailUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TdIgnoredEmailPayload>
+        }
+        aggregate: {
+          args: Prisma.TdIgnoredEmailAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTdIgnoredEmail>
+        }
+        groupBy: {
+          args: Prisma.TdIgnoredEmailGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TdIgnoredEmailGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TdIgnoredEmailCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TdIgnoredEmailCountAggregateOutputType> | number
+        }
+      }
+    }
+    WorkerImportBatch: {
+      payload: Prisma.$WorkerImportBatchPayload<ExtArgs>
+      fields: Prisma.WorkerImportBatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WorkerImportBatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WorkerImportBatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>
+        }
+        findFirst: {
+          args: Prisma.WorkerImportBatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WorkerImportBatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>
+        }
+        findMany: {
+          args: Prisma.WorkerImportBatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>[]
+        }
+        create: {
+          args: Prisma.WorkerImportBatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>
+        }
+        createMany: {
+          args: Prisma.WorkerImportBatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WorkerImportBatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>[]
+        }
+        delete: {
+          args: Prisma.WorkerImportBatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>
+        }
+        update: {
+          args: Prisma.WorkerImportBatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.WorkerImportBatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WorkerImportBatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WorkerImportBatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.WorkerImportBatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerImportBatchPayload>
+        }
+        aggregate: {
+          args: Prisma.WorkerImportBatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkerImportBatch>
+        }
+        groupBy: {
+          args: Prisma.WorkerImportBatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkerImportBatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WorkerImportBatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkerImportBatchCountAggregateOutputType> | number
+        }
+      }
+    }
+    WorkerRateConflict: {
+      payload: Prisma.$WorkerRateConflictPayload<ExtArgs>
+      fields: Prisma.WorkerRateConflictFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WorkerRateConflictFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WorkerRateConflictFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>
+        }
+        findFirst: {
+          args: Prisma.WorkerRateConflictFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WorkerRateConflictFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>
+        }
+        findMany: {
+          args: Prisma.WorkerRateConflictFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>[]
+        }
+        create: {
+          args: Prisma.WorkerRateConflictCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>
+        }
+        createMany: {
+          args: Prisma.WorkerRateConflictCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WorkerRateConflictCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>[]
+        }
+        delete: {
+          args: Prisma.WorkerRateConflictDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>
+        }
+        update: {
+          args: Prisma.WorkerRateConflictUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>
+        }
+        deleteMany: {
+          args: Prisma.WorkerRateConflictDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WorkerRateConflictUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WorkerRateConflictUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>[]
+        }
+        upsert: {
+          args: Prisma.WorkerRateConflictUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WorkerRateConflictPayload>
+        }
+        aggregate: {
+          args: Prisma.WorkerRateConflictAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWorkerRateConflict>
+        }
+        groupBy: {
+          args: Prisma.WorkerRateConflictGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkerRateConflictGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WorkerRateConflictCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WorkerRateConflictCountAggregateOutputType> | number
+        }
+      }
+    }
     InvoiceLine: {
       payload: Prisma.$InvoiceLinePayload<ExtArgs>
       fields: Prisma.InvoiceLineFieldRefs
@@ -1259,6 +1709,11 @@ export const WorkerScalarFieldEnum = {
   secondaryPayment: 'secondaryPayment',
   paymentType: 'paymentType',
   timeDoctorEmail: 'timeDoctorEmail',
+  hourlyRate: 'hourlyRate',
+  hourlyRateSource: 'hourlyRateSource',
+  hourlyRateUpdatedAt: 'hourlyRateUpdatedAt',
+  hourlyRateUpdatedBy: 'hourlyRateUpdatedBy',
+  currency: 'currency',
   cryptoCoin: 'cryptoCoin',
   cryptoNetwork: 'cryptoNetwork',
   cryptoWallet: 'cryptoWallet',
@@ -1294,6 +1749,8 @@ export type PaymentAccountScalarFieldEnum = (typeof PaymentAccountScalarFieldEnu
 export const InvoiceScalarFieldEnum = {
   id: 'id',
   workerId: 'workerId',
+  tdSyncRunId: 'tdSyncRunId',
+  billingMonth: 'billingMonth',
   invoiceNumber: 'invoiceNumber',
   invoiceDate: 'invoiceDate',
   dueDate: 'dueDate',
@@ -1317,6 +1774,88 @@ export const InvoiceScalarFieldEnum = {
 } as const
 
 export type InvoiceScalarFieldEnum = (typeof InvoiceScalarFieldEnum)[keyof typeof InvoiceScalarFieldEnum]
+
+
+export const TimeDoctorConfigScalarFieldEnum = {
+  id: 'id',
+  apiToken: 'apiToken',
+  companyId: 'companyId',
+  tokenExpiresAt: 'tokenExpiresAt',
+  lastSyncAt: 'lastSyncAt',
+  lastSyncStatus: 'lastSyncStatus',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TimeDoctorConfigScalarFieldEnum = (typeof TimeDoctorConfigScalarFieldEnum)[keyof typeof TimeDoctorConfigScalarFieldEnum]
+
+
+export const TdSyncRunScalarFieldEnum = {
+  id: 'id',
+  runAt: 'runAt',
+  status: 'status',
+  invoicesCreated: 'invoicesCreated',
+  matchFailed: 'matchFailed',
+  inactiveSkipped: 'inactiveSkipped',
+  ignoredSkipped: 'ignoredSkipped',
+  totalAmount: 'totalAmount',
+  errorLog: 'errorLog',
+  triggeredBy: 'triggeredBy'
+} as const
+
+export type TdSyncRunScalarFieldEnum = (typeof TdSyncRunScalarFieldEnum)[keyof typeof TdSyncRunScalarFieldEnum]
+
+
+export const TdMatchFailureScalarFieldEnum = {
+  id: 'id',
+  syncRunId: 'syncRunId',
+  tdUserId: 'tdUserId',
+  tdEmail: 'tdEmail',
+  tdName: 'tdName',
+  resolved: 'resolved',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type TdMatchFailureScalarFieldEnum = (typeof TdMatchFailureScalarFieldEnum)[keyof typeof TdMatchFailureScalarFieldEnum]
+
+
+export const TdIgnoredEmailScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  reason: 'reason',
+  ignoredBy: 'ignoredBy',
+  createdAt: 'createdAt'
+} as const
+
+export type TdIgnoredEmailScalarFieldEnum = (typeof TdIgnoredEmailScalarFieldEnum)[keyof typeof TdIgnoredEmailScalarFieldEnum]
+
+
+export const WorkerImportBatchScalarFieldEnum = {
+  id: 'id',
+  importedBy: 'importedBy',
+  importedAt: 'importedAt',
+  filename: 'filename',
+  createdCount: 'createdCount',
+  updatedCount: 'updatedCount',
+  conflictCount: 'conflictCount'
+} as const
+
+export type WorkerImportBatchScalarFieldEnum = (typeof WorkerImportBatchScalarFieldEnum)[keyof typeof WorkerImportBatchScalarFieldEnum]
+
+
+export const WorkerRateConflictScalarFieldEnum = {
+  id: 'id',
+  workerId: 'workerId',
+  portalRate: 'portalRate',
+  importedRate: 'importedRate',
+  importBatchId: 'importBatchId',
+  resolved: 'resolved',
+  resolvedAt: 'resolvedAt',
+  resolvedBy: 'resolvedBy',
+  createdAt: 'createdAt'
+} as const
+
+export type WorkerRateConflictScalarFieldEnum = (typeof WorkerRateConflictScalarFieldEnum)[keyof typeof WorkerRateConflictScalarFieldEnum]
 
 
 export const InvoiceLineScalarFieldEnum = {
@@ -1478,6 +2017,20 @@ export type ListEnumPaymentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
+ * Reference to a field of type 'HourlyRateSource'
+ */
+export type EnumHourlyRateSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HourlyRateSource'>
+    
+
+
+/**
+ * Reference to a field of type 'HourlyRateSource[]'
+ */
+export type ListEnumHourlyRateSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HourlyRateSource[]'>
+    
+
+
+/**
  * Reference to a field of type 'PaymentAccountType'
  */
 export type EnumPaymentAccountTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentAccountType'>
@@ -1634,6 +2187,12 @@ export type GlobalOmitConfig = {
   worker?: Prisma.WorkerOmit
   paymentAccount?: Prisma.PaymentAccountOmit
   invoice?: Prisma.InvoiceOmit
+  timeDoctorConfig?: Prisma.TimeDoctorConfigOmit
+  tdSyncRun?: Prisma.TdSyncRunOmit
+  tdMatchFailure?: Prisma.TdMatchFailureOmit
+  tdIgnoredEmail?: Prisma.TdIgnoredEmailOmit
+  workerImportBatch?: Prisma.WorkerImportBatchOmit
+  workerRateConflict?: Prisma.WorkerRateConflictOmit
   invoiceLine?: Prisma.InvoiceLineOmit
   invoiceCounter?: Prisma.InvoiceCounterOmit
   xeroToken?: Prisma.XeroTokenOmit

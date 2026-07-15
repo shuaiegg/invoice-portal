@@ -27,15 +27,19 @@ The sync SHALL match each Time Doctor user to a Portal Worker by comparing TD us
 - **THEN** the sync run records a `MATCH_FAILED` entry with the TD user's email and name
 
 ### Requirement: td_only workers get auto-submitted invoices
-For matched workers with `paymentType = TD_ONLY`, the sync SHALL create an invoice with status `SUBMITTED` using TD hours × worker's hourly rate. No worker action is required.
+For matched workers with `paymentType = TD_ONLY`, the sync SHALL create an invoice with status `SUBMITTED` using TD hours (`totalSec ÷ 3600`, from `GET /api/1.1/stats/total`) × `Worker.hourlyRate`. The Time Doctor API has no pay-rate field of any kind — `Worker.hourlyRate` is a Portal-managed field and is the only source of truth for rate. No worker action is required.
 
 #### Scenario: td_only invoice created
-- **WHEN** a TD_ONLY worker worked 160 hours at €13/hr in the previous month
+- **WHEN** a TD_ONLY worker worked 160 hours in the previous month and `Worker.hourlyRate = 13`
 - **THEN** an invoice is created: one line item `{desc:"[Month] hours — Time Doctor", qty:160, rate:13}`, totalAmount=2080, status=SUBMITTED
 
 #### Scenario: Duplicate prevention
 - **WHEN** an invoice for this worker and month already exists (any status)
 - **THEN** no new invoice is created; the existing one is left unchanged
+
+#### Scenario: Matched worker has no hourlyRate set
+- **WHEN** a TD_ONLY or TD_PLUS worker is matched but `Worker.hourlyRate` is null
+- **THEN** no invoice is created for them; a review-queue entry is recorded so Admin can set the rate and re-run
 
 ### Requirement: td_plus workers get draft invoices for review
 For matched workers with `paymentType = TD_PLUS`, the sync SHALL create an invoice with status `DRAFT` pre-filled with TD hours. The worker SHALL be notified via Slack/email to review and submit.

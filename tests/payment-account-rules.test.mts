@@ -41,6 +41,7 @@ test("normalizes a bank transfer account and clears irrelevant fields", () => {
       cryptoCoin: null,
       cryptoNetwork: null,
       cryptoWallet: null,
+      notes: null,
     }
   );
 });

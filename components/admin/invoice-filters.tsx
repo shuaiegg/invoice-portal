@@ -22,13 +22,18 @@ const statuses = [
   { label: "Void", value: "VOID" },
 ];
 
-export function InvoiceFilters() {
+function formatMonthLabel(month: string): string {
+  return new Intl.DateTimeFormat("en", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-02`));
+}
+
+export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: string[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const [workerName, setWorkerName] = useState(searchParams.get("workerName") || "");
   const [period, setPeriod] = useState(searchParams.get("period") || "");
+  const month = searchParams.get("month") || "all";
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
     searchParams.get("status")?.split(",").filter(Boolean) || []
   );
@@ -37,7 +42,7 @@ export function InvoiceFilters() {
     const params = new URLSearchParams(searchParams.toString());
     
     Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === "" || (Array.isArray(value) && value.length === 0)) {
+      if (value === null || value === "" || value === "all" || (Array.isArray(value) && value.length === 0)) {
         params.delete(key);
       } else if (Array.isArray(value)) {
         params.set(key, value.join(","));
@@ -70,7 +75,7 @@ export function InvoiceFilters() {
 
   return (
     <div className="bg-white p-6 rounded-xl border space-y-6 shadow-sm">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
           <Label htmlFor="workerName">Worker Name</Label>
           <div className="relative">
@@ -87,7 +92,7 @@ export function InvoiceFilters() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="period">Billing Period</Label>
+          <Label htmlFor="period">Billing Period (text)</Label>
           <Input
             id="period"
             placeholder="e.g. June 2026"
@@ -98,9 +103,24 @@ export function InvoiceFilters() {
           />
         </div>
 
+        <div className="space-y-2">
+          <Label htmlFor="month">Month</Label>
+          <Select value={month} onValueChange={(value) => updateFilters({ month: value })}>
+            <SelectTrigger id="month" className="bg-accent/30">
+              <SelectValue placeholder="All months" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All months</SelectItem>
+              {availableMonths.map((m) => (
+                <SelectItem key={m} value={m}>{formatMonthLabel(m)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex items-end">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full"
             onClick={() => updateFilters({ workerName, period })}
           >
@@ -130,7 +150,7 @@ export function InvoiceFilters() {
         </div>
       </div>
 
-      {(workerName || period || selectedStatuses.length > 0) && (
+      {(workerName || period || month !== "all" || selectedStatuses.length > 0) && (
         <div className="pt-2 border-t flex justify-end">
           <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
             <X className="mr-2 h-4 w-4" />

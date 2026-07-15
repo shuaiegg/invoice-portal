@@ -48,6 +48,36 @@ export type PaymentAccount = Prisma.PaymentAccountModel
  */
 export type Invoice = Prisma.InvoiceModel
 /**
+ * Model TimeDoctorConfig
+ * 
+ */
+export type TimeDoctorConfig = Prisma.TimeDoctorConfigModel
+/**
+ * Model TdSyncRun
+ * 
+ */
+export type TdSyncRun = Prisma.TdSyncRunModel
+/**
+ * Model TdMatchFailure
+ * 
+ */
+export type TdMatchFailure = Prisma.TdMatchFailureModel
+/**
+ * Model TdIgnoredEmail
+ * 
+ */
+export type TdIgnoredEmail = Prisma.TdIgnoredEmailModel
+/**
+ * Model WorkerImportBatch
+ * 
+ */
+export type WorkerImportBatch = Prisma.WorkerImportBatchModel
+/**
+ * Model WorkerRateConflict
+ * 
+ */
+export type WorkerRateConflict = Prisma.WorkerRateConflictModel
+/**
  * Model InvoiceLine
  * 
  */

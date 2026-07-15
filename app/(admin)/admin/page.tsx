@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/admin/stats-card";
 import { ActivityFeed } from "@/components/admin/activity-feed";
 import { FileText, Clock, CheckCircle2, Users } from "lucide-react";
+import { TdSyncPanel } from "@/components/admin/td-sync-panel";
 
 export default async function AdminDashboardPage() {
   const session = await auth.api.getSession({
@@ -19,7 +20,7 @@ export default async function AdminDashboardPage() {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [stats, recentActivity] = await Promise.all([
+  const [stats, recentActivity, syncRuns, syncFailures, syncWorkers] = await Promise.all([
     // Aggregate Stats
     Promise.all([
       db.invoice.count({
@@ -46,7 +47,14 @@ export default async function AdminDashboardPage() {
         },
       },
     }),
+    db.tdSyncRun.findMany({ orderBy: { runAt: "desc" }, take: 12 }),
+    db.tdMatchFailure.findMany({ where: { resolved: false }, orderBy: { syncRun: { runAt: "desc" } } }),
+    db.worker.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
   ]);
+
+  const actorIds = syncRuns.flatMap((run) => run.triggeredBy ? [run.triggeredBy] : []);
+  const actors = actorIds.length ? await db.user.findMany({ where: { id: { in: actorIds } }, select: { id: true, name: true, email: true } }) : [];
+  const actorNames = new Map(actors.map((actor) => [actor.id, actor.name || actor.email]));
 
   const [invoicesThisMonth, pendingCount, paidSum, activeWorkers] = stats;
 
@@ -63,9 +71,15 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-10">
-      <PageHeader 
-        title="Admin Overview" 
+      <PageHeader
+        title="Admin Overview"
         subtitle={`Summary for ${monthName} ${now.getFullYear()}`}
+      />
+
+      <TdSyncPanel
+        runs={syncRuns.map((run) => ({ ...run, runAt: run.runAt.toISOString(), triggeredByName: run.triggeredBy ? actorNames.get(run.triggeredBy) || "Admin" : "Cron" }))}
+        failures={syncFailures.map(({ id, tdName, tdEmail }) => ({ id, tdName, tdEmail }))}
+        workers={syncWorkers}
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

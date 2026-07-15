@@ -57,6 +57,12 @@ export const ModelName = {
   Worker: 'Worker',
   PaymentAccount: 'PaymentAccount',
   Invoice: 'Invoice',
+  TimeDoctorConfig: 'TimeDoctorConfig',
+  TdSyncRun: 'TdSyncRun',
+  TdMatchFailure: 'TdMatchFailure',
+  TdIgnoredEmail: 'TdIgnoredEmail',
+  WorkerImportBatch: 'WorkerImportBatch',
+  WorkerRateConflict: 'WorkerRateConflict',
   InvoiceLine: 'InvoiceLine',
   InvoiceCounter: 'InvoiceCounter',
   XeroToken: 'XeroToken',
@@ -146,6 +152,11 @@ export const WorkerScalarFieldEnum = {
   secondaryPayment: 'secondaryPayment',
   paymentType: 'paymentType',
   timeDoctorEmail: 'timeDoctorEmail',
+  hourlyRate: 'hourlyRate',
+  hourlyRateSource: 'hourlyRateSource',
+  hourlyRateUpdatedAt: 'hourlyRateUpdatedAt',
+  hourlyRateUpdatedBy: 'hourlyRateUpdatedBy',
+  currency: 'currency',
   cryptoCoin: 'cryptoCoin',
   cryptoNetwork: 'cryptoNetwork',
   cryptoWallet: 'cryptoWallet',
@@ -181,6 +192,8 @@ export type PaymentAccountScalarFieldEnum = (typeof PaymentAccountScalarFieldEnu
 export const InvoiceScalarFieldEnum = {
   id: 'id',
   workerId: 'workerId',
+  tdSyncRunId: 'tdSyncRunId',
+  billingMonth: 'billingMonth',
   invoiceNumber: 'invoiceNumber',
   invoiceDate: 'invoiceDate',
   dueDate: 'dueDate',
@@ -204,6 +217,88 @@ export const InvoiceScalarFieldEnum = {
 } as const
 
 export type InvoiceScalarFieldEnum = (typeof InvoiceScalarFieldEnum)[keyof typeof InvoiceScalarFieldEnum]
+
+
+export const TimeDoctorConfigScalarFieldEnum = {
+  id: 'id',
+  apiToken: 'apiToken',
+  companyId: 'companyId',
+  tokenExpiresAt: 'tokenExpiresAt',
+  lastSyncAt: 'lastSyncAt',
+  lastSyncStatus: 'lastSyncStatus',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TimeDoctorConfigScalarFieldEnum = (typeof TimeDoctorConfigScalarFieldEnum)[keyof typeof TimeDoctorConfigScalarFieldEnum]
+
+
+export const TdSyncRunScalarFieldEnum = {
+  id: 'id',
+  runAt: 'runAt',
+  status: 'status',
+  invoicesCreated: 'invoicesCreated',
+  matchFailed: 'matchFailed',
+  inactiveSkipped: 'inactiveSkipped',
+  ignoredSkipped: 'ignoredSkipped',
+  totalAmount: 'totalAmount',
+  errorLog: 'errorLog',
+  triggeredBy: 'triggeredBy'
+} as const
+
+export type TdSyncRunScalarFieldEnum = (typeof TdSyncRunScalarFieldEnum)[keyof typeof TdSyncRunScalarFieldEnum]
+
+
+export const TdMatchFailureScalarFieldEnum = {
+  id: 'id',
+  syncRunId: 'syncRunId',
+  tdUserId: 'tdUserId',
+  tdEmail: 'tdEmail',
+  tdName: 'tdName',
+  resolved: 'resolved',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type TdMatchFailureScalarFieldEnum = (typeof TdMatchFailureScalarFieldEnum)[keyof typeof TdMatchFailureScalarFieldEnum]
+
+
+export const TdIgnoredEmailScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  reason: 'reason',
+  ignoredBy: 'ignoredBy',
+  createdAt: 'createdAt'
+} as const
+
+export type TdIgnoredEmailScalarFieldEnum = (typeof TdIgnoredEmailScalarFieldEnum)[keyof typeof TdIgnoredEmailScalarFieldEnum]
+
+
+export const WorkerImportBatchScalarFieldEnum = {
+  id: 'id',
+  importedBy: 'importedBy',
+  importedAt: 'importedAt',
+  filename: 'filename',
+  createdCount: 'createdCount',
+  updatedCount: 'updatedCount',
+  conflictCount: 'conflictCount'
+} as const
+
+export type WorkerImportBatchScalarFieldEnum = (typeof WorkerImportBatchScalarFieldEnum)[keyof typeof WorkerImportBatchScalarFieldEnum]
+
+
+export const WorkerRateConflictScalarFieldEnum = {
+  id: 'id',
+  workerId: 'workerId',
+  portalRate: 'portalRate',
+  importedRate: 'importedRate',
+  importBatchId: 'importBatchId',
+  resolved: 'resolved',
+  resolvedAt: 'resolvedAt',
+  resolvedBy: 'resolvedBy',
+  createdAt: 'createdAt'
+} as const
+
+export type WorkerRateConflictScalarFieldEnum = (typeof WorkerRateConflictScalarFieldEnum)[keyof typeof WorkerRateConflictScalarFieldEnum]
 
 
 export const InvoiceLineScalarFieldEnum = {

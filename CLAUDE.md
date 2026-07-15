@@ -100,6 +100,9 @@ XERO_CLIENT_ID=        # Xero App Client ID
 XERO_CLIENT_SECRET=    # Xero App Client Secret
 XERO_REDIRECT_URI=     # {APP_URL}/api/auth/xero/callback
 SLACK_WEBHOOK_URL=     # Slack Incoming Webhook URL
+CRON_SECRET=           # Bearer secret used by Vercel Cron for /api/cron/td-sync
+TD_API_TOKEN=          # Time Doctor JWT bootstrap/reference; runtime config is saved via Admin settings
+TD_COMPANY_ID=         # Time Doctor company bootstrap/reference; runtime config is saved via Admin settings
 ```
 
 ## Next.js 16 — Critical Breaking Changes

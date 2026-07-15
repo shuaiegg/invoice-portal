@@ -13,10 +13,16 @@ enum Role {
 }
 
 enum InvoiceStatus {
+  DRAFT
   SUBMITTED
   APPROVED
   PAID
   VOID
+}
+
+enum HourlyRateSource {
+  TD_IMPORT
+  MANUAL
 }
 
 enum PaymentType {
@@ -35,19 +41,19 @@ enum PaymentAccountType {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String   @id @default(cuid())
+  email         String   @unique
   name          String?
-  role          Role      @default(WORKER)
-  active        Boolean   @default(true)
-  emailVerified Boolean   @default(false)
+  role          Role     @default(WORKER)
+  active        Boolean  @default(true)
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  sessions      Session[]
-  accounts      Account[]
-  worker        Worker?
+  sessions Session[]
+  accounts Account[]
+  worker   Worker?
 }
 
 model Session {
@@ -60,7 +66,7 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
@@ -78,99 +84,194 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Worker {
-  id             String    @id @default(cuid())
-  userId         String    @unique
-  name           String
-  team           String?
-  address        String?
-  city           String?
-  country        String?
-  vatNumber      String?
-  vatRate        Float     @default(0)
-  paymentMethod  String?
-  paymentAccount String?
-  paymentNotes   String?
-  bankName       String?
-  swiftCode      String?
-  postCode       String?
-  secondaryPayment String?
-  paymentType    PaymentType @default(MANUAL)
-  timeDoctorEmail String?
-  cryptoCoin     String?
-  cryptoNetwork  String?
-  cryptoWallet   String?
-  paypalEmail    String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                  String           @id @default(cuid())
+  userId              String?          @unique
+  name                String
+  team                String?
+  address             String?
+  city                String?
+  country             String?
+  vatNumber           String?
+  vatRate             Float            @default(0)
+  paymentMethod       String?
+  paymentAccount      String?
+  paymentNotes        String?
+  bankName            String?
+  swiftCode           String?
+  postCode            String?
+  secondaryPayment    String?
+  paymentType         PaymentType      @default(MANUAL)
+  timeDoctorEmail     String?
+  hourlyRate          Float?
+  hourlyRateSource    HourlyRateSource @default(TD_IMPORT)
+  hourlyRateUpdatedAt DateTime?
+  hourlyRateUpdatedBy String?
+  currency            String?
+  cryptoCoin          String?
+  cryptoNetwork       String?
+  cryptoWallet        String?
+  paypalEmail         String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoices       Invoice[]
+  user            User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices        Invoice[]
   paymentAccounts PaymentAccount[]
+  rateConflicts   WorkerRateConflict[]
 }
 
 model PaymentAccount {
-  id             String             @id @default(cuid())
-  workerId       String
-  type           PaymentAccountType
-  label          String?
-  isPreferred    Boolean            @default(false)
-  accountNumber  String?
-  bankName       String?
-  swiftCode      String?
-  email          String?
-  cryptoCoin     String?
-  cryptoNetwork  String?
-  cryptoWallet   String?
-  notes          String?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  id            String             @id @default(cuid())
+  workerId      String
+  type          PaymentAccountType
+  label         String?
+  isPreferred   Boolean            @default(false)
+  accountNumber String?
+  bankName      String?
+  swiftCode     String?
+  email         String?
+  cryptoCoin    String?
+  cryptoNetwork String?
+  cryptoWallet  String?
+  notes         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
-  worker         Worker             @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  worker Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@index([workerId])
   @@index([workerId, isPreferred])
 }
 
 model Invoice {
-  id             String        @id @default(cuid())
-  workerId       String
-  invoiceNumber  String        @unique
-  invoiceDate    DateTime
-  dueDate        DateTime
-  serviceDate    DateTime?
-  status         InvoiceStatus @default(SUBMITTED)
+  id            String        @id @default(cuid())
+  workerId      String
+  tdSyncRunId   String?
+  billingMonth  String?
+  invoiceNumber String        @unique
+  invoiceDate   DateTime
+  dueDate       DateTime
+  serviceDate   DateTime?
+  status        InvoiceStatus @default(SUBMITTED)
 
-  description    String?
-  period         String
-  quantity       Float
-  rate           Float
+  description String?
+  period      String
+  quantity    Float
+  rate        Float
 
   // Amounts
-  subtotal       Float
-  vatAmount      Float
-  totalAmount    Float
-  vatRate        Float         @default(0)
-  vatInclusive   Boolean       @default(false)
-  currency       String        @default("EUR")
+  subtotal     Float
+  vatAmount    Float
+  totalAmount  Float
+  vatRate      Float   @default(0)
+  vatInclusive Boolean @default(false)
+  currency     String  @default("EUR")
 
   // Xero Sync
-  xeroSynced     Boolean       @default(false)
-  xeroInvoiceId  String?
-  xeroSyncedAt   DateTime?
+  xeroSynced    Boolean   @default(false)
+  xeroInvoiceId String?
+  xeroSyncedAt  DateTime?
 
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  worker         Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  lines          InvoiceLine[]
+  worker    Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  tdSyncRun TdSyncRun?    @relation(fields: [tdSyncRunId], references: [id], onDelete: SetNull)
+  lines     InvoiceLine[]
 
+  @@unique([workerId, billingMonth])
   @@index([workerId])
+  @@index([tdSyncRunId])
   @@index([status])
   @@index([invoiceDate])
+}
+
+model TimeDoctorConfig {
+  id             String    @id @default("singleton")
+  apiToken       String    @db.Text
+  companyId      String
+  tokenExpiresAt DateTime?
+  lastSyncAt     DateTime?
+  lastSyncStatus String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model TdSyncRun {
+  id              String           @id @default(cuid())
+  runAt           DateTime         @default(now())
+  status          String           @default("RUNNING")
+  invoicesCreated Int              @default(0)
+  matchFailed     Int              @default(0)
+  inactiveSkipped Int              @default(0)
+  ignoredSkipped  Int              @default(0)
+  totalAmount     Float            @default(0)
+  errorLog        String?          @db.Text
+  triggeredBy     String?
+  invoices        Invoice[]
+  matchFailures   TdMatchFailure[]
+
+  @@index([runAt])
+}
+
+model TdMatchFailure {
+  id         String    @id @default(cuid())
+  syncRunId  String
+  tdUserId   String
+  tdEmail    String
+  tdName     String
+  resolved   Boolean   @default(false)
+  resolvedAt DateTime?
+  syncRun    TdSyncRun @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+
+  @@index([syncRunId])
+  @@index([resolved])
+}
+
+// TD users who should never be treated as invoiceable workers (e.g. the company owner's own
+// TD account — tracked in TD, but not someone who submits invoices). Checked before a sync run
+// would otherwise create a fresh TdMatchFailure for them every single month.
+model TdIgnoredEmail {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  reason    String?
+  ignoredBy String
+  createdAt DateTime @default(now())
+}
+
+model WorkerImportBatch {
+  id            String               @id @default(cuid())
+  importedBy    String
+  importedAt    DateTime             @default(now())
+  filename      String
+  createdCount  Int                  @default(0)
+  updatedCount  Int                  @default(0)
+  conflictCount Int                  @default(0)
+  rateConflicts WorkerRateConflict[]
+
+  @@index([importedAt])
+}
+
+model WorkerRateConflict {
+  id            String            @id @default(cuid())
+  workerId      String
+  portalRate    Float
+  importedRate  Float
+  importBatchId String
+  resolved      Boolean           @default(false)
+  resolvedAt    DateTime?
+  resolvedBy    String?
+  createdAt     DateTime          @default(now())
+  worker        Worker            @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  importBatch   WorkerImportBatch @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@index([importBatchId])
+  @@index([resolved])
 }
 
 model InvoiceLine {
@@ -184,7 +285,7 @@ model InvoiceLine {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
 }
@@ -204,16 +305,16 @@ model XeroToken {
 }
 
 model WebhookConfig {
-  id                String    @id @default(cuid())
-  key               String
-  environment       String    @default("production")
-  url               String
-  secret            String?
-  internalSecret    String?
-  enabled           Boolean   @default(true)
-  lastTriggeredAt   DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  key             String
+  environment     String    @default("production")
+  url             String
+  secret          String?
+  internalSecret  String?
+  enabled         Boolean   @default(true)
+  lastTriggeredAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@unique([key, environment])
 }

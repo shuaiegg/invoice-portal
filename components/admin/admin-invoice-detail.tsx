@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { isAdminInvoiceTransitionAllowed } from "@/lib/invoice-status";
 
 interface AdminInvoiceDetailProps {
   invoice: any;
@@ -211,7 +212,7 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
                 </div>
                 <div>
                   <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">Email</div>
-                  <div className="font-medium">{worker.user.email}</div>
+                  <div className="font-medium">{worker.user?.email || worker.timeDoctorEmail || "Pending registration"}</div>
                 </div>
                 <div>
                   <div className="text-xs font-bold uppercase tracking-wider text-secondary-text">Team</div>
@@ -283,14 +284,15 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SUBMITTED" disabled={invoice.status !== "SUBMITTED"}>Submitted</SelectItem>
-                    <SelectItem value="APPROVED" disabled={invoice.status !== "SUBMITTED"}>Approved</SelectItem>
-                    <SelectItem value="PAID" disabled={invoice.status !== "APPROVED"}>Paid</SelectItem>
-                    <SelectItem value="VOID">Void (Reject)</SelectItem>
+                    <SelectItem value="DRAFT" disabled={!isAdminInvoiceTransitionAllowed(invoice.status, "DRAFT")}>Draft</SelectItem>
+                    <SelectItem value="SUBMITTED" disabled={!isAdminInvoiceTransitionAllowed(invoice.status, "SUBMITTED")}>Submitted</SelectItem>
+                    <SelectItem value="APPROVED" disabled={!isAdminInvoiceTransitionAllowed(invoice.status, "APPROVED")}>Approved</SelectItem>
+                    <SelectItem value="PAID" disabled={!isAdminInvoiceTransitionAllowed(invoice.status, "PAID")}>Paid</SelectItem>
+                    <SelectItem value="VOID" disabled={!isAdminInvoiceTransitionAllowed(invoice.status, "VOID")}>Void (Reject)</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] text-secondary-text leading-tight pt-1">
-                  Valid transitions: Submitted → Approved, Approved → Paid, Any → Void.
+                  Valid transitions: Draft → Submitted, Submitted → Approved, Approved → Paid, Any → Void.
                 </p>
               </div>
 

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, CreditCard } from "lucide-react";
+import { ExternalLink, CreditCard, Clock } from "lucide-react";
 import Link from "next/link";
 import { WebhookSettings } from "@/components/admin/webhook-settings";
 
@@ -63,6 +63,7 @@ export default async function AdminSettingsPage() {
             </Link>
           </CardContent>
         </Card>
+        <Card><CardHeader><div className="flex items-center gap-2"><Clock className="h-5 w-5 text-primary" /><CardTitle>Time Doctor</CardTitle></div><CardDescription>Configure the read-only monthly hours integration.</CardDescription></CardHeader><CardContent><Link href="/admin/settings/timedoctor"><Button variant="outline" className="w-full">Configure Time Doctor<ExternalLink className="ml-2 h-4 w-4" /></Button></Link></CardContent></Card>
       </div>
 
       <div className="space-y-4">

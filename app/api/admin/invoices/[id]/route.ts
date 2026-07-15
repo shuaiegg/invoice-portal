@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
 import { invoicePaidWorkerNotification, invoiceStatusChanged } from "@/lib/slack";
+import { isAdminInvoiceTransitionAllowed } from "@/lib/invoice-status";
+import type { InvoiceStatus } from "@/lib/generated/client/enums";
 import { syncInvoiceToXero } from "@/lib/xero";
 import { NextResponse } from "next/server";
 
@@ -58,15 +60,7 @@ export async function PUT(
   }
 
   const currentStatus = invoice.status;
-  let isValid = false;
-
-  if (status === "VOID") {
-    isValid = true;
-  } else if (currentStatus === "SUBMITTED" && status === "APPROVED") {
-    isValid = true;
-  } else if (currentStatus === "APPROVED" && status === "PAID") {
-    isValid = true;
-  }
+  const isValid = isAdminInvoiceTransitionAllowed(currentStatus, status as InvoiceStatus);
 
   if (!isValid) {
     return NextResponse.json(

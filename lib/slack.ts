@@ -12,11 +12,23 @@ type SlackInvoice = {
 
 type SlackWorker = {
   name: string;
+  timeDoctorEmail?: string | null;
   paymentType?: string;
   user?: {
     email?: string | null;
   } | null;
 };
+
+export function tdWorkerInvite(worker: SlackWorker): void {
+  const registrationUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/register`;
+  notifySlack({
+    text: [
+      `Invoice Portal invitation for ${worker.name}`,
+      worker.timeDoctorEmail ? `Time Doctor email: ${worker.timeDoctorEmail}` : null,
+      `Register to claim your pre-configured worker profile: ${registrationUrl}`,
+    ].filter(Boolean).join("\n"),
+  });
+}
 
 /**
  * Fires a fire-and-forget notification to Slack using an Incoming Webhook.
@@ -92,4 +104,16 @@ export function invoicePaidWorkerNotification(invoice: SlackInvoice, worker: Sla
       `Amount: ${invoice.totalAmount} ${invoice.currency}`,
     ].join("\n"),
   });
+}
+
+export function tdPlusDraftReady(invoice: SlackInvoice, worker: SlackWorker): void {
+  notifySlack({ text: `Your invoice for ${invoice.period} is ready, ${worker.name}. Please review and add any additional items, then submit.` });
+}
+
+export function tdSyncSummary(result: { invoicesCreated: number; totalAmount: number; matchFailed: number; inactiveSkipped: number; ignoredSkipped: number }): void {
+  notifySlack({ text: `${result.invoicesCreated} invoices generated · €${result.totalAmount.toFixed(2)} total · ${result.matchFailed} unmatched · ${result.inactiveSkipped} inactive skipped · ${result.ignoredSkipped} ignored` });
+}
+
+export function tdSyncFailure(): void {
+  notifySlack({ text: "🔴 TD sync failed to start this month — check /admin/settings/timedoctor; the TD token may need reconnecting." });
 }
