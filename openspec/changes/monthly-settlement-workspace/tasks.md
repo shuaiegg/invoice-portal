@@ -15,9 +15,9 @@
 
 ## 3. Payment channel derivation
 
-- [ ] 3.1 Create `lib/payment-channel.ts`: `deriveChannel(accounts)` per design D2 (WISE→Wise, PAYPAL→PayPal, else Manual; preferred first, single-account fallback) + display labels
-- [ ] 3.2 Unit tests: preferred wins, no-preferred single account, no accounts, CRYPTO/REVOLUT/BANK_TRANSFER/OTHER fold to Manual
-- [ ] 3.3 Server helper to resolve worker→channel maps and filter invoices by channel (shared by list page, export, bulk endpoints)
+- [x] 3.1 Create `lib/payment-channel.ts`: `deriveChannel(accounts)` per design D2 (WISE→Wise, PAYPAL→PayPal, else Manual; preferred first, single-account fallback) + display labels
+- [x] 3.2 Unit tests: preferred wins, no-preferred single account, no accounts, CRYPTO/REVOLUT/BANK_TRANSFER/OTHER fold to Manual
+- [x] 3.3 Server helper to resolve worker→channel maps and filter invoices by channel (shared by list page, export, bulk endpoints)
 
 ## 4. Admin invoice list — month + channel workspace
 
