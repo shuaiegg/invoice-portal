@@ -37,10 +37,10 @@
 
 ## 6. Bulk operations UI
 
-- [ ] 6.1 `admin-invoice-table.tsx`: "Select all N matching filters" banner when filtered total exceeds page; selection mode switches to filter-scoped
-- [ ] 6.2 Bulk action bar: Approve button for SUBMITTED selections, Mark Paid for APPROVED, channel-scoped CSV export shortcut
-- [ ] 6.3 Confirmation dialog rendering dry-run result: resolved count, per-currency totals, payment-incomplete worker list with "proceed excluding N" option
-- [ ] 6.4 Result toast/panel: transitioned/skipped/xeroFailed breakdown with link to `xero=failed` filter; bulk retry action from that filtered view
+- [x] 6.1 `admin-invoice-table.tsx`: "Select all N matching filters" banner when filtered total exceeds page; selection mode switches to filter-scoped
+- [x] 6.2 Bulk action bar: Approve button for SUBMITTED selections, Mark Paid for APPROVED, channel-scoped CSV export shortcut
+- [x] 6.3 Confirmation dialog rendering dry-run result: resolved count, per-currency totals, payment-incomplete worker list with "proceed excluding N" option
+- [x] 6.4 Result toast/panel: transitioned/skipped/xeroFailed breakdown with link to `xero=failed` filter; bulk retry action from that filtered view
 
 ## 7. Dashboard settlement card
 
