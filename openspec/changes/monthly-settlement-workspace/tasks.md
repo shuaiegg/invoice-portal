@@ -21,10 +21,10 @@
 
 ## 4. Admin invoice list — month + channel workspace
 
-- [ ] 4.1 `app/(admin)/admin/invoices/page.tsx`: switch month filter, `availableMonths`, and monthly aggregates to `billingMonth`; group header totals by currency (render `€X + $Y` when mixed)
-- [ ] 4.2 Add channel tabs (All/Wise/PayPal/Manual) with counts scoped to active month/status filters; `channel` URL param combines with existing filters
-- [ ] 4.3 `admin-invoice-table.tsx`: add channel column; add `xero=failed` filter option (PAID + `xeroSynced=false`) in filters UI
-- [ ] 4.4 `GET /api/admin/invoices/export`: filter by `billingMonth` + `channel` (+ existing filters); add channel and payout-account-detail columns (`formatPaymentAccountKeyDetail`)
+- [x] 4.1 `app/(admin)/admin/invoices/page.tsx`: switch month filter, `availableMonths`, and monthly aggregates to `billingMonth`; group header totals by currency (render `€X + $Y` when mixed)
+- [x] 4.2 Add channel tabs (All/Wise/PayPal/Manual) with counts scoped to active month/status filters; `channel` URL param combines with existing filters
+- [x] 4.3 `admin-invoice-table.tsx`: add channel column; add `xero=failed` filter option (PAID + `xeroSynced=false`) in filters UI
+- [x] 4.4 `GET /api/admin/invoices/export`: filter by `billingMonth` + `channel` (+ existing filters); add channel and payout-account-detail columns (`formatPaymentAccountKeyDetail`)
 
 ## 5. Bulk operations API
 

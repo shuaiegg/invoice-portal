@@ -1,122 +1,146 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { PageHeader } from "@/components/shared/page-header";
-import { InvoiceFilters } from "@/components/admin/invoice-filters";
-import { AdminInvoiceTable } from "@/components/admin/admin-invoice-table";
-import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { AdminInvoiceTable } from "@/components/admin/admin-invoice-table";
+import { InvoiceFilters } from "@/components/admin/invoice-filters";
+import { PageHeader } from "@/components/shared/page-header";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { Prisma } from "@/lib/generated/client/client";
+import { currencyTotalsFromGroups, formatCurrencyTotals } from "@/lib/money";
+import {
+  PAYMENT_CHANNEL_LABELS,
+  PAYMENT_CHANNELS,
+  deriveChannel,
+  parsePaymentChannel,
+  type PaymentChannel,
+} from "@/lib/payment-channel";
+import { resolveWorkerChannelMap } from "@/lib/payment-channel-server";
+
+type SearchParams = { [key: string]: string | string[] | undefined };
+
+function channelHref(params: SearchParams, channel: PaymentChannel | null) {
+  const next = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (key === "channel" || key === "page" || value === undefined) continue;
+    next.set(key, Array.isArray(value) ? value[0] : value);
+  }
+  if (channel) next.set("channel", channel.toLowerCase());
+  return `/admin/invoices?${next.toString()}`;
+}
 
 export default async function AdminInvoicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<SearchParams>;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/login");
-  }
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/login");
 
   const params = await searchParams;
-
-  // Parse filters from URL
   const status = params.status ? (params.status as string).split(",") : undefined;
   const period = params.period as string;
   const workerName = params.workerName as string;
-  const month = params.month as string; // "YYYY-MM", filters by invoiceDate
-
-  // Pagination
+  const month = params.month as string;
+  const xero = params.xero as string;
+  const channel = parsePaymentChannel(params.channel as string);
   const page = parseInt((params.page as string) || "1");
   const limit = 20;
-  const skip = (page - 1) * limit;
 
-  const where: Prisma.InvoiceWhereInput = {};
-  const workerFilter: Prisma.WorkerWhereInput = {};
+  const baseWhere: Prisma.InvoiceWhereInput = {};
+  if (status?.length) baseWhere.status = { in: status as Prisma.EnumInvoiceStatusFilter["in"] };
+  if (period) baseWhere.period = { contains: period, mode: "insensitive" };
+  if (workerName) baseWhere.worker = { name: { contains: workerName, mode: "insensitive" } };
+  if (month && /^\d{4}-\d{2}$/.test(month)) baseWhere.billingMonth = month;
+  if (xero === "failed") Object.assign(baseWhere, { status: "PAID", xeroSynced: false });
 
-  if (status && status.length > 0) {
-    where.status = { in: status as any };
-  }
-  if (period) {
-    where.period = { contains: period, mode: "insensitive" };
-  }
-  if (workerName) {
-    workerFilter.name = { contains: workerName, mode: "insensitive" };
-  }
-  if (month && /^\d{4}-\d{2}$/.test(month)) {
-    const [y, m] = month.split("-").map(Number);
-    where.invoiceDate = { gte: new Date(Date.UTC(y, m - 1, 1)), lt: new Date(Date.UTC(y, m, 1)) };
+  const baseInvoices = await db.invoice.findMany({
+    where: baseWhere,
+    select: { workerId: true },
+  });
+  const workerChannels = await resolveWorkerChannelMap([...new Set(baseInvoices.map((invoice) => invoice.workerId))]);
+  const channelCounts: Record<PaymentChannel, number> = { WISE: 0, PAYPAL: 0, MANUAL: 0 };
+  for (const invoice of baseInvoices) channelCounts[workerChannels.get(invoice.workerId) ?? "MANUAL"] += 1;
+
+  const where: Prisma.InvoiceWhereInput = { ...baseWhere };
+  if (channel) {
+    where.workerId = {
+      in: [...workerChannels.entries()]
+        .filter(([, workerChannel]) => workerChannel === channel)
+        .map(([workerId]) => workerId),
+    };
   }
 
-  if (Object.keys(workerFilter).length > 0) {
-    where.worker = workerFilter;
-  }
-
-  const [invoices, total, monthSum, availableMonths] = await Promise.all([
+  const [invoices, total, totalsByCurrency, availableMonths] = await Promise.all([
     db.invoice.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip,
+      skip: (page - 1) * limit,
       take: limit,
       include: {
         worker: {
           select: {
             name: true,
             team: true,
+            paymentAccounts: { select: { type: true, isPreferred: true } },
           },
         },
       },
     }),
     db.invoice.count({ where }),
-    db.invoice.aggregate({ where, _sum: { totalAmount: true } }),
-    db.$queryRaw<{ month: string }[]>`
-      SELECT DISTINCT to_char("invoiceDate", 'YYYY-MM') AS month FROM "Invoice" ORDER BY month DESC
-    `,
+    db.invoice.groupBy({ by: ["currency"], where, _sum: { totalAmount: true } }),
+    db.invoice.findMany({
+      where: { billingMonth: { not: null } },
+      distinct: ["billingMonth"],
+      select: { billingMonth: true },
+      orderBy: { billingMonth: "desc" },
+    }),
   ]);
 
-  const totalPages = Math.ceil(total / limit);
-
-  // Construct export URL
   const exportParams = new URLSearchParams();
-  if (status) exportParams.set("status", status.join(","));
-  if (period) exportParams.set("period", period);
-  if (workerName) exportParams.set("workerName", workerName);
-  if (month) exportParams.set("month", month);
-
+  for (const key of ["status", "period", "workerName", "month", "channel", "xero"] as const) {
+    const value = params[key];
+    if (typeof value === "string") exportParams.set(key, value);
+  }
   const monthLabel = month
     ? new Intl.DateTimeFormat("en", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-02`))
     : null;
+  const totalsLabel = formatCurrencyTotals(currencyTotalsFromGroups(totalsByCurrency));
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       <PageHeader
         title="Manage Invoices"
-        subtitle={
-          month
-            ? `${monthLabel}: ${total} invoice${total === 1 ? "" : "s"} · €${(monthSum._sum.totalAmount ?? 0).toFixed(2)}`
-            : "Review, approve, and track payment status of all worker invoices"
-        }
+        subtitle={month
+          ? `${monthLabel}: ${total} invoice${total === 1 ? "" : "s"}${totalsLabel ? ` · ${totalsLabel}` : ""}`
+          : "Review, approve, and track payment status of all worker invoices"}
         action={
           <a href={`/api/admin/invoices/export?${exportParams.toString()}`} download>
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
+            <Button variant="outline"><Download data-icon="inline-start" />Export CSV</Button>
           </a>
         }
       />
 
-      <InvoiceFilters availableMonths={availableMonths.map((row) => row.month)} />
+      <Tabs value={channel ?? "all"}>
+        <TabsList>
+          <TabsTrigger value="all" asChild><Link href={channelHref(params, null)}>All ({baseInvoices.length})</Link></TabsTrigger>
+          {PAYMENT_CHANNELS.map((item) => (
+            <TabsTrigger key={item} value={item} asChild>
+              <Link href={channelHref(params, item)}>{PAYMENT_CHANNEL_LABELS[item]} ({channelCounts[item]})</Link>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
+      <InvoiceFilters availableMonths={availableMonths.flatMap((row) => row.billingMonth ? [row.billingMonth] : [])} />
       <AdminInvoiceTable
-        invoices={invoices}
+        invoices={invoices.map((invoice) => ({ ...invoice, channel: deriveChannel(invoice.worker.paymentAccounts) }))}
         total={total}
         page={page}
-        totalPages={totalPages}
+        totalPages={Math.ceil(total / limit)}
       />
     </div>
   );

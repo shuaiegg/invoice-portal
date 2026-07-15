@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,7 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
   const [workerName, setWorkerName] = useState(searchParams.get("workerName") || "");
   const [period, setPeriod] = useState(searchParams.get("period") || "");
   const month = searchParams.get("month") || "all";
+  const xero = searchParams.get("xero") || "all";
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
     searchParams.get("status")?.split(",").filter(Boolean) || []
   );
@@ -75,7 +76,7 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
 
   return (
     <div className="bg-white p-6 rounded-xl border space-y-6 shadow-sm">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <div className="space-y-2">
           <Label htmlFor="workerName">Worker Name</Label>
           <div className="relative">
@@ -127,6 +128,17 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
             Apply Search
           </Button>
         </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="xero">Xero</Label>
+          <Select value={xero} onValueChange={(value) => updateFilters({ xero: value })}>
+            <SelectTrigger id="xero" className="bg-accent/30"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sync states</SelectItem>
+              <SelectItem value="failed">Sync failed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -150,7 +162,7 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
         </div>
       </div>
 
-      {(workerName || period || month !== "all" || selectedStatuses.length > 0) && (
+      {(workerName || period || month !== "all" || xero !== "all" || selectedStatuses.length > 0) && (
         <div className="pt-2 border-t flex justify-end">
           <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
             <X className="mr-2 h-4 w-4" />

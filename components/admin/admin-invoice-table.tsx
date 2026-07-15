@@ -18,17 +18,31 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  Download,
   CreditCard
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { PAYMENT_CHANNEL_LABELS } from "@/lib/payment-channel";
+import type { InvoiceStatus } from "@/lib/generated/client/client";
 
 interface AdminInvoiceTableProps {
-  invoices: any[];
+  invoices: AdminInvoice[];
   total: number;
   page: number;
   totalPages: number;
+}
+
+interface AdminInvoice {
+  id: string;
+  invoiceNumber: string;
+  period: string;
+  totalAmount: number;
+  currency: string;
+  status: InvoiceStatus;
+  xeroSynced: boolean;
+  invoiceDate: string | Date;
+  channel: keyof typeof PAYMENT_CHANNEL_LABELS;
+  worker: { name: string; team: string | null };
 }
 
 export function AdminInvoiceTable({ 
@@ -86,14 +100,14 @@ export function AdminInvoiceTable({
       toast.success(`Successfully marked ${selectedIds.length} invoices as paid`);
       setSelectedIds([]);
       router.refresh();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update invoices");
     } finally {
       setBulkLoading(false);
     }
   };
 
-  const getXeroStatus = (invoice: any) => {
+  const getXeroStatus = (invoice: AdminInvoice) => {
     // Xero sync only happens at PAID — don't show sync status for other statuses
     if (invoice.status !== "PAID") return null;
 
@@ -112,10 +126,10 @@ export function AdminInvoiceTable({
     );
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
+      currency,
     }).format(amount);
   };
 
@@ -154,6 +168,7 @@ export function AdminInvoiceTable({
               </TableHead>
               <TableHead>Invoice #</TableHead>
               <TableHead>Worker</TableHead>
+              <TableHead>Channel</TableHead>
               <TableHead>Period</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
@@ -164,7 +179,7 @@ export function AdminInvoiceTable({
           <TableBody>
             {invoices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
                   No invoices found matching your filters.
                 </TableCell>
               </TableRow>
@@ -190,8 +205,9 @@ export function AdminInvoiceTable({
                       <span className="text-xs text-secondary-text">{invoice.worker.team}</span>
                     </div>
                   </TableCell>
+                  <TableCell>{PAYMENT_CHANNEL_LABELS[invoice.channel as keyof typeof PAYMENT_CHANNEL_LABELS]}</TableCell>
                   <TableCell>{invoice.period}</TableCell>
-                  <TableCell className="font-semibold">{formatCurrency(invoice.totalAmount)}</TableCell>
+                  <TableCell className="font-semibold">{formatCurrency(invoice.totalAmount, invoice.currency)}</TableCell>
                   <TableCell>
                     <StatusBadge status={invoice.status} />
                   </TableCell>

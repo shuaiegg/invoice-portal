@@ -9,9 +9,13 @@ export const PAYMENT_CHANNEL_LABELS: Record<PaymentChannel, string> = {
 
 type ChannelAccount = { type: string; isPreferred: boolean };
 
-export function deriveChannel(accounts: readonly ChannelAccount[]): PaymentChannel {
-  const account = accounts.find((candidate) => candidate.isPreferred)
+export function selectChannelAccount<T extends ChannelAccount>(accounts: readonly T[]): T | undefined {
+  return accounts.find((candidate) => candidate.isPreferred)
     ?? (accounts.length === 1 ? accounts[0] : undefined);
+}
+
+export function deriveChannel(accounts: readonly ChannelAccount[]): PaymentChannel {
+  const account = selectChannelAccount(accounts);
   if (account?.type === "WISE") return "WISE";
   if (account?.type === "PAYPAL") return "PAYPAL";
   return "MANUAL";

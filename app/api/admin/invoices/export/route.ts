@@ -1,6 +1,9 @@
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
-import { Prisma } from "@/lib/generated/client/client";
+import { InvoiceStatus, Prisma } from "@/lib/generated/client/client";
+import { deriveChannel, parsePaymentChannel, selectChannelAccount, PAYMENT_CHANNEL_LABELS } from "@/lib/payment-channel";
+import { resolveWorkerIdsForChannel } from "@/lib/payment-channel-server";
+import { formatPaymentAccountKeyDetail } from "@/lib/payment-accounts";
 
 export async function GET(req: Request) {
   const { authorized, response } = await requireAdmin();
@@ -8,10 +11,14 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   
-  const status = searchParams.get("status")?.split(",") as any[];
+  const status = searchParams.get("status")?.split(",").filter((value): value is InvoiceStatus =>
+    Object.values(InvoiceStatus).includes(value as InvoiceStatus),
+  );
   const period = searchParams.get("period");
   const workerName = searchParams.get("workerName");
   const month = searchParams.get("month"); // "YYYY-MM"
+  const channel = parsePaymentChannel(searchParams.get("channel"));
+  const xero = searchParams.get("xero");
 
   const where: Prisma.InvoiceWhereInput = {};
   const workerFilter: Prisma.WorkerWhereInput = {};
@@ -23,9 +30,9 @@ export async function GET(req: Request) {
     where.period = { contains: period, mode: "insensitive" };
   }
   if (month && /^\d{4}-\d{2}$/.test(month)) {
-    const [y, m] = month.split("-").map(Number);
-    where.invoiceDate = { gte: new Date(Date.UTC(y, m - 1, 1)), lt: new Date(Date.UTC(y, m, 1)) };
+    where.billingMonth = month;
   }
+  if (xero === "failed") Object.assign(where, { status: "PAID", xeroSynced: false });
 
   if (workerName) {
     workerFilter.name = { contains: workerName, mode: "insensitive" };
@@ -34,6 +41,7 @@ export async function GET(req: Request) {
   if (Object.keys(workerFilter).length > 0) {
     where.worker = workerFilter;
   }
+  if (channel) where.workerId = { in: await resolveWorkerIdsForChannel(channel) };
 
   const invoices = await db.invoice.findMany({
     where,
@@ -43,6 +51,10 @@ export async function GET(req: Request) {
         select: {
           name: true,
           team: true,
+          paymentMethod: true,
+          paymentAccount: true,
+          paymentNotes: true,
+          paymentAccounts: true,
         },
       },
     },
@@ -52,6 +64,8 @@ export async function GET(req: Request) {
     "Invoice Number",
     "Worker Name",
     "Team",
+    "Payout Channel",
+    "Payout Account Detail",
     "Period",
     "Description",
     "Quantity",
@@ -64,7 +78,7 @@ export async function GET(req: Request) {
     "Xero Synced",
   ];
 
-  const escapeCSV = (value: any) => {
+  const escapeCSV = (value: unknown) => {
     if (value === null || value === undefined) return "";
     const str = String(value);
     // If it contains quotes, commas, or newlines, wrap in quotes and escape quotes
@@ -74,10 +88,18 @@ export async function GET(req: Request) {
     return str;
   };
 
-  const csvRows = invoices.map((inv) => [
+  const csvRows = invoices.map((inv) => {
+    const selectedAccount = selectChannelAccount(inv.worker.paymentAccounts);
+    const channel = deriveChannel(inv.worker.paymentAccounts);
+    const payoutDetail = selectedAccount
+      ? formatPaymentAccountKeyDetail(selectedAccount)
+      : inv.worker.paymentAccount || inv.worker.paymentMethod || inv.worker.paymentNotes || "";
+    return [
     escapeCSV(inv.invoiceNumber),
     escapeCSV(inv.worker.name),
     escapeCSV(inv.worker.team || ""),
+    escapeCSV(PAYMENT_CHANNEL_LABELS[channel]),
+    escapeCSV(payoutDetail),
     escapeCSV(inv.period),
     escapeCSV(inv.description),
     escapeCSV(inv.quantity),
@@ -88,7 +110,8 @@ export async function GET(req: Request) {
     escapeCSV(inv.status),
     escapeCSV(inv.invoiceDate.toISOString().split("T")[0]),
     escapeCSV(inv.xeroSynced ? "Yes" : "No"),
-  ]);
+    ];
+  });
 
   const csvContent = [headers.join(","), ...csvRows.map((row) => row.join(","))].join("\n");
 
