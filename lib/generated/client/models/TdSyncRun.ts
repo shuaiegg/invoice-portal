@@ -47,6 +47,7 @@ export type TdSyncRunSumAggregateOutputType = {
 export type TdSyncRunMinAggregateOutputType = {
   id: string | null
   runAt: Date | null
+  billingMonth: string | null
   status: string | null
   invoicesCreated: number | null
   skippedExisting: number | null
@@ -61,6 +62,7 @@ export type TdSyncRunMinAggregateOutputType = {
 export type TdSyncRunMaxAggregateOutputType = {
   id: string | null
   runAt: Date | null
+  billingMonth: string | null
   status: string | null
   invoicesCreated: number | null
   skippedExisting: number | null
@@ -75,6 +77,7 @@ export type TdSyncRunMaxAggregateOutputType = {
 export type TdSyncRunCountAggregateOutputType = {
   id: number
   runAt: number
+  billingMonth: number
   status: number
   invoicesCreated: number
   skippedExisting: number
@@ -109,6 +112,7 @@ export type TdSyncRunSumAggregateInputType = {
 export type TdSyncRunMinAggregateInputType = {
   id?: true
   runAt?: true
+  billingMonth?: true
   status?: true
   invoicesCreated?: true
   skippedExisting?: true
@@ -123,6 +127,7 @@ export type TdSyncRunMinAggregateInputType = {
 export type TdSyncRunMaxAggregateInputType = {
   id?: true
   runAt?: true
+  billingMonth?: true
   status?: true
   invoicesCreated?: true
   skippedExisting?: true
@@ -137,6 +142,7 @@ export type TdSyncRunMaxAggregateInputType = {
 export type TdSyncRunCountAggregateInputType = {
   id?: true
   runAt?: true
+  billingMonth?: true
   status?: true
   invoicesCreated?: true
   skippedExisting?: true
@@ -238,6 +244,7 @@ export type TdSyncRunGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 export type TdSyncRunGroupByOutputType = {
   id: string
   runAt: Date
+  billingMonth: string | null
   status: string
   invoicesCreated: number
   skippedExisting: number
@@ -275,6 +282,7 @@ export type TdSyncRunWhereInput = {
   NOT?: Prisma.TdSyncRunWhereInput | Prisma.TdSyncRunWhereInput[]
   id?: Prisma.StringFilter<"TdSyncRun"> | string
   runAt?: Prisma.DateTimeFilter<"TdSyncRun"> | Date | string
+  billingMonth?: Prisma.StringNullableFilter<"TdSyncRun"> | string | null
   status?: Prisma.StringFilter<"TdSyncRun"> | string
   invoicesCreated?: Prisma.IntFilter<"TdSyncRun"> | number
   skippedExisting?: Prisma.IntFilter<"TdSyncRun"> | number
@@ -291,6 +299,7 @@ export type TdSyncRunWhereInput = {
 export type TdSyncRunOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   runAt?: Prisma.SortOrder
+  billingMonth?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
   skippedExisting?: Prisma.SortOrder
@@ -310,6 +319,7 @@ export type TdSyncRunWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.TdSyncRunWhereInput[]
   NOT?: Prisma.TdSyncRunWhereInput | Prisma.TdSyncRunWhereInput[]
   runAt?: Prisma.DateTimeFilter<"TdSyncRun"> | Date | string
+  billingMonth?: Prisma.StringNullableFilter<"TdSyncRun"> | string | null
   status?: Prisma.StringFilter<"TdSyncRun"> | string
   invoicesCreated?: Prisma.IntFilter<"TdSyncRun"> | number
   skippedExisting?: Prisma.IntFilter<"TdSyncRun"> | number
@@ -326,6 +336,7 @@ export type TdSyncRunWhereUniqueInput = Prisma.AtLeast<{
 export type TdSyncRunOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   runAt?: Prisma.SortOrder
+  billingMonth?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
   skippedExisting?: Prisma.SortOrder
@@ -348,6 +359,7 @@ export type TdSyncRunScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TdSyncRunScalarWhereWithAggregatesInput | Prisma.TdSyncRunScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"TdSyncRun"> | string
   runAt?: Prisma.DateTimeWithAggregatesFilter<"TdSyncRun"> | Date | string
+  billingMonth?: Prisma.StringNullableWithAggregatesFilter<"TdSyncRun"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"TdSyncRun"> | string
   invoicesCreated?: Prisma.IntWithAggregatesFilter<"TdSyncRun"> | number
   skippedExisting?: Prisma.IntWithAggregatesFilter<"TdSyncRun"> | number
@@ -362,6 +374,7 @@ export type TdSyncRunScalarWhereWithAggregatesInput = {
 export type TdSyncRunCreateInput = {
   id?: string
   runAt?: Date | string
+  billingMonth?: string | null
   status?: string
   invoicesCreated?: number
   skippedExisting?: number
@@ -378,6 +391,7 @@ export type TdSyncRunCreateInput = {
 export type TdSyncRunUncheckedCreateInput = {
   id?: string
   runAt?: Date | string
+  billingMonth?: string | null
   status?: string
   invoicesCreated?: number
   skippedExisting?: number
@@ -394,6 +408,7 @@ export type TdSyncRunUncheckedCreateInput = {
 export type TdSyncRunUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
   skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
@@ -410,6 +425,7 @@ export type TdSyncRunUpdateInput = {
 export type TdSyncRunUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
   skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
@@ -426,6 +442,7 @@ export type TdSyncRunUncheckedUpdateInput = {
 export type TdSyncRunCreateManyInput = {
   id?: string
   runAt?: Date | string
+  billingMonth?: string | null
   status?: string
   invoicesCreated?: number
   skippedExisting?: number
@@ -440,6 +457,7 @@ export type TdSyncRunCreateManyInput = {
 export type TdSyncRunUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
   skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
@@ -454,6 +472,7 @@ export type TdSyncRunUpdateManyMutationInput = {
 export type TdSyncRunUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
   skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
@@ -473,6 +492,7 @@ export type TdSyncRunNullableScalarRelationFilter = {
 export type TdSyncRunCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   runAt?: Prisma.SortOrder
+  billingMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
   skippedExisting?: Prisma.SortOrder
@@ -496,6 +516,7 @@ export type TdSyncRunAvgOrderByAggregateInput = {
 export type TdSyncRunMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   runAt?: Prisma.SortOrder
+  billingMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
   skippedExisting?: Prisma.SortOrder
@@ -510,6 +531,7 @@ export type TdSyncRunMaxOrderByAggregateInput = {
 export type TdSyncRunMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   runAt?: Prisma.SortOrder
+  billingMonth?: Prisma.SortOrder
   status?: Prisma.SortOrder
   invoicesCreated?: Prisma.SortOrder
   skippedExisting?: Prisma.SortOrder
@@ -551,14 +573,6 @@ export type TdSyncRunUpdateOneWithoutInvoicesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TdSyncRunUpdateToOneWithWhereWithoutInvoicesInput, Prisma.TdSyncRunUpdateWithoutInvoicesInput>, Prisma.TdSyncRunUncheckedUpdateWithoutInvoicesInput>
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type TdSyncRunCreateNestedOneWithoutMatchFailuresInput = {
   create?: Prisma.XOR<Prisma.TdSyncRunCreateWithoutMatchFailuresInput, Prisma.TdSyncRunUncheckedCreateWithoutMatchFailuresInput>
   connectOrCreate?: Prisma.TdSyncRunCreateOrConnectWithoutMatchFailuresInput
@@ -576,6 +590,7 @@ export type TdSyncRunUpdateOneRequiredWithoutMatchFailuresNestedInput = {
 export type TdSyncRunCreateWithoutInvoicesInput = {
   id?: string
   runAt?: Date | string
+  billingMonth?: string | null
   status?: string
   invoicesCreated?: number
   skippedExisting?: number
@@ -591,6 +606,7 @@ export type TdSyncRunCreateWithoutInvoicesInput = {
 export type TdSyncRunUncheckedCreateWithoutInvoicesInput = {
   id?: string
   runAt?: Date | string
+  billingMonth?: string | null
   status?: string
   invoicesCreated?: number
   skippedExisting?: number
@@ -622,6 +638,7 @@ export type TdSyncRunUpdateToOneWithWhereWithoutInvoicesInput = {
 export type TdSyncRunUpdateWithoutInvoicesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
   skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
@@ -637,6 +654,7 @@ export type TdSyncRunUpdateWithoutInvoicesInput = {
 export type TdSyncRunUncheckedUpdateWithoutInvoicesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
   skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
@@ -652,6 +670,7 @@ export type TdSyncRunUncheckedUpdateWithoutInvoicesInput = {
 export type TdSyncRunCreateWithoutMatchFailuresInput = {
   id?: string
   runAt?: Date | string
+  billingMonth?: string | null
   status?: string
   invoicesCreated?: number
   skippedExisting?: number
@@ -667,6 +686,7 @@ export type TdSyncRunCreateWithoutMatchFailuresInput = {
 export type TdSyncRunUncheckedCreateWithoutMatchFailuresInput = {
   id?: string
   runAt?: Date | string
+  billingMonth?: string | null
   status?: string
   invoicesCreated?: number
   skippedExisting?: number
@@ -698,6 +718,7 @@ export type TdSyncRunUpdateToOneWithWhereWithoutMatchFailuresInput = {
 export type TdSyncRunUpdateWithoutMatchFailuresInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
   skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
@@ -713,6 +734,7 @@ export type TdSyncRunUpdateWithoutMatchFailuresInput = {
 export type TdSyncRunUncheckedUpdateWithoutMatchFailuresInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   runAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   invoicesCreated?: Prisma.IntFieldUpdateOperationsInput | number
   skippedExisting?: Prisma.IntFieldUpdateOperationsInput | number
@@ -768,6 +790,7 @@ export type TdSyncRunCountOutputTypeCountMatchFailuresArgs<ExtArgs extends runti
 export type TdSyncRunSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   runAt?: boolean
+  billingMonth?: boolean
   status?: boolean
   invoicesCreated?: boolean
   skippedExisting?: boolean
@@ -785,6 +808,7 @@ export type TdSyncRunSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type TdSyncRunSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   runAt?: boolean
+  billingMonth?: boolean
   status?: boolean
   invoicesCreated?: boolean
   skippedExisting?: boolean
@@ -799,6 +823,7 @@ export type TdSyncRunSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
 export type TdSyncRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   runAt?: boolean
+  billingMonth?: boolean
   status?: boolean
   invoicesCreated?: boolean
   skippedExisting?: boolean
@@ -813,6 +838,7 @@ export type TdSyncRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
 export type TdSyncRunSelectScalar = {
   id?: boolean
   runAt?: boolean
+  billingMonth?: boolean
   status?: boolean
   invoicesCreated?: boolean
   skippedExisting?: boolean
@@ -824,7 +850,7 @@ export type TdSyncRunSelectScalar = {
   triggeredBy?: boolean
 }
 
-export type TdSyncRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runAt" | "status" | "invoicesCreated" | "skippedExisting" | "matchFailed" | "inactiveSkipped" | "ignoredSkipped" | "totalAmount" | "errorLog" | "triggeredBy", ExtArgs["result"]["tdSyncRun"]>
+export type TdSyncRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runAt" | "billingMonth" | "status" | "invoicesCreated" | "skippedExisting" | "matchFailed" | "inactiveSkipped" | "ignoredSkipped" | "totalAmount" | "errorLog" | "triggeredBy", ExtArgs["result"]["tdSyncRun"]>
 export type TdSyncRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   invoices?: boolean | Prisma.TdSyncRun$invoicesArgs<ExtArgs>
   matchFailures?: boolean | Prisma.TdSyncRun$matchFailuresArgs<ExtArgs>
@@ -842,6 +868,7 @@ export type $TdSyncRunPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     runAt: Date
+    billingMonth: string | null
     status: string
     invoicesCreated: number
     skippedExisting: number
@@ -1278,6 +1305,7 @@ export interface Prisma__TdSyncRunClient<T, Null = never, ExtArgs extends runtim
 export interface TdSyncRunFieldRefs {
   readonly id: Prisma.FieldRef<"TdSyncRun", 'String'>
   readonly runAt: Prisma.FieldRef<"TdSyncRun", 'DateTime'>
+  readonly billingMonth: Prisma.FieldRef<"TdSyncRun", 'String'>
   readonly status: Prisma.FieldRef<"TdSyncRun", 'String'>
   readonly invoicesCreated: Prisma.FieldRef<"TdSyncRun", 'Int'>
   readonly skippedExisting: Prisma.FieldRef<"TdSyncRun", 'Int'>

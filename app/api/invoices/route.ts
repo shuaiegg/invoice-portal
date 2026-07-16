@@ -4,7 +4,8 @@ import { generateInvoiceNumber } from "@/lib/invoice-number";
 import { invoiceSubmitted } from "@/lib/slack";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
-import { deriveBillingMonth } from "@/lib/billing-month";
+import { deriveBillingMonth, resolveInvoiceSlot } from "@/lib/billing-month";
+import { Prisma } from "@/lib/generated/client/client";
 import {
   calculateInvoiceAmounts,
   getLegacyInvoiceFields,
@@ -123,6 +124,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid dueDate" }, { status: 400 });
   }
 
+  const billingMonth = deriveBillingMonth(invoiceDate, serviceDate);
+  const monthInvoices = await db.invoice.findMany({
+    where: { workerId: worker.id, billingMonth },
+    select: { status: true, supplementNo: true },
+  });
+  const slot = resolveInvoiceSlot(monthInvoices);
+  if ("conflict" in slot) {
+    return NextResponse.json(
+      { error: `You already have an editable invoice for ${billingMonth}. Edit that invoice and add line items instead of creating a new one.` },
+      { status: 409 },
+    );
+  }
+
   const invoiceNumber = await generateInvoiceNumber(year);
 
   const invoice = await db.$transaction(async (tx) => {
@@ -131,7 +145,8 @@ export async function POST(req: Request) {
         workerId: worker.id,
         invoiceNumber,
         invoiceDate,
-        billingMonth: deriveBillingMonth(invoiceDate, serviceDate),
+        billingMonth,
+        supplementNo: slot.supplementNo,
         dueDate,
         serviceDate,
         description: legacyFields.description,
@@ -162,7 +177,18 @@ export async function POST(req: Request) {
         },
       },
     });
+  }).catch((err: unknown) => {
+    // Unique (workerId, billingMonth, supplementNo): a concurrent submission took this slot
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") return null;
+    throw err;
   });
+
+  if (!invoice) {
+    return NextResponse.json(
+      { error: `Another invoice for ${billingMonth} was just created. Please refresh and try again.` },
+      { status: 409 },
+    );
+  }
 
   // Fire-and-forget: webhook + Slack
   dispatchWebhook("invoice.submitted", {

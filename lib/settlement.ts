@@ -18,5 +18,6 @@ export function isSettlementComplete(
     + (statusCounts.SUBMITTED ?? 0)
     + (statusCounts.APPROVED ?? 0)
     + (statusCounts.PAID ?? 0);
-  return nonVoid === (statusCounts.PAID ?? 0) && unresolvedFailures === 0;
+  // A month with no invoices hasn't been settled — it just hasn't started
+  return nonVoid > 0 && nonVoid === (statusCounts.PAID ?? 0) && unresolvedFailures === 0;
 }

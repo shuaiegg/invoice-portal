@@ -55,6 +55,7 @@ export type WorkerMinAggregateOutputType = {
   secondaryPayment: string | null
   paymentType: $Enums.PaymentType | null
   timeDoctorEmail: string | null
+  xeroContactId: string | null
   hourlyRate: number | null
   hourlyRateSource: $Enums.HourlyRateSource | null
   hourlyRateUpdatedAt: Date | null
@@ -87,6 +88,7 @@ export type WorkerMaxAggregateOutputType = {
   secondaryPayment: string | null
   paymentType: $Enums.PaymentType | null
   timeDoctorEmail: string | null
+  xeroContactId: string | null
   hourlyRate: number | null
   hourlyRateSource: $Enums.HourlyRateSource | null
   hourlyRateUpdatedAt: Date | null
@@ -119,6 +121,7 @@ export type WorkerCountAggregateOutputType = {
   secondaryPayment: number
   paymentType: number
   timeDoctorEmail: number
+  xeroContactId: number
   hourlyRate: number
   hourlyRateSource: number
   hourlyRateUpdatedAt: number
@@ -163,6 +166,7 @@ export type WorkerMinAggregateInputType = {
   secondaryPayment?: true
   paymentType?: true
   timeDoctorEmail?: true
+  xeroContactId?: true
   hourlyRate?: true
   hourlyRateSource?: true
   hourlyRateUpdatedAt?: true
@@ -195,6 +199,7 @@ export type WorkerMaxAggregateInputType = {
   secondaryPayment?: true
   paymentType?: true
   timeDoctorEmail?: true
+  xeroContactId?: true
   hourlyRate?: true
   hourlyRateSource?: true
   hourlyRateUpdatedAt?: true
@@ -227,6 +232,7 @@ export type WorkerCountAggregateInputType = {
   secondaryPayment?: true
   paymentType?: true
   timeDoctorEmail?: true
+  xeroContactId?: true
   hourlyRate?: true
   hourlyRateSource?: true
   hourlyRateUpdatedAt?: true
@@ -346,6 +352,7 @@ export type WorkerGroupByOutputType = {
   secondaryPayment: string | null
   paymentType: $Enums.PaymentType
   timeDoctorEmail: string | null
+  xeroContactId: string | null
   hourlyRate: number | null
   hourlyRateSource: $Enums.HourlyRateSource
   hourlyRateUpdatedAt: Date | null
@@ -401,6 +408,7 @@ export type WorkerWhereInput = {
   secondaryPayment?: Prisma.StringNullableFilter<"Worker"> | string | null
   paymentType?: Prisma.EnumPaymentTypeFilter<"Worker"> | $Enums.PaymentType
   timeDoctorEmail?: Prisma.StringNullableFilter<"Worker"> | string | null
+  xeroContactId?: Prisma.StringNullableFilter<"Worker"> | string | null
   hourlyRate?: Prisma.FloatNullableFilter<"Worker"> | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFilter<"Worker"> | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.DateTimeNullableFilter<"Worker"> | Date | string | null
@@ -437,6 +445,7 @@ export type WorkerOrderByWithRelationInput = {
   secondaryPayment?: Prisma.SortOrderInput | Prisma.SortOrder
   paymentType?: Prisma.SortOrder
   timeDoctorEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroContactId?: Prisma.SortOrderInput | Prisma.SortOrder
   hourlyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   hourlyRateSource?: Prisma.SortOrder
   hourlyRateUpdatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -476,6 +485,7 @@ export type WorkerWhereUniqueInput = Prisma.AtLeast<{
   secondaryPayment?: Prisma.StringNullableFilter<"Worker"> | string | null
   paymentType?: Prisma.EnumPaymentTypeFilter<"Worker"> | $Enums.PaymentType
   timeDoctorEmail?: Prisma.StringNullableFilter<"Worker"> | string | null
+  xeroContactId?: Prisma.StringNullableFilter<"Worker"> | string | null
   hourlyRate?: Prisma.FloatNullableFilter<"Worker"> | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFilter<"Worker"> | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.DateTimeNullableFilter<"Worker"> | Date | string | null
@@ -512,6 +522,7 @@ export type WorkerOrderByWithAggregationInput = {
   secondaryPayment?: Prisma.SortOrderInput | Prisma.SortOrder
   paymentType?: Prisma.SortOrder
   timeDoctorEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroContactId?: Prisma.SortOrderInput | Prisma.SortOrder
   hourlyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   hourlyRateSource?: Prisma.SortOrder
   hourlyRateUpdatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -552,6 +563,7 @@ export type WorkerScalarWhereWithAggregatesInput = {
   secondaryPayment?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
   paymentType?: Prisma.EnumPaymentTypeWithAggregatesFilter<"Worker"> | $Enums.PaymentType
   timeDoctorEmail?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
+  xeroContactId?: Prisma.StringNullableWithAggregatesFilter<"Worker"> | string | null
   hourlyRate?: Prisma.FloatNullableWithAggregatesFilter<"Worker"> | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceWithAggregatesFilter<"Worker"> | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Worker"> | Date | string | null
@@ -583,6 +595,7 @@ export type WorkerCreateInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -619,6 +632,7 @@ export type WorkerUncheckedCreateInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -653,6 +667,7 @@ export type WorkerUpdateInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -689,6 +704,7 @@ export type WorkerUncheckedUpdateInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -724,6 +740,7 @@ export type WorkerCreateManyInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -755,6 +772,7 @@ export type WorkerUpdateManyMutationInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -787,6 +805,7 @@ export type WorkerUncheckedUpdateManyInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -824,6 +843,7 @@ export type WorkerCountOrderByAggregateInput = {
   secondaryPayment?: Prisma.SortOrder
   paymentType?: Prisma.SortOrder
   timeDoctorEmail?: Prisma.SortOrder
+  xeroContactId?: Prisma.SortOrder
   hourlyRate?: Prisma.SortOrder
   hourlyRateSource?: Prisma.SortOrder
   hourlyRateUpdatedAt?: Prisma.SortOrder
@@ -861,6 +881,7 @@ export type WorkerMaxOrderByAggregateInput = {
   secondaryPayment?: Prisma.SortOrder
   paymentType?: Prisma.SortOrder
   timeDoctorEmail?: Prisma.SortOrder
+  xeroContactId?: Prisma.SortOrder
   hourlyRate?: Prisma.SortOrder
   hourlyRateSource?: Prisma.SortOrder
   hourlyRateUpdatedAt?: Prisma.SortOrder
@@ -893,6 +914,7 @@ export type WorkerMinOrderByAggregateInput = {
   secondaryPayment?: Prisma.SortOrder
   paymentType?: Prisma.SortOrder
   timeDoctorEmail?: Prisma.SortOrder
+  xeroContactId?: Prisma.SortOrder
   hourlyRate?: Prisma.SortOrder
   hourlyRateSource?: Prisma.SortOrder
   hourlyRateUpdatedAt?: Prisma.SortOrder
@@ -1032,6 +1054,7 @@ export type WorkerCreateWithoutUserInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -1066,6 +1089,7 @@ export type WorkerUncheckedCreateWithoutUserInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -1116,6 +1140,7 @@ export type WorkerUpdateWithoutUserInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1150,6 +1175,7 @@ export type WorkerUncheckedUpdateWithoutUserInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1184,6 +1210,7 @@ export type WorkerCreateWithoutPaymentAccountsInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -1219,6 +1246,7 @@ export type WorkerUncheckedCreateWithoutPaymentAccountsInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -1268,6 +1296,7 @@ export type WorkerUpdateWithoutPaymentAccountsInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1303,6 +1332,7 @@ export type WorkerUncheckedUpdateWithoutPaymentAccountsInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1336,6 +1366,7 @@ export type WorkerCreateWithoutInvoicesInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -1371,6 +1402,7 @@ export type WorkerUncheckedCreateWithoutInvoicesInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -1420,6 +1452,7 @@ export type WorkerUpdateWithoutInvoicesInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1455,6 +1488,7 @@ export type WorkerUncheckedUpdateWithoutInvoicesInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1488,6 +1522,7 @@ export type WorkerCreateWithoutRateConflictsInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -1523,6 +1558,7 @@ export type WorkerUncheckedCreateWithoutRateConflictsInput = {
   secondaryPayment?: string | null
   paymentType?: $Enums.PaymentType
   timeDoctorEmail?: string | null
+  xeroContactId?: string | null
   hourlyRate?: number | null
   hourlyRateSource?: $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Date | string | null
@@ -1572,6 +1608,7 @@ export type WorkerUpdateWithoutRateConflictsInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1607,6 +1644,7 @@ export type WorkerUncheckedUpdateWithoutRateConflictsInput = {
   secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
   hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1690,6 +1728,7 @@ export type WorkerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   secondaryPayment?: boolean
   paymentType?: boolean
   timeDoctorEmail?: boolean
+  xeroContactId?: boolean
   hourlyRate?: boolean
   hourlyRateSource?: boolean
   hourlyRateUpdatedAt?: boolean
@@ -1727,6 +1766,7 @@ export type WorkerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   secondaryPayment?: boolean
   paymentType?: boolean
   timeDoctorEmail?: boolean
+  xeroContactId?: boolean
   hourlyRate?: boolean
   hourlyRateSource?: boolean
   hourlyRateUpdatedAt?: boolean
@@ -1760,6 +1800,7 @@ export type WorkerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   secondaryPayment?: boolean
   paymentType?: boolean
   timeDoctorEmail?: boolean
+  xeroContactId?: boolean
   hourlyRate?: boolean
   hourlyRateSource?: boolean
   hourlyRateUpdatedAt?: boolean
@@ -1793,6 +1834,7 @@ export type WorkerSelectScalar = {
   secondaryPayment?: boolean
   paymentType?: boolean
   timeDoctorEmail?: boolean
+  xeroContactId?: boolean
   hourlyRate?: boolean
   hourlyRateSource?: boolean
   hourlyRateUpdatedAt?: boolean
@@ -1806,7 +1848,7 @@ export type WorkerSelectScalar = {
   updatedAt?: boolean
 }
 
-export type WorkerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "team" | "address" | "city" | "country" | "vatNumber" | "vatRate" | "paymentMethod" | "paymentAccount" | "paymentNotes" | "bankName" | "swiftCode" | "postCode" | "secondaryPayment" | "paymentType" | "timeDoctorEmail" | "hourlyRate" | "hourlyRateSource" | "hourlyRateUpdatedAt" | "hourlyRateUpdatedBy" | "currency" | "cryptoCoin" | "cryptoNetwork" | "cryptoWallet" | "paypalEmail" | "createdAt" | "updatedAt", ExtArgs["result"]["worker"]>
+export type WorkerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "team" | "address" | "city" | "country" | "vatNumber" | "vatRate" | "paymentMethod" | "paymentAccount" | "paymentNotes" | "bankName" | "swiftCode" | "postCode" | "secondaryPayment" | "paymentType" | "timeDoctorEmail" | "xeroContactId" | "hourlyRate" | "hourlyRateSource" | "hourlyRateUpdatedAt" | "hourlyRateUpdatedBy" | "currency" | "cryptoCoin" | "cryptoNetwork" | "cryptoWallet" | "paypalEmail" | "createdAt" | "updatedAt", ExtArgs["result"]["worker"]>
 export type WorkerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.Worker$userArgs<ExtArgs>
   invoices?: boolean | Prisma.Worker$invoicesArgs<ExtArgs>
@@ -1848,6 +1890,7 @@ export type $WorkerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     secondaryPayment: string | null
     paymentType: $Enums.PaymentType
     timeDoctorEmail: string | null
+    xeroContactId: string | null
     hourlyRate: number | null
     hourlyRateSource: $Enums.HourlyRateSource
     hourlyRateUpdatedAt: Date | null
@@ -2304,6 +2347,7 @@ export interface WorkerFieldRefs {
   readonly secondaryPayment: Prisma.FieldRef<"Worker", 'String'>
   readonly paymentType: Prisma.FieldRef<"Worker", 'PaymentType'>
   readonly timeDoctorEmail: Prisma.FieldRef<"Worker", 'String'>
+  readonly xeroContactId: Prisma.FieldRef<"Worker", 'String'>
   readonly hourlyRate: Prisma.FieldRef<"Worker", 'Float'>
   readonly hourlyRateSource: Prisma.FieldRef<"Worker", 'HourlyRateSource'>
   readonly hourlyRateUpdatedAt: Prisma.FieldRef<"Worker", 'DateTime'>

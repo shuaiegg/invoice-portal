@@ -1709,6 +1709,7 @@ export const WorkerScalarFieldEnum = {
   secondaryPayment: 'secondaryPayment',
   paymentType: 'paymentType',
   timeDoctorEmail: 'timeDoctorEmail',
+  xeroContactId: 'xeroContactId',
   hourlyRate: 'hourlyRate',
   hourlyRateSource: 'hourlyRateSource',
   hourlyRateUpdatedAt: 'hourlyRateUpdatedAt',
@@ -1751,6 +1752,7 @@ export const InvoiceScalarFieldEnum = {
   workerId: 'workerId',
   tdSyncRunId: 'tdSyncRunId',
   billingMonth: 'billingMonth',
+  supplementNo: 'supplementNo',
   invoiceNumber: 'invoiceNumber',
   invoiceDate: 'invoiceDate',
   dueDate: 'dueDate',
@@ -1793,6 +1795,7 @@ export type TimeDoctorConfigScalarFieldEnum = (typeof TimeDoctorConfigScalarFiel
 export const TdSyncRunScalarFieldEnum = {
   id: 'id',
   runAt: 'runAt',
+  billingMonth: 'billingMonth',
   status: 'status',
   invoicesCreated: 'invoicesCreated',
   skippedExisting: 'skippedExisting',
@@ -2046,20 +2049,6 @@ export type ListEnumPaymentAccountTypeFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
- * Reference to a field of type 'InvoiceStatus'
- */
-export type EnumInvoiceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvoiceStatus'>
-    
-
-
-/**
- * Reference to a field of type 'InvoiceStatus[]'
- */
-export type ListEnumInvoiceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvoiceStatus[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -2070,6 +2059,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'InvoiceStatus'
+ */
+export type EnumInvoiceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvoiceStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'InvoiceStatus[]'
+ */
+export type ListEnumInvoiceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvoiceStatus[]'>
     
 
 /**

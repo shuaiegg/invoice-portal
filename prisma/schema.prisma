@@ -106,6 +106,7 @@ model Worker {
   secondaryPayment    String?
   paymentType         PaymentType      @default(MANUAL)
   timeDoctorEmail     String?
+  xeroContactId       String?
   hourlyRate          Float?
   hourlyRateSource    HourlyRateSource @default(TD_IMPORT)
   hourlyRateUpdatedAt DateTime?
@@ -152,6 +153,7 @@ model Invoice {
   workerId      String
   tdSyncRunId   String?
   billingMonth  String?
+  supplementNo  Int           @default(0)
   invoiceNumber String        @unique
   invoiceDate   DateTime
   dueDate       DateTime
@@ -183,7 +185,7 @@ model Invoice {
   tdSyncRun TdSyncRun?    @relation(fields: [tdSyncRunId], references: [id], onDelete: SetNull)
   lines     InvoiceLine[]
 
-  @@unique([workerId, billingMonth])
+  @@unique([workerId, billingMonth, supplementNo])
   @@index([workerId])
   @@index([tdSyncRunId])
   @@index([status])
@@ -204,6 +206,7 @@ model TimeDoctorConfig {
 model TdSyncRun {
   id              String           @id @default(cuid())
   runAt           DateTime         @default(now())
+  billingMonth    String?
   status          String           @default("RUNNING")
   invoicesCreated Int              @default(0)
   skippedExisting Int              @default(0)

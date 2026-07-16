@@ -81,8 +81,9 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
     }).format(new Date(value));
   };
 
+  // VAT-inclusive is the company default: rates are gross, VAT is carved out
   const [vatInclusive, setVatInclusive] = useState<boolean>(
-    initialData ? (initialData.vatInclusive ?? false) : false
+    initialData ? (initialData.vatInclusive ?? false) : true
   );
 
   const initialLines: InvoiceFormLine[] =
@@ -223,13 +224,17 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="serviceDate">Service Date (Optional)</Label>
+                  <Label htmlFor="serviceDate">Service Date</Label>
                   <Input
                     id="serviceDate"
                     type="date"
                     value={formData.serviceDate}
                     onChange={handleChange}
+                    required
                   />
+                  <p className="text-xs text-muted-foreground">
+                    When the work was performed — this decides which billing month the invoice belongs to.
+                  </p>
                 </div>
               </div>
             </CardContent>

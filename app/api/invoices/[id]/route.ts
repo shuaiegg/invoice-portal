@@ -5,7 +5,8 @@ import { invoiceUpdated } from "@/lib/slack";
 import { isWorkerInvoiceEditable } from "@/lib/invoice-status";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
-import { deriveBillingMonth } from "@/lib/billing-month";
+import { deriveBillingMonth, resolveInvoiceSlot } from "@/lib/billing-month";
+import { Prisma } from "@/lib/generated/client/client";
 import {
   calculateInvoiceAmounts,
   getLegacyInvoiceFields,
@@ -110,6 +111,24 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid invoiceDate or serviceDate" }, { status: 400 });
   }
 
+  const billingMonth = deriveBillingMonth(invoiceDate, serviceDate);
+  let supplementNo = invoice.supplementNo;
+  if (billingMonth !== invoice.billingMonth) {
+    // Moving to a different month: re-resolve this invoice's slot there
+    const monthInvoices = await db.invoice.findMany({
+      where: { workerId: invoice.workerId, billingMonth, id: { not: id } },
+      select: { status: true, supplementNo: true },
+    });
+    const slot = resolveInvoiceSlot(monthInvoices);
+    if ("conflict" in slot) {
+      return NextResponse.json(
+        { error: `You already have an editable invoice for ${billingMonth}. Edit that invoice and add line items instead.` },
+        { status: 409 },
+      );
+    }
+    supplementNo = slot.supplementNo;
+  }
+
   const updatedInvoice = await db.$transaction(async (tx) => {
     // Re-check status inside transaction — guards against concurrent admin approval
     const current = await tx.invoice.findUnique({ where: { id }, select: { status: true } });
@@ -123,7 +142,8 @@ export async function PUT(
       where: { id },
       data: {
         invoiceDate,
-        billingMonth: deriveBillingMonth(invoiceDate, serviceDate),
+        billingMonth,
+        supplementNo,
         serviceDate,
         description: legacyFields.description,
         period: data.period,
@@ -153,6 +173,10 @@ export async function PUT(
     });
   }).catch((err: unknown) => {
     if (err instanceof Error && err.message === "CONCURRENT_MODIFICATION") {
+      return null;
+    }
+    // Unique (workerId, billingMonth, supplementNo): a concurrent submission took this slot
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       return null;
     }
     throw err;

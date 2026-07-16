@@ -11,3 +11,8 @@ test("settlement is complete only when every non-void invoice is paid and failur
   assert.equal(isSettlementComplete({ PAID: 10, APPROVED: 1, VOID: 2 }, 0), false);
   assert.equal(isSettlementComplete({ PAID: 10, VOID: 2 }, 1), false);
 });
+
+test("a month with no invoices is not complete — it has not started", () => {
+  assert.equal(isSettlementComplete({}, 0), false);
+  assert.equal(isSettlementComplete({ VOID: 2 }, 0), false);
+});
