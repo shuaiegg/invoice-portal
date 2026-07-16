@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { CheckCircle2, Clock, FileText, Users } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Clock, FileText, Users } from "lucide-react";
 import { ActivityFeed } from "@/components/admin/activity-feed";
+import { CurrencyTotalsBreakdown } from "@/components/admin/currency-totals";
 import { SettlementMonthSelect } from "@/components/admin/settlement-month-select";
 import { StatsCard } from "@/components/admin/stats-card";
 import { TdSyncPanel } from "@/components/admin/td-sync-panel";
@@ -42,10 +43,12 @@ export default async function AdminDashboardPage({
     syncWorkers,
   ] = await Promise.all([
     db.invoice.groupBy({ by: ["status"], where: { billingMonth }, _count: { _all: true } }),
-    db.invoice.groupBy({ by: ["currency"], where: { billingMonth }, _sum: { totalAmount: true } }),
+    db.invoice.groupBy({ by: ["currency"], where: { billingMonth, status: { not: "VOID" } }, _sum: { totalAmount: true } }),
     db.invoice.groupBy({ by: ["currency"], where: { billingMonth, status: "PAID" }, _sum: { totalAmount: true } }),
+    // Attribute failures via the run's own billingMonth — a run that created zero
+    // invoices for the month must still surface its unresolved failures here.
     db.tdMatchFailure.count({
-      where: { resolved: false, syncRun: { invoices: { some: { billingMonth } } } },
+      where: { resolved: false, syncRun: { billingMonth } },
     }),
     db.invoice.count({ where: { billingMonth, status: "PAID", xeroSynced: false } }),
     db.invoice.findMany({
@@ -71,7 +74,7 @@ export default async function AdminDashboardPage({
   const nonVoidCount = invoiceCount - (statusCounts.VOID ?? 0);
   const paidCount = statusCounts.PAID ?? 0;
   const complete = isSettlementComplete(statusCounts, unresolvedFailures);
-  const totalLabel = formatCurrencyTotals(currencyTotalsFromGroups(totalsGroups));
+  const monthTotals = currencyTotalsFromGroups(totalsGroups);
   const paidLabel = formatCurrencyTotals(currencyTotalsFromGroups(paidGroups));
   const availableMonths = [...new Set([
     billingMonth,
@@ -97,9 +100,24 @@ export default async function AdminDashboardPage({
         <CardContent className="flex flex-col gap-5">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div><p className="text-sm text-muted-foreground">Invoices</p><p className="text-2xl font-semibold">{invoiceCount}</p></div>
-            <div><p className="text-sm text-muted-foreground">Month total</p><p className="text-2xl font-semibold">{totalLabel || "—"}</p></div>
-            <div><p className="text-sm text-muted-foreground">Unresolved matches</p><p className="text-2xl font-semibold">{unresolvedFailures}</p></div>
-            <div><p className="text-sm text-muted-foreground">Xero failed</p><p className="text-2xl font-semibold">{xeroFailed}</p></div>
+            <div>
+              <p className="text-sm text-muted-foreground">Month total</p>
+              <CurrencyTotalsBreakdown totals={monthTotals} />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Unresolved matches</p>
+              <p className={`flex items-center gap-1.5 text-2xl font-semibold ${unresolvedFailures > 0 ? "text-warning" : ""}`}>
+                {unresolvedFailures > 0 ? <AlertTriangle className="h-5 w-5" aria-label="Needs attention" /> : null}
+                {unresolvedFailures}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Xero failed</p>
+              <p className={`flex items-center gap-1.5 text-2xl font-semibold ${xeroFailed > 0 ? "text-error" : ""}`}>
+                {xeroFailed > 0 ? <AlertCircle className="h-5 w-5" aria-label="Sync failures" /> : null}
+                {xeroFailed}
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {(["DRAFT", "SUBMITTED", "APPROVED", "PAID", "VOID"] as InvoiceStatus[]).map((status) => (

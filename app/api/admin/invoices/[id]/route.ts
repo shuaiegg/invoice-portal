@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
-import { invoicePaidWorkerNotification, invoiceStatusChanged } from "@/lib/slack";
+import { invoiceChangesRequested, invoicePaidWorkerNotification, invoiceStatusChanged } from "@/lib/slack";
 import { isAdminInvoiceTransitionAllowed } from "@/lib/invoice-status";
 import type { InvoiceStatus } from "@/lib/generated/client/enums";
 import { syncInvoiceToXero } from "@/lib/xero";
@@ -48,7 +48,7 @@ export async function PUT(
   if (!authorized) return response;
 
   const { id } = await params;
-  const { status } = await req.json();
+  const { status, note } = await req.json();
 
   const invoice = await db.invoice.findUnique({
     where: { id },
@@ -112,6 +112,10 @@ export async function PUT(
   invoiceStatusChanged(updatedInvoice, updatedInvoice.worker, currentStatus, status);
   if (status === "PAID" && updatedInvoice.worker.paymentType === "MANUAL") {
     invoicePaidWorkerNotification(updatedInvoice, updatedInvoice.worker);
+  }
+  // Request changes: tell the worker what to fix — the invoice is back in their court
+  if (currentStatus === "SUBMITTED" && status === "DRAFT") {
+    invoiceChangesRequested(updatedInvoice, updatedInvoice.worker, typeof note === "string" ? note.trim() || null : null);
   }
 
   return NextResponse.json(updatedInvoice);

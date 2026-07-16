@@ -106,6 +106,16 @@ export function invoicePaidWorkerNotification(invoice: SlackInvoice, worker: Sla
   });
 }
 
+export function invoiceChangesRequested(invoice: SlackInvoice, worker: SlackWorker, note?: string | null): void {
+  notifySlack({
+    text: [
+      `Changes requested on invoice ${invoice.invoiceNumber} (${invoice.period}) — ${worker.name}`,
+      note ? `Note from finance: ${note}` : null,
+      "The invoice is back in Draft. Please edit it and resubmit.",
+    ].filter(Boolean).join("\n"),
+  });
+}
+
 export function bulkOperationDigest(input: {
   action: string;
   count: number;
@@ -129,8 +139,9 @@ export function tdPlusDraftReady(invoice: SlackInvoice, worker: SlackWorker): vo
   notifySlack({ text: `Your invoice for ${invoice.period} is ready, ${worker.name}. Please review and add any additional items, then submit.` });
 }
 
-export function tdSyncSummary(result: { invoicesCreated: number; skippedExisting: number; totalAmount: number; matchFailed: number; inactiveSkipped: number; ignoredSkipped: number }): void {
-  notifySlack({ text: `${result.invoicesCreated} invoices generated · ${result.skippedExisting} already existed · €${result.totalAmount.toFixed(2)} total · ${result.matchFailed} unmatched · ${result.inactiveSkipped} inactive skipped · ${result.ignoredSkipped} ignored` });
+export function tdSyncSummary(result: { invoicesCreated: number; skippedExisting: number; totalsByCurrency: Record<string, number>; matchFailed: number; inactiveSkipped: number; ignoredSkipped: number }): void {
+  const totals = Object.entries(result.totalsByCurrency).map(([currency, amount]) => `${amount.toFixed(2)} ${currency}`).join(" + ");
+  notifySlack({ text: `${result.invoicesCreated} invoices generated · ${result.skippedExisting} already existed · ${totals || "0.00"} total · ${result.matchFailed} unmatched · ${result.inactiveSkipped} inactive skipped · ${result.ignoredSkipped} ignored` });
 }
 
 export function tdSyncFailure(): void {

@@ -259,10 +259,11 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
             <h2 className="text-2xl font-bold tracking-tight text-text">Invoice History</h2>
           </div>
           
-          <AdminInvoiceTable 
-            invoices={worker.invoices.map((inv: any) => ({ ...inv, worker }))} 
+          <AdminInvoiceTable
+            invoices={worker.invoices.map((inv: any) => ({ ...inv, worker }))}
             total={worker.invoices.length}
             page={1}
+            pageSize={worker.invoices.length || 1}
             totalPages={1}
           />
         </div>

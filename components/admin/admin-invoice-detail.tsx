@@ -14,12 +14,22 @@ import {
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
   ArrowLeft,
   Save,
   CheckCircle2,
   AlertCircle,
   Clock,
   FileText,
+  Undo2,
   User,
   CreditCard,
   History,
@@ -36,6 +46,8 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
   const router = useRouter();
   const [status, setStatus] = useState(invoice.status);
   const [loading, setLoading] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
+  const [requestNote, setRequestNote] = useState("");
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
@@ -72,6 +84,31 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
     } catch (error: any) {
       toast.error(error.message);
       setStatus(invoice.status); // Reset on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestChanges = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/invoices/${invoice.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "DRAFT", note: requestNote }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to request changes");
+      }
+
+      toast.success("Invoice returned to worker — they've been notified");
+      setRequestOpen(false);
+      setRequestNote("");
+      router.refresh();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to request changes");
     } finally {
       setLoading(false);
     }
@@ -292,9 +329,16 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] text-secondary-text leading-tight pt-1">
-                  Valid transitions: Draft → Submitted, Submitted → Approved, Approved → Paid, Any → Void.
+                  Valid transitions: Draft → Submitted, Submitted → Approved or back to Draft (request changes), Approved → Paid, Any → Void.
                 </p>
               </div>
+
+              {invoice.status === "SUBMITTED" && (
+                <Button variant="outline" className="w-full" onClick={() => setRequestOpen(true)} disabled={loading}>
+                  <Undo2 className="mr-2 h-4 w-4" />
+                  Request Changes
+                </Button>
+              )}
 
               <div className="space-y-4 pt-4 border-t">
                 <div className="flex items-start gap-3">
@@ -324,6 +368,30 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
           </Card>
         </div>
       </div>
+
+      <Dialog open={requestOpen} onOpenChange={(open) => { if (!open) setRequestOpen(false); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request changes from {worker.name}</DialogTitle>
+            <DialogDescription>
+              The invoice returns to Draft and the worker is notified. They edit it and resubmit for approval.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="What needs to change? e.g. June hours look too high — please check the week of 15/06."
+            value={requestNote}
+            onChange={(event) => setRequestNote(event.target.value)}
+            rows={4}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRequestOpen(false)} disabled={loading}>Cancel</Button>
+            <Button onClick={handleRequestChanges} disabled={loading || !requestNote.trim()}>
+              {loading ? <Clock className="mr-2 h-4 w-4 animate-spin" /> : <Undo2 className="mr-2 h-4 w-4" />}
+              Return to worker
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

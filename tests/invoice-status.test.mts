@@ -15,3 +15,12 @@ test("admin can void a draft invoice", () => {
 test("admin can advance a draft invoice to submitted", () => {
   assert.equal(isAdminInvoiceTransitionAllowed("DRAFT", "SUBMITTED"), true);
 });
+
+test("admin can return a submitted invoice to the worker for changes", () => {
+  assert.equal(isAdminInvoiceTransitionAllowed("SUBMITTED", "DRAFT"), true);
+});
+
+test("locked invoices cannot be returned to draft", () => {
+  assert.equal(isAdminInvoiceTransitionAllowed("APPROVED", "DRAFT"), false);
+  assert.equal(isAdminInvoiceTransitionAllowed("PAID", "DRAFT"), false);
+});

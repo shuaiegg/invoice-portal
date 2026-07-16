@@ -8,5 +8,8 @@ export function isAdminInvoiceTransitionAllowed(current: InvoiceStatus, next: In
   return next === "VOID"
     || (current === "DRAFT" && next === "SUBMITTED")
     || (current === "SUBMITTED" && next === "APPROVED")
+    // Request changes: hand the invoice back to the worker; it drops out of
+    // approve-ready sets and resubmission flips it back to SUBMITTED.
+    || (current === "SUBMITTED" && next === "DRAFT")
     || (current === "APPROVED" && next === "PAID");
 }
