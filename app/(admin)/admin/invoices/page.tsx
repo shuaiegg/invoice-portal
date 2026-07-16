@@ -15,6 +15,7 @@ import {
   PAYMENT_CHANNEL_LABELS,
   PAYMENT_CHANNELS,
   deriveChannel,
+  filterWorkerIdsByChannel,
   parsePaymentChannel,
   type PaymentChannel,
 } from "@/lib/payment-channel";
@@ -41,14 +42,18 @@ export default async function AdminInvoicesPage({
   if (!session) redirect("/login");
 
   const params = await searchParams;
-  const status = params.status ? (params.status as string).split(",") : undefined;
-  const period = params.period as string;
-  const workerName = params.workerName as string;
-  const month = params.month as string;
-  const xero = params.xero as string;
-  const channel = parsePaymentChannel(params.channel as string);
-  const page = parseInt((params.page as string) || "1");
-  const limit = 20;
+  // Duplicate query params arrive as arrays — always take the first value
+  const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
+  const status = first(params.status)?.split(",").filter(Boolean);
+  const period = first(params.period);
+  const workerName = first(params.workerName);
+  const month = first(params.month);
+  const xero = first(params.xero);
+  const channel = parsePaymentChannel(first(params.channel));
+  const page = parseInt(first(params.page) || "1");
+  // ~260 workers → a whole settlement month fits on one page; 500 is a safety cap
+  // so the unfiltered all-time view can't grow unbounded, not a browsing unit.
+  const limit = 500;
 
   const baseWhere: Prisma.InvoiceWhereInput = {};
   if (status?.length) baseWhere.status = { in: status as Prisma.EnumInvoiceStatusFilter["in"] };
@@ -67,11 +72,7 @@ export default async function AdminInvoicesPage({
 
   const where: Prisma.InvoiceWhereInput = { ...baseWhere };
   if (channel) {
-    where.workerId = {
-      in: [...workerChannels.entries()]
-        .filter(([, workerChannel]) => workerChannel === channel)
-        .map(([workerId]) => workerId),
-    };
+    where.workerId = { in: filterWorkerIdsByChannel(workerChannels, channel) };
   }
 
   const [invoices, total, totalsByCurrency, availableMonths] = await Promise.all([
@@ -85,6 +86,7 @@ export default async function AdminInvoicesPage({
           select: {
             name: true,
             team: true,
+            paymentMethod: true,
             paymentAccounts: { select: { type: true, isPreferred: true } },
           },
         },
@@ -137,9 +139,10 @@ export default async function AdminInvoicesPage({
 
       <InvoiceFilters availableMonths={availableMonths.flatMap((row) => row.billingMonth ? [row.billingMonth] : [])} />
       <AdminInvoiceTable
-        invoices={invoices.map((invoice) => ({ ...invoice, channel: deriveChannel(invoice.worker.paymentAccounts) }))}
+        invoices={invoices.map((invoice) => ({ ...invoice, channel: deriveChannel(invoice.worker) }))}
         total={total}
         page={page}
+        pageSize={limit}
         totalPages={Math.ceil(total / limit)}
       />
     </div>

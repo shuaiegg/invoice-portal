@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CreditCard, Download } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CreditCard, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -20,8 +20,8 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import type { InvoiceStatus } from "@/lib/generated/client/client";
-import { formatCurrencyTotals } from "@/lib/money";
-import { PAYMENT_CHANNEL_LABELS } from "@/lib/payment-channel";
+import { formatAmount, formatCurrencyTotals } from "@/lib/money";
+import { PAYMENT_CHANNEL_LABELS, parsePaymentChannel } from "@/lib/payment-channel";
 
 type BulkAction = "APPROVE" | "MARK_PAID";
 type SelectionMode = "page" | "filter";
@@ -30,6 +30,7 @@ interface AdminInvoiceTableProps {
   invoices: AdminInvoice[];
   total: number;
   page: number;
+  pageSize: number;
   totalPages: number;
 }
 
@@ -40,6 +41,7 @@ interface AdminInvoice {
   totalAmount: number;
   currency: string;
   status: InvoiceStatus;
+  supplementNo: number;
   xeroSynced: boolean;
   invoiceDate: string | Date;
   channel: keyof typeof PAYMENT_CHANNEL_LABELS;
@@ -59,7 +61,7 @@ type BulkResult = {
   xeroFailed: number;
 };
 
-export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminInvoiceTableProps) {
+export function AdminInvoiceTable({ invoices, total, page, pageSize, totalPages }: AdminInvoiceTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -75,10 +77,9 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
   const filterStatuses = new Set(searchParams.get("status")?.split(",") ?? []);
 
   function currentFilter() {
-    const channel = searchParams.get("channel")?.toUpperCase();
     return {
       billingMonth: searchParams.get("month") || undefined,
-      channel: channel === "WISE" || channel === "PAYPAL" || channel === "MANUAL" ? channel : undefined,
+      channel: parsePaymentChannel(searchParams.get("channel")) ?? undefined,
       status: searchParams.get("status")?.split(",").filter(Boolean),
       workerName: searchParams.get("workerName") || undefined,
       period: searchParams.get("period") || undefined,
@@ -86,8 +87,8 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
     };
   }
 
-  function targetBody() {
-    return selectionMode === "filter" ? { filter: currentFilter() } : { invoiceIds: selectedIds };
+  function targetBody(mode: SelectionMode = selectionMode) {
+    return mode === "filter" ? { filter: currentFilter() } : { invoiceIds: selectedIds };
   }
 
   function handlePageChange(newPage: number) {
@@ -106,13 +107,16 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
     setSelectedIds((current) => checked ? [...current, id] : current.filter((item) => item !== id));
   }
 
-  async function prepareBulk(action: BulkAction) {
+  async function prepareBulk(action: BulkAction, mode: SelectionMode = selectionMode) {
+    // React state updates are async — take the mode explicitly so one-click month
+    // actions can enter filter scope in the same tick they set it.
+    setSelectionMode(mode);
     setBulkLoading(true);
     try {
       const response = await fetch("/api/admin/invoices/bulk-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...targetBody(), action, dryRun: true }),
+        body: JSON.stringify({ ...targetBody(mode), action, dryRun: true }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Bulk pre-check failed");
@@ -160,7 +164,7 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
       const response = await fetch("/api/admin/invoices/retry-xero", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(searchParams.get("xero") === "failed" ? { filter: currentFilter() } : targetBody()),
+        body: JSON.stringify({ filter: currentFilter() }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Xero retry failed");
@@ -179,10 +183,6 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
     return invoice.xeroSynced
       ? <Badge variant="outline"><CheckCircle2 data-icon="inline-start" />Synced</Badge>
       : <Badge variant="outline"><AlertCircle data-icon="inline-start" />Sync Failed</Badge>;
-  }
-
-  function formatCurrency(amount: number, currency: string) {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency }).format(amount);
   }
 
   function formatDate(date: string | Date) {
@@ -205,7 +205,21 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
 
   return (
     <div className="flex flex-col gap-4">
-      {selectedIds.length === selectableInvoices.length && selectedIds.length > 0 && total > invoices.length && selectionMode === "page" ? (
+      {searchParams.get("month") ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-accent/30 p-4">
+          <p className="text-sm font-medium">Month actions — apply to every matching invoice, not just this page</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={() => void prepareBulk("APPROVE", "filter")} disabled={bulkLoading}>
+              Approve all submitted
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => void prepareBulk("MARK_PAID", "filter")} disabled={bulkLoading}>
+              <CreditCard data-icon="inline-start" />Mark all approved paid
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {selectedIds.length === selectableInvoices.length && selectedIds.length > 0 && total > invoices.length && selectionMode === "page" && searchParams.get("month") ? (
         <Alert>
           <AlertTitle>All {selectedIds.length} eligible invoices on this page are selected.</AlertTitle>
           <AlertDescription>
@@ -226,9 +240,17 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
       ) : null}
 
       {searchParams.get("xero") === "failed" ? (
-        <Button className="self-start" variant="outline" onClick={() => { setSelectionMode("filter"); void retryXero(); }} disabled={bulkLoading}>
-          Retry all matching Xero failures
-        </Button>
+        <div className="flex items-center gap-3 self-start">
+          <Button variant="outline" onClick={() => { setSelectionMode("filter"); void retryXero(); }} disabled={bulkLoading}>
+            {bulkLoading ? <Loader2 data-icon="inline-start" className="animate-spin" /> : null}
+            {bulkLoading ? "Retrying Xero sync…" : "Retry all matching Xero failures"}
+          </Button>
+          {bulkLoading ? (
+            <p className="text-sm text-muted-foreground">
+              Contacting Xero — large batches can take a minute; results appear when every invoice is processed.
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       {result ? (
@@ -255,11 +277,14 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
                 <TableCell onClick={(event) => event.stopPropagation()}>
                   {invoice.status === "SUBMITTED" || invoice.status === "APPROVED" ? <Checkbox checked={selectedIds.includes(invoice.id)} onCheckedChange={(checked) => toggleSelect(invoice.id, !!checked)} /> : null}
                 </TableCell>
-                <TableCell className="font-bold">{invoice.invoiceNumber}</TableCell>
+                <TableCell className="font-bold">
+                  {invoice.invoiceNumber}
+                  {invoice.supplementNo > 0 ? <Badge variant="outline" className="ml-2">Supplement {invoice.supplementNo}</Badge> : null}
+                </TableCell>
                 <TableCell><div className="flex flex-col"><span className="font-medium">{invoice.worker.name}</span><span className="text-xs text-muted-foreground">{invoice.worker.team}</span></div></TableCell>
                 <TableCell>{PAYMENT_CHANNEL_LABELS[invoice.channel]}</TableCell>
                 <TableCell>{invoice.period}</TableCell>
-                <TableCell className="font-semibold">{formatCurrency(invoice.totalAmount, invoice.currency)}</TableCell>
+                <TableCell className="font-semibold">{formatAmount(invoice.totalAmount, invoice.currency)}</TableCell>
                 <TableCell><StatusBadge status={invoice.status} /></TableCell>
                 <TableCell>{getXeroStatus(invoice)}</TableCell>
                 <TableCell className="text-right text-muted-foreground">{formatDate(invoice.invoiceDate)}</TableCell>
@@ -271,7 +296,7 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
 
       {totalPages > 1 ? (
         <div className="flex items-center justify-between px-2 py-4">
-          <p className="text-sm text-muted-foreground">Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total} invoices</p>
+          <p className="text-sm text-muted-foreground">Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total} invoices</p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => handlePageChange(page - 1)} disabled={page === 1}><ChevronLeft data-icon="inline-start" />Previous</Button>
             <Button variant="outline" size="sm" onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>Next<ChevronRight data-icon="inline-end" /></Button>
@@ -299,7 +324,10 @@ export function AdminInvoiceTable({ invoices, total, page, totalPages }: AdminIn
           <DialogFooter>
             <Button variant="outline" onClick={() => { setPendingAction(null); setDryRun(null); }}>Cancel</Button>
             {dryRun?.paymentIncomplete.length ? <Button onClick={() => void executeBulk(true)} disabled={bulkLoading}>Proceed excluding {dryRun.paymentIncomplete.length}</Button> : null}
-            <Button onClick={() => void executeBulk(false)} disabled={bulkLoading}>Proceed</Button>
+            <Button onClick={() => void executeBulk(false)} disabled={bulkLoading || dryRun?.targeted === 0}>
+              {bulkLoading ? <Loader2 data-icon="inline-start" className="animate-spin" /> : null}
+              {bulkLoading ? "Processing…" : "Proceed"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

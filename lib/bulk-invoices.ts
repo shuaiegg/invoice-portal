@@ -34,24 +34,21 @@ export function transitionForAction(action: BulkAction) {
     : { expected: "APPROVED" as const, target: "PAID" as const };
 }
 
+// One guarded batch instead of a per-row loop: hundreds of sequential UPDATEs both
+// wasted round-trips and tripped Neon's pooled-connection drops mid-run. The status
+// guard lives in the WHERE clause, so concurrently-changed rows are skipped, never
+// corrupted; applyBatch returns the ids that actually reached the target status.
 export async function runGuardedTransitions(
   invoices: Array<{ id: string; status: BulkInvoiceStatus }>,
   action: BulkAction,
-  updateIfCurrent: (id: string, expected: BulkInvoiceStatus, target: BulkInvoiceStatus) => Promise<boolean>,
+  applyBatch: (ids: string[], expected: BulkInvoiceStatus, target: BulkInvoiceStatus) => Promise<string[]>,
 ) {
   const { expected, target } = transitionForAction(action);
-  const transitionedIds: string[] = [];
-  let skippedWrongStatus = 0;
-  for (const invoice of invoices) {
-    if (!isAdminInvoiceTransitionAllowed(invoice.status, target)) {
-      skippedWrongStatus += 1;
-      continue;
-    }
-    const updated = await updateIfCurrent(invoice.id, expected, target);
-    if (updated) transitionedIds.push(invoice.id);
-    else skippedWrongStatus += 1;
-  }
-  return { transitionedIds, skippedWrongStatus };
+  const eligibleIds = invoices
+    .filter((invoice) => invoice.status === expected && isAdminInvoiceTransitionAllowed(invoice.status, target))
+    .map((invoice) => invoice.id);
+  const transitionedIds = eligibleIds.length ? await applyBatch(eligibleIds, expected, target) : [];
+  return { transitionedIds, skippedWrongStatus: invoices.length - transitionedIds.length };
 }
 
 type PaymentAccount = { type: string; isPreferred: boolean; email?: string | null };
@@ -79,12 +76,7 @@ export function findPaymentIncomplete(invoices: Array<{ worker: PaymentWorker }>
   const workers = new Map(invoices.map((invoice) => [invoice.worker.id, invoice.worker]));
   const incomplete: PaymentIncomplete[] = [];
   for (const worker of workers.values()) {
-    const channel = deriveChannel(worker.paymentAccounts);
-    const account = selectChannelAccount(worker.paymentAccounts);
-    if ((channel === "WISE" || channel === "PAYPAL") && !account?.email?.trim()) {
-      incomplete.push({ workerId: worker.id, name: worker.name, channel, missing: ["email"] });
-      continue;
-    }
+    const channel = deriveChannel(worker);
     const hasLegacyPayment = [
       worker.paymentMethod,
       worker.paymentAccount,
@@ -94,27 +86,13 @@ export function findPaymentIncomplete(invoices: Array<{ worker: PaymentWorker }>
       worker.paypalEmail,
       worker.cryptoWallet,
     ].some((value) => value?.trim());
-    if (channel === "MANUAL" && worker.paymentAccounts.length === 0 && !hasLegacyPayment) {
+    // Pre-phase3 payments run through TD/Wise export files outside the Portal, so a
+    // missing account email must not block approval. Flag only workers with no
+    // payment trail at all: no account for their rail AND no TD/legacy payment info.
+    const account = selectChannelAccount(worker.paymentAccounts, channel);
+    if (!account && worker.paymentAccounts.length === 0 && !hasLegacyPayment) {
       incomplete.push({ workerId: worker.id, name: worker.name, channel, missing: ["payment account"] });
     }
   }
   return incomplete;
-}
-
-export async function mapWithConcurrency<T, R>(
-  items: readonly T[],
-  concurrency: number,
-  worker: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const results = new Array<R>(items.length);
-  let nextIndex = 0;
-  async function runWorker() {
-    while (nextIndex < items.length) {
-      const index = nextIndex;
-      nextIndex += 1;
-      results[index] = await worker(items[index]);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, runWorker));
-  return results;
 }

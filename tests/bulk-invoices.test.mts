@@ -22,7 +22,7 @@ test("filter-scoped resolution builds billing month, worker name, status and cha
 });
 
 test("mixed statuses and a concurrent status race are skipped without corruption", async () => {
-  const updates: string[] = [];
+  const batches: string[][] = [];
   const result = await runGuardedTransitions(
     [
       { id: "submitted", status: "SUBMITTED" },
@@ -30,37 +30,63 @@ test("mixed statuses and a concurrent status race are skipped without corruption
       { id: "raced", status: "SUBMITTED" },
     ],
     "APPROVE",
-    async (id) => {
-      if (id === "raced") return false;
-      updates.push(id);
-      return true;
+    // The batch applier receives only eligible rows; "raced" was flipped by a
+    // concurrent request between resolve and update, so the guarded UPDATE
+    // doesn't transition it and it is reported as skipped.
+    async (ids) => {
+      batches.push(ids);
+      return ids.filter((id) => id !== "raced");
     },
   );
 
-  assert.deepEqual(updates, ["submitted"]);
+  assert.deepEqual(batches, [["submitted", "raced"]]);
   assert.deepEqual(result, { transitionedIds: ["submitted"], skippedWrongStatus: 2 });
 });
 
-test("dry-run payment pre-check flags missing Wise and PayPal emails", () => {
+test("no eligible rows never calls the batch applier", async () => {
+  const result = await runGuardedTransitions(
+    [{ id: "paid", status: "PAID" }],
+    "APPROVE",
+    async () => {
+      throw new Error("should not be called");
+    },
+  );
+  assert.deepEqual(result, { transitionedIds: [], skippedWrongStatus: 1 });
+});
+
+test("dry-run payment pre-check flags only workers with no payment trail at all", () => {
   const incomplete = findPaymentIncomplete([
     {
+      // Wise account without email: NOT flagged — pre-phase3 payouts run through
+      // TD/Wise export files, so a missing email must not block approval
       worker: {
         id: "wise",
         name: "Wise Worker",
+        paymentMethod: "Wise",
         paymentAccounts: [{ type: "WISE", isPreferred: true, email: null }],
       },
     },
     {
+      // TD payment method on record but no accounts: NOT flagged
       worker: {
-        id: "paypal",
-        name: "PayPal Worker",
-        paymentAccounts: [{ type: "PAYPAL", isPreferred: true, email: "" }],
+        id: "td-manual",
+        name: "TD Manual Worker",
+        paymentMethod: "Manual",
+        paymentAccounts: [],
+      },
+    },
+    {
+      // Nothing at all: flagged
+      worker: {
+        id: "bare",
+        name: "Bare Worker",
+        paymentMethod: null,
+        paymentAccounts: [],
       },
     },
   ]);
 
   assert.deepEqual(incomplete.map((item) => [item.workerId, item.channel, item.missing]), [
-    ["wise", "WISE", ["email"]],
-    ["paypal", "PAYPAL", ["email"]],
+    ["bare", "MANUAL", ["payment account"]],
   ]);
 });

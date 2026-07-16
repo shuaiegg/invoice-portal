@@ -89,8 +89,8 @@ export async function GET(req: Request) {
   };
 
   const csvRows = invoices.map((inv) => {
-    const selectedAccount = selectChannelAccount(inv.worker.paymentAccounts);
-    const channel = deriveChannel(inv.worker.paymentAccounts);
+    const channel = deriveChannel(inv.worker);
+    const selectedAccount = selectChannelAccount(inv.worker.paymentAccounts, channel);
     const payoutDetail = selectedAccount
       ? formatPaymentAccountKeyDetail(selectedAccount)
       : inv.worker.paymentAccount || inv.worker.paymentMethod || inv.worker.paymentNotes || "";

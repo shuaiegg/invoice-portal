@@ -6,10 +6,11 @@ export async function resolveWorkerChannelMap(workerIds?: string[]) {
     where: workerIds ? { id: { in: workerIds } } : undefined,
     select: {
       id: true,
+      paymentMethod: true,
       paymentAccounts: { select: { type: true, isPreferred: true } },
     },
   });
-  return new Map(workers.map((worker) => [worker.id, deriveChannel(worker.paymentAccounts)]));
+  return new Map(workers.map((worker) => [worker.id, deriveChannel(worker)]));
 }
 
 export async function resolveWorkerIdsForChannel(channel: PaymentChannel, workerIds?: string[]) {
