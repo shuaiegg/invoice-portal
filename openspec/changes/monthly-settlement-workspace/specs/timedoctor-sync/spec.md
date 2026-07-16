@@ -4,6 +4,17 @@
 
 ## ADDED Requirements
 
+### Requirement: All TD-tracked workers use the review-first draft flow with VAT-inclusive amounts
+Product decisions 2026-07-16 (supersede the baseline's `td_only` auto-submit requirement): every TD-imported worker SHALL have `paymentType = TD_PLUS` — sync-generated invoices land as DRAFT for the worker to review and submit; the Wise→TD_ONLY auto-submit split is retired. Sync-generated invoice amounts SHALL be VAT-inclusive: hours × rate is the gross total and any VAT is carved out of it, never added on top.
+
+#### Scenario: Uniform draft flow
+- **WHEN** the sync creates an invoice for any matched TD worker
+- **THEN** the invoice status is DRAFT and the worker is notified to review and submit
+
+#### Scenario: VAT carved out of the gross
+- **WHEN** a worker with vatRate 20 works 100 hours at 12/hr
+- **THEN** the invoice has totalAmount 1200, subtotal 1000, vatAmount 200, vatInclusive true
+
 ### Requirement: Sync runs count and report idempotently skipped workers
 Each sync run SHALL count workers that were matched but skipped because an invoice already exists for the billing month (`skippedExisting`), persist it on the run record, and surface it wherever run results are shown (sync panel completion toast, last-run summary, run history table, Slack sync summary).
 

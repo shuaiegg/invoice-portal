@@ -35,9 +35,9 @@ Filter, aggregate, and export on `Invoice.billingMonth` (`YYYY-MM` string equali
 - One-off backfill for existing null rows: `to_char("invoiceDate", 'YYYY-MM')`.
 - *Alternative rejected*: keep `invoiceDate` ranges — wrong for manual invoices submitted after month end, and duplicates a field that already exists for exactly this purpose.
 
-### D2 — Payout channel: derived at read time, never stored
-`lib/payment-channel.ts` exposes `deriveChannel(accounts): "WISE" | "PAYPAL" | "MANUAL"`:
-preferred account type WISE → Wise; PAYPAL → PayPal; anything else (BANK_TRANSFER, CRYPTO, REVOLUT, OTHER, none) → Manual; no preferred → fall back to the single account if exactly one exists, else Manual.
+### D2 — Payout channel: derived at read time, never stored; TD payroll is the authority
+`lib/payment-channel.ts` exposes `deriveChannel(worker): "WISE" | "PAYPAL" | "MANUAL"` (revised 2026-07-16, product decision: TD payroll is the most correct source):
+`Worker.paymentMethod` (imported from TD's Payroll summary) wins — Wise → Wise, PayPal → PayPal, any other non-empty value → Manual. Only when TD has no value: preferred account type WISE → Wise; PAYPAL → PayPal; anything else (BANK_TRANSFER, CRYPTO, REVOLUT, OTHER, none) → Manual; no preferred → fall back to the single account if exactly one exists, else Manual. Payout account detail (export/pre-check) picks the account matching the channel's rail first.
 - Derived-live means a worker switching preferred account moves their unpaid invoices to the right tab automatically — which is correct, because payment execution uses the current account anyway.
 - Channel filtering happens in SQL via the worker's payment accounts relation (a `Worker → PaymentAccount` join with the same preference logic expressed as a Prisma filter, or by computing worker→channel once per request and filtering invoices by workerId set — the latter is simpler and fine at 200-worker scale; choose during implementation).
 - *Alternative rejected*: snapshot channel on the invoice — creates stale channels when accounts change between generation and payment, and requires backfill + write-path hooks for no benefit until phase3 (which can snapshot *at payment time* if it needs an audit trail).
@@ -68,6 +68,23 @@ Bulk keeps its existing semantic (invoice stays PAID if Xero fails — reverting
 ### D8 — Dashboard settlement card replaces the misaligned "This Month" stats
 Server-render a settlement summary for a selectable `billingMonth` (default: previous month, Europe/Paris): status-breakdown counts, per-currency sums (`groupBy billingMonth+currency`), unresolved match failures, PAID-with-`xeroSynced=false` count, and derived completion (`non-VOID count == PAID count && unresolved failures == 0`). Links to `/admin/invoices?month=…`. The existing "Invoices This Month"/"Paid This Month" cards switch to the same `billingMonth` basis or are absorbed into the card.
 - Channel tab counts on the invoice list come from grouping the filtered set by derived channel (cheap at this scale, single extra query).
+
+### D9 — Supplement invoices: `supplementNo Int @default(0)` under a three-column unique key
+Product decision (2026-07-15): one **primary** invoice per worker per billing month; extra amounts go in as line items while the primary is editable, and as **supplementary invoices** once it is locked (APPROVED/PAID).
+- Schema: replace `@@unique([workerId, billingMonth])` with `@@unique([workerId, billingMonth, supplementNo])`. Prisma-native (no partial-index raw SQL), guarantees exactly one `supplementNo = 0` row, and serializes concurrent supplement creation.
+- Backfill for existing same-month duplicates: within each `(workerId, billingMonth)` group rank TD-generated first, then by `createdAt`, assigning `supplementNo = rank − 1` — this is what makes the billingMonth backfill (D1) actually apply without violating the constraint.
+- TD sync idempotency checks primaries only (`supplementNo = 0`); worker create picks the next `supplementNo` when the month's primary is locked, and returns a friendly 409 when it is still editable; P2002 remains the concurrency backstop mapped to 409.
+- Supplements share `billingMonth`, so month filtering, channel tabs, bulk operations, and derived completion include them with no further changes.
+- *Alternatives rejected*: boolean `isSupplemental` (needs a partial unique index Prisma can't express, and doesn't serialize multiple supplements); separate SupplementInvoice table (duplicates the entire invoice pipeline for no benefit).
+
+### D10 — Repairing the broken migration state (review findings #1/#2)
+The applied migration `20260715080646` was edited after application (checksum drift) and its backfill never ran; an empty untracked folder `20260715000000_monthly_settlement_foundation/` shadows it. Repair: restore the migration file to its as-applied content (ALTER only, verified against the recorded checksum), delete the phantom folder, and move the backfill into a **new** migration that adds `supplementNo` + `TdSyncRun.billingMonth`, assigns supplement numbers (D9), backfills `billingMonth`, and swaps the unique index — in that order, so the backfill can no longer collide.
+
+### D11 — Request Changes: SUBMITTED → DRAFT hands the invoice back to the worker
+Admins never edit invoice contents (worker attests amounts); the correction path is a "Request Changes" action on a SUBMITTED invoice: status returns to DRAFT with a required note, the worker gets a Slack notification quoting the note, edits, and resubmits (worker-edit already flips DRAFT → SUBMITTED). Returned invoices drop out of bulk-approve automatically because bulk targeting pins `status = SUBMITTED`. VOID stays reserved for "this invoice shouldn't exist" — it is terminal and (by the supplement rules) the month's next submission becomes a numbered supplement.
+
+### D12 — Xero rate limit: batch bills + permanent contact cache + Retry-After (revises D5's concurrency approach)
+Per-invoice sync cost 3 Xero calls (contact search + upsert + bill create); a 260-invoice month = ~780 calls against a 60/min tenant limit — bounded concurrency alone cannot fix that. Revised bulk pipeline: (1) `Worker.xeroContactId` caches the contact permanently, so contact calls are paid once per worker ever; (2) `POST /Invoices?SummarizeErrors=false` creates 50 bills per call with per-element outcomes, so a month costs ~6 calls; (3) `xeroFetch` honors 429 Retry-After as the safety net; (4) Xero validation messages are surfaced verbatim in failure reasons (e.g. "Organisation is not subscribed to currency EUR"). The single-invoice path (detail page) keeps its shape but shares the contact cache. First-ever bulk run with a cold cache still pays per-worker contact calls under Retry-After pacing; anything unfinished stays in the retryable `xero=failed` set.
 
 ## Risks / Trade-offs
 

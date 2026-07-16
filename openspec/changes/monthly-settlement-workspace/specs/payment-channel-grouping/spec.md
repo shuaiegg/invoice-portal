@@ -2,20 +2,24 @@
 
 ## ADDED Requirements
 
-### Requirement: Invoice payout channel is derived live from the worker's preferred payment account
-An invoice's payout channel SHALL be derived at read time from its worker's payment accounts: the preferred account's type maps WISE → `Wise`, PAYPAL → `PayPal`, and every other case (BANK_TRANSFER, CRYPTO, REVOLUT, OTHER, no preferred account, or no accounts at all) → `Manual`. If no account is marked preferred, the derivation SHALL fall back to the worker's single account if exactly one exists, otherwise `Manual`. The channel SHALL NOT be stored on the invoice.
+### Requirement: Invoice payout channel is derived live, with TD payroll as the authority
+An invoice's payout channel SHALL be derived at read time from its worker. The TD-payroll-imported `Worker.paymentMethod` is the source of truth: `Wise` → `Wise`, `PayPal` → `PayPal`, any other non-empty value (Manual, Bank transfer, …) → `Manual`. Only when the worker has no TD payment method SHALL the derivation fall back to the worker's payment accounts (preferred account's type; single account if none preferred; WISE → Wise, PAYPAL → PayPal, all else → Manual). The channel SHALL NOT be stored on the invoice.
 
-#### Scenario: Wise worker
-- **WHEN** a worker's preferred payment account has type WISE
-- **THEN** all of that worker's invoices show channel Wise
-
-#### Scenario: Crypto folds into Manual
-- **WHEN** a worker's preferred payment account has type CRYPTO
+#### Scenario: TD payroll overrides the worker's own preferred account
+- **WHEN** a worker's TD payment method is `Manual` but their preferred portal account is WISE
 - **THEN** the worker's invoices show channel Manual
 
-#### Scenario: Channel follows account changes
-- **WHEN** a worker switches their preferred account from PAYPAL to WISE mid-month
-- **THEN** their unpaid invoices immediately appear under the Wise channel
+#### Scenario: Wise per TD payroll
+- **WHEN** a worker's TD payment method is `Wise`
+- **THEN** all of that worker's invoices show channel Wise
+
+#### Scenario: Account fallback when TD has no value
+- **WHEN** a worker has no TD payment method and their preferred payment account has type PAYPAL
+- **THEN** the worker's invoices show channel PayPal
+
+#### Scenario: Crypto folds into Manual
+- **WHEN** a worker has no TD payment method and their preferred payment account has type CRYPTO
+- **THEN** the worker's invoices show channel Manual
 
 ### Requirement: Admin invoice list groups by channel
 The admin invoice list SHALL provide channel tabs (`All`, `Wise`, `PayPal`, `Manual`) with per-tab invoice counts scoped to the active month/status filters, a channel value visible on each row, and a `channel` URL filter parameter. The channel filter SHALL combine with existing month, status, and worker-name filters.

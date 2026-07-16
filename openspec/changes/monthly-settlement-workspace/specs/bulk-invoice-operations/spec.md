@@ -21,11 +21,15 @@ Bulk Approve and bulk Mark Paid SHALL support a filter-scoped mode where the ser
 - **THEN** the server derives the invoice set from the filter parameters itself; client-supplied IDs are not required
 
 ### Requirement: Bulk Approve pre-checks payment details
-Before executing a bulk Approve, the system SHALL report which target workers lack usable payment details for their derived channel (Wise/PayPal: preferred account missing email; Manual: no payment account and no legacy payment fields). Admin SHALL be able to proceed with the compliant subset, leaving flagged invoices untouched.
+Before executing a bulk Approve, the system SHALL report which target workers have no payment trail at all: no payment account for their derived channel, no payment accounts of any kind, and no TD/legacy payment fields. A missing account email alone SHALL NOT flag a worker while payments are executed through TD/Wise export files outside the Portal (pre-phase3). Admin SHALL be able to proceed with the compliant subset, leaving flagged invoices untouched.
 
-#### Scenario: Missing Wise email flagged
-- **WHEN** 3 of 120 workers in a bulk-approve target have a preferred WISE account with no email
+#### Scenario: Worker with no payment trail flagged
+- **WHEN** 3 of 120 workers in a bulk-approve target have no payment accounts and no TD payment method on record
 - **THEN** the pre-check lists those 3 workers and offers to approve the remaining 117
+
+#### Scenario: Missing email alone does not block
+- **WHEN** a Wise-channel worker has a WISE account without an email but a TD payment method on record
+- **THEN** the pre-check does not flag them
 
 ### Requirement: Bulk Mark Paid reports per-invoice Xero outcomes
 Bulk Mark Paid (APPROVED → PAID) SHALL report, on completion, how many invoices were marked paid, how many synced to Xero, and how many failed Xero sync. Invoices remain PAID when their Xero sync fails (existing behavior), but failures SHALL be visible in the result summary rather than only in server logs.

@@ -50,5 +50,17 @@
 
 ## 8. Verification
 
-- [ ] 8.1 Run existing test suite + new tests; `npm run lint`; `npm run build`
+- [x] 8.1 Run existing test suite + new tests; `npm run lint`; `npm run build`
 - [ ] 8.2 End-to-end pass on dev: re-run TD sync for June (expect "1 created · 198 already existed" style report), filter June by channel, dry-run + bulk approve a small channel batch, bulk mark paid, confirm single Slack digest and xero-failed filter/retry path
+
+## 9. Review fixes + supplement invoices (post-review, design D9/D10)
+
+- [x] 9.1 Repair migration state: restore `20260715080646` to as-applied content (checksum-verified), delete phantom `20260715000000` folder
+- [x] 9.2 Schema: `Invoice.supplementNo Int @default(0)`, `@@unique([workerId, billingMonth, supplementNo])`, `TdSyncRun.billingMonth String?`; new migration with supplementNo assignment + billingMonth backfill + index swap + TdSyncRun backfill
+- [x] 9.3 Worker create/edit: supplement flow (locked primary → next supplementNo; editable primary → friendly 409; P2002 → 409)
+- [x] 9.4 TD sync: idempotency on primaries only; persist run billingMonth; per-currency totals in Slack summary; drop cross-currency € from sync panel
+- [x] 9.5 Bulk ops: constrain targeting to the action's expected status (dry-run and execute); filter mode requires billingMonth; retry-xero pushes PAID+xeroSynced=false into SQL
+- [x] 9.6 Dashboard: match-failure attribution via `TdSyncRun.billingMonth`; exclude VOID from month total
+- [x] 9.7 Worker form: Service Date required for new submissions (billingMonth source); harden array query params (`channel`)
+- [x] 9.8 Cleanup: single shared currency formatter in `lib/money.ts`; remove dead ternary in `retryXero`; supplement badge in admin table
+- [x] 9.9 Tests for supplement flow, bulk status constraint, sync primary-only skip; full suite + lint + build + `prisma migrate dev` applied
