@@ -4,6 +4,40 @@ import { Invoice, InvoiceLine, Worker } from "./generated/client/client";
 const XERO_TOKEN_URL = "https://identity.xero.com/connect/token";
 const XERO_API_BASE = "https://api.xero.com/api.xro/2.0";
 
+// Xero enforces 60 calls/min per tenant. On 429 it sends Retry-After (seconds);
+// waiting it out and retrying turns a rate-limit failure into a slower success.
+async function xeroFetch(url: string, init: RequestInit, retries = 2): Promise<Response> {
+  for (let attempt = 0; ; attempt += 1) {
+    const response = await fetch(url, init);
+    if (response.status !== 429 || attempt >= retries) return response;
+    const retryAfter = Math.min(Number(response.headers.get("Retry-After")) || 5, 60);
+    await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+  }
+}
+
+// Turn Xero's opaque failures into actionable messages. 403 AuthenticationUnsuccessful
+// with a fresh token means the organisation connection was removed on Xero's side
+// (Connected apps → disconnect, or a reset demo company) — refreshing can't fix that.
+// Pull the first human-readable validation message out of Xero's nested error shape
+function xeroValidationDetail(errorData: unknown): string {
+  const data = errorData as { Detail?: string; Message?: string; Elements?: Array<{ ValidationErrors?: Array<{ Message?: string }> }> };
+  return data?.Elements?.flatMap((el) => el.ValidationErrors ?? []).find((v) => v.Message)?.Message
+    ?? data?.Detail
+    ?? data?.Message
+    ?? "";
+}
+
+function xeroFailureMessage(operation: string, status: number, errorData: unknown): string {
+  const detail = xeroValidationDetail(errorData);
+  if (status === 403 && /AuthenticationUnsuccessful/i.test(detail)) {
+    return `${operation} failed: the Xero organisation is no longer connected to this app. Reconnect Xero in Admin Settings, then retry the sync.`;
+  }
+  if (status === 429) {
+    return `${operation} failed: Xero rate limit hit. Retry the failed syncs in a minute.`;
+  }
+  return `${operation} failed (Xero responded ${status}${detail ? ` — ${detail}` : ""}).`;
+}
+
 export async function getAccessToken(): Promise<string> {
   const token = await db.xeroToken.findUnique({
     where: { id: "singleton" },
@@ -101,7 +135,7 @@ export async function upsertXeroContact(
   const workerEmail = user?.email || worker.timeDoctorEmail || "";
 
   // 1. Search for contact by email
-  const searchResponse = await fetch(
+  const searchResponse = await xeroFetch(
     `${XERO_API_BASE}/Contacts?where=EmailAddress%3D%3D%22${encodeURIComponent(workerEmail)}%22`,
     {
       headers: {
@@ -141,7 +175,7 @@ export async function upsertXeroContact(
     ],
   };
 
-  const upsertResponse = await fetch(`${XERO_API_BASE}/Contacts`, {
+  const upsertResponse = await xeroFetch(`${XERO_API_BASE}/Contacts`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -155,20 +189,32 @@ export async function upsertXeroContact(
   if (!upsertResponse.ok) {
     const errorData = await upsertResponse.json().catch(() => ({}));
     console.error("Xero contact upsert failed:", errorData);
-    throw new Error("Failed to sync contact to Xero.");
+    throw new Error(xeroFailureMessage("Contact sync", upsertResponse.status, errorData));
   }
 
   const upsertData = await upsertResponse.json();
   return upsertData.Contacts[0].ContactID;
 }
 
-export async function createXeroDraftBill(
+// Contact resolution with a permanent cache: the search + upsert round-trips are paid
+// once per worker ever; every later sync reads Worker.xeroContactId and costs zero
+// Xero calls. This is what keeps a full-month bulk sync inside the 60-calls/min limit.
+export async function resolveXeroContactId(
   accessToken: string,
   tenantId: string,
+  worker: Worker
+): Promise<string> {
+  if (worker.xeroContactId) return worker.xeroContactId;
+  const contactId = await upsertXeroContact(accessToken, tenantId, worker);
+  await db.worker.update({ where: { id: worker.id }, data: { xeroContactId: contactId } });
+  return contactId;
+}
+
+export function buildBillPayload(
   invoice: Invoice,
   contactId: string,
   lines?: InvoiceLine[]
-): Promise<string> {
+): Record<string, unknown> {
   let lineItems: object[];
 
   if (lines && lines.length > 0) {
@@ -197,23 +243,123 @@ export async function createXeroDraftBill(
     });
   }
 
-  const billBody = {
-    Invoices: [
-      {
-        Type: "ACCPAY",
-        Contact: { ContactID: contactId },
-        Date: invoice.invoiceDate.toISOString().split("T")[0],
-        DueDate: invoice.dueDate.toISOString().split("T")[0],
-        InvoiceNumber: invoice.invoiceNumber,
-        Reference: invoice.invoiceNumber,
-        CurrencyCode: invoice.currency,
-        Status: "DRAFT",
-        LineItems: lineItems,
-      },
-    ],
+  return {
+    Type: "ACCPAY",
+    Contact: { ContactID: contactId },
+    Date: invoice.invoiceDate.toISOString().split("T")[0],
+    DueDate: invoice.dueDate.toISOString().split("T")[0],
+    InvoiceNumber: invoice.invoiceNumber,
+    Reference: invoice.invoiceNumber,
+    CurrencyCode: invoice.currency,
+    Status: "DRAFT",
+    LineItems: lineItems,
   };
+}
 
-  const response = await fetch(`${XERO_API_BASE}/Invoices`, {
+export type BatchBillOutcome = {
+  invoiceId: string;
+  invoiceNumber: string;
+  xeroInvoiceId?: string;
+  error?: string;
+};
+
+// Bills that already exist in Xero for these invoice numbers — makes the batch
+// idempotent: if a previous run created bills but the portal-side write failed,
+// the next attempt adopts the existing bills instead of duplicating them.
+async function findExistingXeroBills(
+  accessToken: string,
+  tenantId: string,
+  invoiceNumbers: string[],
+): Promise<Map<string, string>> {
+  const response = await xeroFetch(
+    `${XERO_API_BASE}/Invoices?InvoiceNumbers=${encodeURIComponent(invoiceNumbers.join(","))}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Xero-tenant-id": tenantId,
+        Accept: "application/json",
+      },
+    },
+  );
+  if (!response.ok) return new Map();
+  const data = await response.json().catch(() => ({}));
+  const bills = (data.Invoices ?? []) as Array<{ InvoiceNumber?: string; InvoiceID?: string; Type?: string; Status?: string }>;
+  return new Map(
+    bills
+      .filter((bill) => bill.Type === "ACCPAY" && bill.Status !== "DELETED" && bill.Status !== "VOIDED" && bill.InvoiceNumber && bill.InvoiceID)
+      .map((bill) => [bill.InvoiceNumber as string, bill.InvoiceID as string]),
+  );
+}
+
+// One POST creates up to ~50 draft bills; SummarizeErrors=false makes Xero return
+// per-element results so a single invalid invoice doesn't fail its whole batch.
+export async function createXeroDraftBills(
+  accessToken: string,
+  tenantId: string,
+  batch: Array<{ invoice: Invoice & { lines?: InvoiceLine[] }; contactId: string }>
+): Promise<BatchBillOutcome[]> {
+  const existing = await findExistingXeroBills(
+    accessToken,
+    tenantId,
+    batch.map(({ invoice }) => invoice.invoiceNumber),
+  );
+  const adopted: BatchBillOutcome[] = [];
+  const toCreate: typeof batch = [];
+  for (const item of batch) {
+    const existingId = existing.get(item.invoice.invoiceNumber);
+    if (existingId) {
+      adopted.push({ invoiceId: item.invoice.id, invoiceNumber: item.invoice.invoiceNumber, xeroInvoiceId: existingId });
+    } else {
+      toCreate.push(item);
+    }
+  }
+  if (toCreate.length === 0) return adopted;
+
+  const response = await xeroFetch(`${XERO_API_BASE}/Invoices?SummarizeErrors=false`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Xero-tenant-id": tenantId,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      Invoices: toCreate.map(({ invoice, contactId }) => buildBillPayload(invoice, contactId, invoice.lines)),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error("Xero batch bill creation failed:", errorData);
+    throw new Error(xeroFailureMessage("Draft bill creation", response.status, errorData));
+  }
+
+  // Response Invoices[] mirrors the request order
+  const data = await response.json();
+  const created = toCreate.map(({ invoice }, index) => {
+    const element = data.Invoices?.[index];
+    if (!element || element.HasErrors) {
+      return {
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        error: element?.ValidationErrors?.find((v: { Message?: string }) => v.Message)?.Message ?? "Xero rejected this invoice",
+      };
+    }
+    return { invoiceId: invoice.id, invoiceNumber: invoice.invoiceNumber, xeroInvoiceId: element.InvoiceID };
+  });
+  return [...adopted, ...created];
+}
+
+export async function createXeroDraftBill(
+  accessToken: string,
+  tenantId: string,
+  invoice: Invoice,
+  contactId: string,
+  lines?: InvoiceLine[]
+): Promise<string> {
+  const billBody = { Invoices: [buildBillPayload(invoice, contactId, lines)] };
+
+  const response = await xeroFetch(`${XERO_API_BASE}/Invoices`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -227,7 +373,7 @@ export async function createXeroDraftBill(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     console.error("Xero draft bill creation failed:", errorData);
-    throw new Error("Failed to create draft bill in Xero.");
+    throw new Error(xeroFailureMessage("Draft bill creation", response.status, errorData));
   }
 
   const data = await response.json();
@@ -241,7 +387,7 @@ export async function syncInvoiceToXero(
   try {
     const accessToken = await getAccessToken();
     const tenantId = await getTenantId();
-    const contactId = await upsertXeroContact(accessToken, tenantId, worker);
+    const contactId = await resolveXeroContactId(accessToken, tenantId, worker);
     const xeroInvoiceId = await createXeroDraftBill(
       accessToken,
       tenantId,
