@@ -9,7 +9,7 @@ import {
   isTransientConnectionError,
   parsePayrollSummaryCsv,
   paymentAccountTypeForTdMethod,
-  paymentTypeForTdMethod,
+  TD_IMPORT_PAYMENT_TYPE,
   withConnectionRetry,
   WORKER_IMPORT_TRANSACTION_OPTIONS,
 } from "@/lib/worker-import";
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
               hourlyRateUpdatedAt: new Date(),
               currency: row.currency,
               paymentMethod: row.paymentMethod,
-              paymentType: paymentTypeForTdMethod(row.paymentMethod),
+              paymentType: TD_IMPORT_PAYMENT_TYPE,
               ...(team ? { team } : {}),
             },
           });
@@ -159,7 +159,7 @@ export async function POST(request: Request) {
               hourlyRateUpdatedBy: null,
               currency: row.currency,
               paymentMethod: row.paymentMethod,
-              paymentType: paymentTypeForTdMethod(row.paymentMethod),
+              paymentType: TD_IMPORT_PAYMENT_TYPE,
               // Best-effort: only overwrite team when this run actually resolved one for this
               // email, so a failed/partial TD tags lookup never wipes out a previously-set team.
               ...(team ? { team } : {}),

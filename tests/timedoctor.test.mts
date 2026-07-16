@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { hoursFromSeconds, isTokenExpiringSoon, loginToTimeDoctor, mergeTdUsersAndStats, monthlyRange, resolveTeamsByEmail, testTimeDoctorConnection } from "../lib/timedoctor.ts";
+import { fetchAllPages, hoursFromSeconds, isTokenExpiringSoon, loginToTimeDoctor, mergeTdUsersAndStats, monthlyRange, resolveTeamsByEmail, testTimeDoctorConnection } from "../lib/timedoctor.ts";
 
 // Time Doctor's real token is an opaque string with no dots — not a JWT. Verified against the live API.
 const fakeTdToken = "opaque-td-token-no-dots";
@@ -30,6 +30,44 @@ test("mergeTdUsersAndStats retains users with zero tracked hours", () => {
   );
   assert.equal(result[0].totalSec, 3600);
   assert.equal(result[1].totalSec, 0);
+});
+
+test("fetchAllPages follows TD's 200-row offset pagination until a short page", async () => {
+  // TD caps list endpoints at 200 rows/page; a 260-user company returns 200 + 60.
+  const requestedOffsets: string[] = [];
+  const fakeFetch = (async (url: unknown) => {
+    const parsed = new URL(String(url));
+    assert.equal(parsed.searchParams.get("limit"), "200");
+    const offset = Number(parsed.searchParams.get("page"));
+    requestedOffsets.push(String(offset));
+    const size = offset === 0 ? 200 : 60;
+    const rows = Array.from({ length: size }, (_, i) => ({ id: `u${offset + i}` }));
+    return new Response(JSON.stringify({ data: rows }), { status: 200 });
+  }) as typeof fetch;
+
+  const rows = await fetchAllPages(
+    new URL("https://api2.timedoctor.com/api/1.0/users?company=c1"),
+    { Authorization: "JWT t" },
+    "users",
+    fakeFetch,
+  );
+
+  assert.equal(rows.length, 260);
+  assert.deepEqual(requestedOffsets, ["0", "200"]);
+  assert.equal(rows[200].id, "u200");
+});
+
+test("fetchAllPages stops after one request when the first page is short", async () => {
+  let calls = 0;
+  const fakeFetch = (async () => {
+    calls += 1;
+    return new Response(JSON.stringify({ data: [{ id: "u1" }] }), { status: 200 });
+  }) as typeof fetch;
+
+  const rows = await fetchAllPages(new URL("https://api2.timedoctor.com/api/1.1/stats/total"), {}, "hours", fakeFetch);
+
+  assert.equal(rows.length, 1);
+  assert.equal(calls, 1);
 });
 
 test("testTimeDoctorConnection sends the JWT auth scheme Time Doctor's API actually requires, not Bearer", async () => {

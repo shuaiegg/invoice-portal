@@ -6,7 +6,7 @@ import {
   isTransientConnectionError,
   parsePayrollSummaryCsv,
   paymentAccountTypeForTdMethod,
-  paymentTypeForTdMethod,
+  TD_IMPORT_PAYMENT_TYPE,
   withConnectionRetry,
   WORKER_IMPORT_TRANSACTION_OPTIONS,
 } from "../lib/worker-import.ts";
@@ -42,10 +42,8 @@ test("payment method mapping leaves Manual unresolved", () => {
   assert.equal(paymentAccountTypeForTdMethod("Manual"), null);
 });
 
-test("payment type mapping: only Wise gets full automation, PayPal and Manual both land as review-first drafts", () => {
-  assert.equal(paymentTypeForTdMethod("Wise"), "TD_ONLY");
-  assert.equal(paymentTypeForTdMethod("PayPal"), "TD_PLUS");
-  assert.equal(paymentTypeForTdMethod("Manual"), "TD_PLUS");
+test("every TD-imported worker lands on the uniform review-first draft flow", () => {
+  assert.equal(TD_IMPORT_PAYMENT_TYPE, "TD_PLUS");
 });
 
 test("manual rate is reconciled only when TD catches up", () => {

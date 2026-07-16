@@ -18,8 +18,3 @@ export function resolveTdSyncMonth(input: unknown, now = new Date()): TdSyncMont
   if (monthsAgo < 1 || monthsAgo > 24) throw new Error("Sync month must be a past month within 24 months");
   return { year: year!, month: month! };
 }
-
-export function partitionExistingWorkerIds(workerIds: string[], existingWorkerIds: Set<string>) {
-  const pendingWorkerIds = workerIds.filter((workerId) => !existingWorkerIds.has(workerId));
-  return { pendingWorkerIds, skippedExisting: workerIds.length - pendingWorkerIds.length };
-}

@@ -59,6 +59,31 @@ export function mergeTdUsersAndStats(
   });
 }
 
+const TD_PAGE_LIMIT = 200;
+const TD_MAX_ROWS = 10_000;
+
+// TD caps every list endpoint at 200 rows and paginates by row offset via `page`.
+// stats/total honors limit/page but returns NO paging metadata (verified against
+// the live API), so the only reliable stop signal is a short page.
+export async function fetchAllPages(
+  url: URL,
+  headers: Record<string, string>,
+  label: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Array<Record<string, unknown>>> {
+  const rows: Array<Record<string, unknown>> = [];
+  for (let offset = 0; offset < TD_MAX_ROWS; offset += TD_PAGE_LIMIT) {
+    url.searchParams.set("limit", String(TD_PAGE_LIMIT));
+    url.searchParams.set("page", String(offset));
+    const response = await fetchImpl(url, { method: "GET", headers });
+    if (!response.ok) throw new Error(`Time Doctor ${label} request failed (${response.status})`);
+    const page = dataArray(await response.json());
+    rows.push(...page);
+    if (page.length < TD_PAGE_LIMIT) break;
+  }
+  return rows;
+}
+
 export async function fetchMonthlyHours(
   year: number,
   month: number,
@@ -79,15 +104,11 @@ export async function fetchMonthlyHours(
   const usersUrl = new URL("/api/1.0/users", TD_API_BASE);
   usersUrl.search = new URLSearchParams({ company: config.companyId }).toString();
 
-  const [statsResponse, usersResponse] = await Promise.all([
-    fetchImpl(statsUrl, { method: "GET", headers }),
-    fetchImpl(usersUrl, { method: "GET", headers }),
+  const [stats, users] = await Promise.all([
+    fetchAllPages(statsUrl, headers, "hours", fetchImpl),
+    fetchAllPages(usersUrl, headers, "users", fetchImpl),
   ]);
-  if (!statsResponse.ok) throw new Error(`Time Doctor hours request failed (${statsResponse.status})`);
-  if (!usersResponse.ok) throw new Error(`Time Doctor users request failed (${usersResponse.status})`);
-
-  const [statsPayload, usersPayload] = await Promise.all([statsResponse.json(), usersResponse.json()]);
-  return mergeTdUsersAndStats(dataArray(usersPayload), dataArray(statsPayload));
+  return mergeTdUsersAndStats(users, stats);
 }
 
 export type TdLoginResult = {
@@ -173,18 +194,16 @@ export async function fetchTeamsByEmail(fetchImpl: typeof fetch = fetch): Promis
     return url;
   };
 
-  const [companyResponse, tagsResponse, usersResponse] = await Promise.all([
+  const [companyResponse, tags, users] = await Promise.all([
     fetchImpl(withCompany(`/api/1.0/companies/${config.companyId}`), { method: "GET", headers }),
-    fetchImpl(withCompany("/api/1.0/tags"), { method: "GET", headers }),
-    fetchImpl(withCompany("/api/1.0/users"), { method: "GET", headers }),
+    fetchAllPages(withCompany("/api/1.0/tags"), headers, "tags", fetchImpl),
+    fetchAllPages(withCompany("/api/1.0/users"), headers, "users", fetchImpl),
   ]);
-  if (!companyResponse.ok || !tagsResponse.ok || !usersResponse.ok) {
+  if (!companyResponse.ok) {
     throw new Error("Time Doctor team lookup failed");
   }
-  const [companyPayload, tagsPayload, usersPayload] = await Promise.all([
-    companyResponse.json(), tagsResponse.json(), usersResponse.json(),
-  ]);
-  return resolveTeamsByEmail(companyPayload, tagsPayload, usersPayload);
+  const companyPayload = await companyResponse.json();
+  return resolveTeamsByEmail(companyPayload, { data: tags }, { data: users });
 }
 
 export async function testTimeDoctorConnection(token: string, companyId: string, fetchImpl: typeof fetch = fetch) {

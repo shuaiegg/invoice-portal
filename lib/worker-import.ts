@@ -105,17 +105,12 @@ export function paymentAccountTypeForTdMethod(method: string): "WISE" | "PAYPAL"
   return null;
 }
 
-// Determines invoice-generation automation level from TD's payment method.
-// Wise carries over the pre-Portal workflow of uploading straight to Wise for automatic payment
-// with no per-invoice review — that maps to full automation (TD_ONLY). PayPal and Manual both
-// still get their hours pulled from TD automatically, but always land as a DRAFT pending
-// review/submission before payment — they only differ in payment rail (PaymentAccountType), not
-// in invoice automation level. Portal's MANUAL paymentType is intentionally never set here — it's
+// Every TD-tracked worker gets TD_PLUS: hours are pulled from TD automatically and the
+// invoice lands as a DRAFT the worker reviews and submits — one uniform flow regardless of
+// payment rail (product decision 2026-07-16; the earlier Wise→TD_ONLY auto-submit split
+// confused finance). Portal's MANUAL paymentType is intentionally never set here — it's
 // reserved for workers outside TD entirely, who self-report hours with no TD sync at all.
-export function paymentTypeForTdMethod(method: string): "TD_ONLY" | "TD_PLUS" {
-  const normalized = method.trim().toLowerCase();
-  return normalized === "wise" ? "TD_ONLY" : "TD_PLUS";
-}
+export const TD_IMPORT_PAYMENT_TYPE = "TD_PLUS" as const;
 
 export function decideRateImport(
   source: "TD_IMPORT" | "MANUAL",

@@ -2,15 +2,15 @@ import { Prisma } from "./generated/client/client";
 import { db } from "./db";
 import { reserveInvoiceNumbers } from "./invoice-number";
 import { tdPlusDraftReady, tdSyncFailure, tdSyncSummary } from "./slack";
+import { calculateInvoiceAmounts } from "./invoice-lines";
 import { fetchMonthlyHours, hoursFromSeconds } from "./timedoctor";
 import { buildTdWorkerMatcher } from "./td-worker-matching";
-import { partitionExistingWorkerIds } from "./td-sync-month";
 
 export type TdSyncOptions = { year: number; month: number; triggeredBy?: string | null };
 
 export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptions) {
-  const run = await db.tdSyncRun.create({ data: { triggeredBy } });
   const billingMonth = `${year}-${String(month).padStart(2, "0")}`;
+  const run = await db.tdSyncRun.create({ data: { triggeredBy, billingMonth } });
   const invoiceDate = new Date(Date.UTC(year, month, 0));
   const dueDate = new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000);
   let invoicesCreated = 0;
@@ -19,6 +19,7 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
   let inactiveSkipped = 0;
   let ignoredSkipped = 0;
   let totalAmount = 0;
+  const totalsByCurrency: Record<string, number> = {};
   const errors: string[] = [];
 
   try {
@@ -43,8 +44,9 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
     const ignoredEmails = new Set(
       (await db.tdIgnoredEmail.findMany({ select: { email: true } })).map((row) => row.email.toLowerCase()),
     );
+    // Primaries only: a worker-created supplement must not block the month's primary invoice
     const existingInvoiceWorkerIds = new Set(
-      (await db.invoice.findMany({ where: { billingMonth }, select: { workerId: true } })).map((row) => row.workerId),
+      (await db.invoice.findMany({ where: { billingMonth, supplementNo: 0 }, select: { workerId: true } })).map((row) => row.workerId),
     );
 
     // First pass: classify every TD user and compute amounts for the ones that need a new
@@ -78,18 +80,21 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
         matchFailed += 1;
         continue;
       }
-      const existing = partitionExistingWorkerIds([activeWorker.id], existingInvoiceWorkerIds);
-      if (existing.skippedExisting) {
-        skippedExisting += existing.skippedExisting;
+      if (existingInvoiceWorkerIds.has(activeWorker.id)) {
+        skippedExisting += 1;
         continue;
       }
 
       const quantity = hoursFromSeconds(tdUser.totalSec);
-      const subtotal = Math.round(quantity * activeWorker.hourlyRate * 100) / 100;
-      const vatAmount = Math.round(subtotal * (activeWorker.vatRate / 100) * 100) / 100;
+      // TD hourly rates are VAT-inclusive: hours × rate is the gross the worker is
+      // paid, and any VAT is carved out of it — never added on top.
+      const gross = Math.round(quantity * activeWorker.hourlyRate * 100) / 100;
+      const amounts = calculateInvoiceAmounts(gross, activeWorker.vatRate, true);
+      const subtotal = Math.round(amounts.subtotal * 100) / 100;
       pending.push({
-        worker: activeWorker, quantity, subtotal, vatAmount,
-        total: subtotal + vatAmount, rate: activeWorker.hourlyRate, currency: activeWorker.currency,
+        worker: activeWorker, quantity, subtotal,
+        vatAmount: Math.round((gross - subtotal) * 100) / 100,
+        total: gross, rate: activeWorker.hourlyRate, currency: activeWorker.currency,
       });
     }
 
@@ -116,11 +121,13 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
           vatAmount,
           totalAmount: total,
           vatRate: activeWorker.vatRate,
+          vatInclusive: true,
           currency,
-          lines: { create: { description, quantity, unitRate: rate, amount: subtotal } },
+          lines: { create: { description, quantity, unitRate: rate, amount: total } },
         } });
         invoicesCreated += 1;
         totalAmount += total;
+        totalsByCurrency[currency] = (totalsByCurrency[currency] ?? 0) + total;
         if (activeWorker.paymentType === "TD_PLUS") tdPlusDraftReady(invoice, activeWorker);
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") continue;
@@ -134,7 +141,7 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
       db.tdSyncRun.update({ where: { id: run.id }, data: { ...result, status, errorLog: errors.join("\n") || null } }),
       db.timeDoctorConfig.update({ where: { id: "singleton" }, data: { lastSyncAt: new Date(), lastSyncStatus: status } }),
     ]);
-    tdSyncSummary(result);
+    tdSyncSummary({ ...result, totalsByCurrency });
     return { id: run.id, status, ...result };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
