@@ -26,19 +26,22 @@ npx prisma generate                    # Regenerate Prisma client after schema c
 
 These are non-obvious decisions made during design — do not change without understanding the rationale.
 
-**Auth — BetterAuth with JWT sessions (not DB sessions)**
-Next.js middleware runs on Edge Runtime where Prisma is unavailable. JWT sessions are validated by token decoding — no DB round-trip. Configured in `lib/auth.ts`. Auth client for `'use client'` components lives in `lib/auth-client.ts`.
+**Auth — BetterAuth DB sessions + 5-minute cookie cache (no middleware.ts)**
+There is no `middleware.ts` — every protected layout/page calls `auth.api.getSession()` itself, and every `/api/admin/*` route calls `requireAdmin()`. Sessions are DB-backed, but `session.cookieCache` in `lib/auth.ts` serves `getSession()` from a signed cookie for up to 5 minutes, so normal navigation costs zero auth DB round-trips. Note: BetterAuth has **no** top-level `session.strategy` option — a previous `strategy: "jwt"` config was silently ignored and every request hit the DB. Auth client for `'use client'` components lives in `lib/auth-client.ts`.
+
+**Role checks: session for pages, DB for API mutations**
+`User.role` is embedded on `session.user.role` via `user.additionalFields` in `lib/auth.ts` (`input: false`, never client-settable). Layouts and pages gate on `session.user.role` directly — no DB hit, but a promote/demote can lag by up to the cookie-cache maxAge (5 min). Admin API routes stay authoritative: `lib/admin-guard.ts` → `isAdminUser()` re-checks the DB on every call.
 
 **First registered user automatically becomes ADMIN**
-Implemented in BetterAuth's `after:sign-up` hook: if User count === 1 after creation, set `role: ADMIN`. No seed script needed.
+Implemented in BetterAuth's `before:create` user hook: if User count === 0, the row is inserted with `role: ADMIN`. It must be the *before* hook — the session cookie (and its cache) is built from the created row, so promoting after creation would leave the first admin browsing with a stale WORKER role. No seed script needed.
 
 **Neon PostgreSQL requires two connection strings**
 - `DATABASE_URL` — pooled (pgbouncer), used at runtime by Prisma
 - `DIRECT_URL` — direct connection, used by `prisma migrate` only
 Both must be set. Forgetting `DIRECT_URL` breaks migrations.
 
-**Direct Xero integration for synchronous sync**
-Invoice submission creates a draft bill in Xero synchronously. If sync fails, the submission returns an error. No more silent failures or "Pending Sync" states. OAuth tokens are managed in the `XeroToken` DB table.
+**Xero sync happens at the PAID transition, not at submission**
+Invoice submission never touches Xero. When an admin marks an invoice PAID, `syncInvoiceToXero()` runs synchronously — on failure the invoice reverts to APPROVED and the admin sees the error. Bulk mark-paid uses `createXeroDraftBills()` (`lib/bulk-invoice-server.ts`): idempotent, batched 50 bills per POST, sized to stay inside Xero's 60-calls/min limit, with per-invoice failure reporting and a retry endpoint (`/api/admin/invoices/retry-xero`). OAuth tokens are managed in the `XeroToken` DB table (singleton row, refreshed when <2 min from expiry).
 
 **PDF = HTML + `@media print` (no PDF library)**
 Invoice detail page (`/invoice/[id]`) is the print template. "Download PDF" calls `window.print()`. `@media print` CSS hides UI chrome. No `@react-pdf/renderer` or puppeteer.
@@ -72,16 +75,17 @@ app/
       xero/callback/         ← Xero OAuth callback (Admin only)
     invoices/                ← worker invoice CRUD + Xero sync
     profile/                 ← worker profile
-    admin/                   ← admin-only endpoints (enforce role server-side)
-middleware.ts      ← JWT validation only, no role check, Edge Runtime
+    admin/                   ← admin-only endpoints (requireAdmin() re-checks role in DB)
 ```
+
+No `middleware.ts`: auth is enforced per layout/page (session) and per API route (DB). Route groups have `loading.tsx` skeletons so dynamic pages give instant navigation feedback.
 
 ## Key Library Files
 
 | File | Purpose |
 |------|---------|
 | `lib/db.ts` | Prisma client singleton (global pattern for hot-reload safety) |
-| `lib/auth.ts` | BetterAuth server config (JWT session, first-user-admin hook) |
+| `lib/auth.ts` | BetterAuth server config (cookie-cached DB session, role on session, first-user-admin hook) |
 | `lib/auth-client.ts` | BetterAuth client for `'use client'` components |
 | `lib/xero.ts` | Xero API client (OAuth token mgmt, contact upsert, draft bill creation) |
 | `lib/slack.ts` | Direct Slack Incoming Webhook notification helper |

@@ -51,10 +51,11 @@ export default async function AdminDashboardPage({
       where: { resolved: false, syncRun: { billingMonth } },
     }),
     db.invoice.count({ where: { billingMonth, status: "PAID", xeroSynced: false } }),
-    db.invoice.findMany({
+    // groupBy = SQL GROUP BY; Prisma's `distinct` would fetch every row and
+    // dedupe in memory, growing linearly with the invoice table.
+    db.invoice.groupBy({
+      by: ["billingMonth"],
       where: { billingMonth: { not: null } },
-      distinct: ["billingMonth"],
-      select: { billingMonth: true },
       orderBy: { billingMonth: "desc" },
     }),
     db.worker.count({ where: { user: { active: true } } }),

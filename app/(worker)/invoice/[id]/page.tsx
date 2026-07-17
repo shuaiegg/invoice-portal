@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { InvoiceDetail } from "@/components/worker/invoice-detail";
-import { isAdminUser } from "@/lib/auth-role";
 
 export default async function InvoiceDetailsPage({
   params,
@@ -41,9 +40,10 @@ export default async function InvoiceDetailsPage({
     notFound();
   }
 
-  // Security check: must be owner or admin
+  // Security check: must be owner or admin (session role — read-only page;
+  // admin mutations are separately DB-checked in the API routes)
   const isOwner = invoice.worker.userId === session.user.id;
-  const isAdmin = isOwner ? false : await isAdminUser(session.user.id);
+  const isAdmin = isOwner ? false : session.user.role === "ADMIN";
 
   if (!isOwner && !isAdmin) {
     redirect("/dashboard");

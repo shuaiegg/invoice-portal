@@ -1,10 +1,11 @@
 import { db } from "./db";
 
-// BetterAuth doesn't put a `role` field on the session/JWT by default — nothing in lib/auth.ts
-// adds it as a custom session field, so `session.user.role` is always undefined regardless of
-// the signed-in user's actual role. Role must always come from a DB lookup. Centralized here
-// after finding the same `(session.user as any).role` bug independently copy-pasted into four
-// different files, each silently always evaluating to false.
+// Authoritative role check against the DB. Use this for API routes that
+// mutate state (see lib/admin-guard.ts). Layouts and pages should read
+// `session.user.role` instead — it is embedded in the session via
+// `user.additionalFields` in lib/auth.ts and served from the cookie cache,
+// so it costs no DB round-trip but can lag a role change by up to the
+// cookieCache maxAge.
 export async function isAdminUser(userId: string): Promise<boolean> {
   const dbUser = await db.user.findUnique({ where: { id: userId }, select: { role: true } });
   return dbUser?.role === "ADMIN";

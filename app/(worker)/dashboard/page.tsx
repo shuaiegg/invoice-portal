@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { InvoiceDashboard } from "@/components/worker/invoice-dashboard";
 import { PageHeader } from "@/components/shared/page-header";
 import { isWorkerProfileComplete } from "@/lib/profile-utils";
-import { isAdminUser } from "@/lib/auth-role";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
@@ -19,16 +18,13 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const [isAdmin, worker] = await Promise.all([
-    isAdminUser(session.user.id),
-    db.worker.findUnique({
-      where: { userId: session.user.id },
-    }),
-  ]);
-
-  if (isAdmin) {
+  if (session.user.role === "ADMIN") {
     redirect("/admin");
   }
+
+  const worker = await db.worker.findUnique({
+    where: { userId: session.user.id },
+  });
 
   const isProfileComplete = isWorkerProfileComplete(worker);
 

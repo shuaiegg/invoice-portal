@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { isAdminUser } from "@/lib/auth-role";
 import { Users, FileText, Settings, LayoutDashboard, ShieldCheck } from "lucide-react";
 
 export default async function AdminLayout({
@@ -19,7 +18,9 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  if (!(await isAdminUser(session.user.id))) {
+  // Role comes from the session (cookie-cached, no DB hit). Admin API routes
+  // stay authoritative via requireAdmin()'s DB check.
+  if (session.user.role !== "ADMIN") {
     redirect("/dashboard");
   }
 

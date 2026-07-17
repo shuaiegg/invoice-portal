@@ -62,20 +62,30 @@ export default async function AdminInvoicesPage({
   if (month && /^\d{4}-\d{2}$/.test(month)) baseWhere.billingMonth = month;
   if (xero === "failed") Object.assign(baseWhere, { status: "PAID", xeroSynced: false });
 
-  const baseInvoices = await db.invoice.findMany({
-    where: baseWhere,
-    select: { workerId: true },
-  });
-  const workerChannels = await resolveWorkerChannelMap([...new Set(baseInvoices.map((invoice) => invoice.workerId))]);
+  // Channel tab counts: aggregate invoices per worker in SQL (bounded by
+  // worker count, not invoice count), then bucket by each worker's channel.
+  const [workerChannels, workerGroups, availableMonths] = await Promise.all([
+    resolveWorkerChannelMap(),
+    db.invoice.groupBy({ by: ["workerId"], where: baseWhere, _count: { _all: true } }),
+    db.invoice.groupBy({
+      by: ["billingMonth"],
+      where: { billingMonth: { not: null } },
+      orderBy: { billingMonth: "desc" },
+    }),
+  ]);
   const channelCounts: Record<PaymentChannel, number> = { WISE: 0, PAYPAL: 0, MANUAL: 0 };
-  for (const invoice of baseInvoices) channelCounts[workerChannels.get(invoice.workerId) ?? "MANUAL"] += 1;
+  let matchingTotal = 0;
+  for (const group of workerGroups) {
+    channelCounts[workerChannels.get(group.workerId) ?? "MANUAL"] += group._count._all;
+    matchingTotal += group._count._all;
+  }
 
   const where: Prisma.InvoiceWhereInput = { ...baseWhere };
   if (channel) {
     where.workerId = { in: filterWorkerIdsByChannel(workerChannels, channel) };
   }
 
-  const [invoices, total, totalsByCurrency, availableMonths] = await Promise.all([
+  const [invoices, total, totalsByCurrency] = await Promise.all([
     db.invoice.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -94,12 +104,6 @@ export default async function AdminInvoicesPage({
     }),
     db.invoice.count({ where }),
     db.invoice.groupBy({ by: ["currency"], where, _sum: { totalAmount: true } }),
-    db.invoice.findMany({
-      where: { billingMonth: { not: null } },
-      distinct: ["billingMonth"],
-      select: { billingMonth: true },
-      orderBy: { billingMonth: "desc" },
-    }),
   ]);
 
   const exportParams = new URLSearchParams();
@@ -128,7 +132,7 @@ export default async function AdminInvoicesPage({
 
       <Tabs value={channel ?? "all"}>
         <TabsList>
-          <TabsTrigger value="all" asChild><Link href={channelHref(params, null)}>All ({baseInvoices.length})</Link></TabsTrigger>
+          <TabsTrigger value="all" asChild><Link href={channelHref(params, null)}>All ({matchingTotal})</Link></TabsTrigger>
           {PAYMENT_CHANNELS.map((item) => (
             <TabsTrigger key={item} value={item} asChild>
               <Link href={channelHref(params, item)}>{PAYMENT_CHANNEL_LABELS[item]} ({channelCounts[item]})</Link>
