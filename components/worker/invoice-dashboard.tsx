@@ -13,12 +13,24 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { InfoIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { InvoiceStatus } from "@/lib/generated/client/client";
+
+// Rows come from the server page (Prisma Invoice, Dates) or /api/invoices JSON
+// (Dates serialized to strings) — hence string | Date on date fields.
+interface InvoiceListItem {
+  id: string;
+  invoiceNumber: string;
+  period: string;
+  totalAmount: number;
+  status: InvoiceStatus;
+  invoiceDate: string | Date;
+}
 
 interface InvoiceDashboardProps {
-  initialInvoices: any[];
+  initialInvoices: InvoiceListItem[];
   totalInvoices: number;
   isProfileComplete: boolean;
 }

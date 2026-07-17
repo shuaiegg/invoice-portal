@@ -17,37 +17,53 @@ import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
   DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger
 } from "@/components/ui/dialog";
-import { Edit2, ExternalLink, Globe, Shield, RefreshCw } from "lucide-react";
+import { Edit2, Globe, Shield, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+// Masked shape produced by app/(admin)/admin/settings/page.tsx — secrets are
+// never sent to the client, only hasSecret/hasInternalSecret flags.
+interface WebhookConfigRow {
+  key: string;
+  environment: string;
+  url: string;
+  enabled: boolean;
+  lastTriggeredAt: string | Date | null;
+  updatedAt: string | Date;
+  hasSecret: boolean;
+  hasInternalSecret: boolean;
+}
+
+// The edit dialog adds secret fields the user may type in.
+type EditingConfig = WebhookConfigRow & { secret?: string; internalSecret?: string };
+
 interface WebhookSettingsProps {
-  initialConfigs: any[];
+  initialConfigs: WebhookConfigRow[];
 }
 
 export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
   const router = useRouter();
   const [configs, setConfigs] = useState(initialConfigs);
-  const [editingConfig, setWebhookToEdit] = useState<any>(null);
+  const [editingConfig, setWebhookToEdit] = useState<EditingConfig | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleEdit = (config: any) => {
+  const handleEdit = (config: WebhookConfigRow) => {
     setWebhookToEdit({ ...config });
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
+    if (!editingConfig) return;
     setLoading(true);
     try {
       // Build payload: do not include secret/internalSecret keys when left blank
-      const payload: any = { ...editingConfig };
+      const payload: Partial<EditingConfig> = { ...editingConfig };
       if (payload.secret === "" || payload.secret === undefined) delete payload.secret;
       if (payload.internalSecret === "" || payload.internalSecret === undefined) delete payload.internalSecret;
 
@@ -68,14 +84,14 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
         ? editingConfig 
         : c
       ));
-    } catch (error) {
+    } catch {
       toast.error("Failed to save changes");
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleEnabled = async (config: any) => {
+  const toggleEnabled = async (config: WebhookConfigRow) => {
     const nextEnabled = !config.enabled;
     try {
       // When toggling we send only the minimal payload (no secrets)
@@ -100,7 +116,7 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
         ? { ...c, enabled: nextEnabled } 
         : c
       ));
-    } catch (error) {
+    } catch {
       toast.error("Failed to update status");
     }
   };
@@ -173,7 +189,7 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
               <Input
                 id="url"
                 value={editingConfig?.url || ""}
-                onChange={(e) => setWebhookToEdit({ ...editingConfig, url: e.target.value })}
+                onChange={(e) => editingConfig && setWebhookToEdit({ ...editingConfig, url: e.target.value })}
                 className="bg-accent/30"
               />
             </div>
@@ -185,7 +201,7 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
                   id="secret"
                   type="password"
                   value={editingConfig?.secret || ""}
-                  onChange={(e) => setWebhookToEdit({ ...editingConfig, secret: e.target.value })}
+                  onChange={(e) => editingConfig && setWebhookToEdit({ ...editingConfig, secret: e.target.value })}
                   className="pl-9 bg-accent/30"
                   placeholder="Leave blank to keep current"
                 />
@@ -198,7 +214,7 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
                 <Input
                   id="internalSecret"
                   value={editingConfig?.internalSecret || ""}
-                  onChange={(e) => setWebhookToEdit({ ...editingConfig, internalSecret: e.target.value })}
+                  onChange={(e) => editingConfig && setWebhookToEdit({ ...editingConfig, internalSecret: e.target.value })}
                   className="pl-9 bg-accent/30"
                 />
               </div>

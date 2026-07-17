@@ -63,6 +63,12 @@ test("setPreferredPaymentAccountForWorker returns 403 for another worker's accou
     },
     paymentAccount: {
       findUnique: async () => ({ id: "account-b", workerId: "worker-2" }),
+      updateMany: () => {
+        throw new Error("updateMany should not be called");
+      },
+      update: () => {
+        throw new Error("update should not be called");
+      },
     },
   };
 

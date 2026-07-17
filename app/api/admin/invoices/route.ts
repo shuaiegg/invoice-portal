@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   
   // Filtering
-  const status = searchParams.get("status")?.split(",") as any[];
+  const status = searchParams.get("status")?.split(",") as Prisma.EnumInvoiceStatusFilter["in"];
   const period = searchParams.get("period");
   const workerName = searchParams.get("workerName");
   const team = searchParams.get("team");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -106,11 +106,16 @@ export function PaymentAccountForm({
   const [formData, setFormData] = useState<PaymentAccountFormData>(() => formFromAccount(account));
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  // Reset the form when the dialog (re)opens or targets a different account.
+  // Adjusting state during render avoids the extra post-effect render pass
+  // (https://react.dev/learn/you-might-not-need-an-effect).
+  const [prevReset, setPrevReset] = useState({ open, account });
+  if (prevReset.open !== open || prevReset.account !== account) {
+    setPrevReset({ open, account });
     if (open) {
       setFormData(formFromAccount(account));
     }
-  }, [account, open]);
+  }
 
   const updateField = (field: keyof PaymentAccountFormData, value: string) => {
     setFormData((current) => ({ ...current, [field]: value }));

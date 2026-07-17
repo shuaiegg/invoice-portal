@@ -27,13 +27,22 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { AdminInvoiceTable } from "./admin-invoice-table";
 import { PAYMENT_TYPE_LABELS } from "@/lib/payment-types";
+import { deriveChannel } from "@/lib/payment-channel";
+import type { Invoice, PaymentAccount, Worker } from "@/lib/generated/client/client";
 import {
   formatPaymentAccountKeyDetail,
   PAYMENT_ACCOUNT_TYPE_LABELS,
 } from "@/lib/payment-accounts";
 
+// Shape returned by app/(admin)/admin/workers/[id]/page.tsx
+type AdminWorkerWithRelations = Worker & {
+  user: { email: string; active: boolean; createdAt: Date } | null;
+  invoices: Invoice[];
+  paymentAccounts: PaymentAccount[];
+};
+
 interface AdminWorkerDetailProps {
-  worker: any;
+  worker: AdminWorkerWithRelations;
 }
 
 export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
@@ -45,7 +54,7 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const paymentAccounts = worker.paymentAccounts || [];
-  const preferredAccount = paymentAccounts.find((account: any) => account.isPreferred);
+  const preferredAccount = paymentAccounts.find((account) => account.isPreferred);
 
   const handleToggleActive = async () => {
     setLoading(true);
@@ -210,7 +219,7 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="paymentType">Payment Type</Label>
-                <Select value={paymentType} onValueChange={setPaymentType}>
+                <Select value={paymentType} onValueChange={(value) => setPaymentType(value as typeof paymentType)}>
                   <SelectTrigger id="paymentType">
                     <SelectValue />
                   </SelectTrigger>
@@ -260,7 +269,7 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
           </div>
           
           <AdminInvoiceTable
-            invoices={worker.invoices.map((inv: any) => ({ ...inv, worker }))}
+            invoices={worker.invoices.map((inv) => ({ ...inv, worker, channel: deriveChannel(worker) }))}
             total={worker.invoices.length}
             page={1}
             pageSize={worker.invoices.length || 1}

@@ -34,7 +34,7 @@ export default function RegisterPage() {
       } else {
         window.location.href = "/dashboard";
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);

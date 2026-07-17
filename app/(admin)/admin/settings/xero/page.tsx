@@ -91,6 +91,7 @@ export default async function XeroSettingsPage({
                 </div>
                 
                 <div className="flex items-center gap-4">
+                  {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth entry needs a full-page navigation; <Link> would prefetch the API route */}
                   <a href="/api/auth/xero/connect">
                     <Button variant="outline" className="flex items-center gap-2">
                       <RefreshCcw className="h-4 w-4" />
@@ -109,6 +110,7 @@ export default async function XeroSettingsPage({
                   whenever a worker submits an invoice. This replaces the old n8n-based 
                   webhook integration.
                 </p>
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth entry needs a full-page navigation; <Link> would prefetch the API route */}
                 <a href="/api/auth/xero/connect">
                   <Button className="flex items-center gap-2">
                     <LinkIcon className="h-4 w-4" />

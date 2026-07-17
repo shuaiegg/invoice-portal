@@ -3,11 +3,53 @@ import {
   type PaymentAccountInput,
   validatePaymentAccountInput,
 } from "./payment-accounts.ts";
-import { db } from "./db.ts";
 
 type ActionResult = {
   status: number;
   body: unknown;
+};
+
+// Minimal structural db types (same DI pattern as lib/worker-claim.ts) so unit
+// tests can inject mocks without a database. Route handlers pass the real
+// Prisma client from lib/db.ts.
+type OwnedAccountRow = { id: string; workerId: string } | null;
+
+type FindOwnedDb = {
+  paymentAccount: {
+    findUnique(args: unknown): Promise<OwnedAccountRow>;
+  };
+};
+
+type ListDb = {
+  paymentAccount: {
+    findMany(args: unknown): Promise<unknown>;
+  };
+};
+
+type CreateDb = {
+  paymentAccount: {
+    create(args: unknown): Promise<unknown>;
+  };
+};
+
+type UpdateDb = FindOwnedDb & {
+  paymentAccount: FindOwnedDb["paymentAccount"] & {
+    update(args: unknown): Promise<unknown>;
+  };
+};
+
+type DeleteDb = FindOwnedDb & {
+  paymentAccount: FindOwnedDb["paymentAccount"] & {
+    delete(args: unknown): Promise<unknown>;
+  };
+};
+
+type PreferDb = FindOwnedDb & {
+  paymentAccount: FindOwnedDb["paymentAccount"] & {
+    update(args: unknown): unknown;
+    updateMany(args: unknown): unknown;
+  };
+  $transaction(operations: unknown[]): Promise<unknown[]>;
 };
 
 function missingFieldsResult(fields: string[]): ActionResult | null {
@@ -22,10 +64,14 @@ function missingFieldsResult(fields: string[]): ActionResult | null {
   };
 }
 
-async function findOwnedAccount(workerId: string, accountId: string): Promise<ActionResult | null> {
+async function findOwnedAccount(
+  db: FindOwnedDb,
+  workerId: string,
+  accountId: string,
+): Promise<ActionResult | null> {
   const account = await db.paymentAccount.findUnique({
     where: { id: accountId },
-    select: { id: true, workerId: true, isPreferred: true },
+    select: { id: true, workerId: true },
   });
 
   if (!account) {
@@ -39,7 +85,7 @@ async function findOwnedAccount(workerId: string, accountId: string): Promise<Ac
   return null;
 }
 
-export async function listPaymentAccountsForWorker(workerId: string): Promise<ActionResult> {
+export async function listPaymentAccountsForWorker(db: ListDb, workerId: string): Promise<ActionResult> {
   const accounts = await db.paymentAccount.findMany({
     where: { workerId },
     orderBy: [{ isPreferred: "desc" }, { createdAt: "desc" }],
@@ -49,8 +95,9 @@ export async function listPaymentAccountsForWorker(workerId: string): Promise<Ac
 }
 
 export async function createPaymentAccountForWorker(
+  db: CreateDb,
   workerId: string,
-  input: PaymentAccountInput
+  input: PaymentAccountInput,
 ): Promise<ActionResult> {
   const validation = missingFieldsResult(validatePaymentAccountInput(input));
   if (validation) return validation;
@@ -67,11 +114,12 @@ export async function createPaymentAccountForWorker(
 }
 
 export async function updatePaymentAccountForWorker(
+  db: UpdateDb,
   workerId: string,
   accountId: string,
-  input: PaymentAccountInput
+  input: PaymentAccountInput,
 ): Promise<ActionResult> {
-  const ownership = await findOwnedAccount(workerId, accountId);
+  const ownership = await findOwnedAccount(db, workerId, accountId);
   if (ownership) return ownership;
 
   const validation = missingFieldsResult(validatePaymentAccountInput(input));
@@ -86,10 +134,11 @@ export async function updatePaymentAccountForWorker(
 }
 
 export async function deletePaymentAccountForWorker(
+  db: DeleteDb,
   workerId: string,
-  accountId: string
+  accountId: string,
 ): Promise<ActionResult> {
-  const ownership = await findOwnedAccount(workerId, accountId);
+  const ownership = await findOwnedAccount(db, workerId, accountId);
   if (ownership) return ownership;
 
   await db.paymentAccount.delete({ where: { id: accountId } });
@@ -98,10 +147,11 @@ export async function deletePaymentAccountForWorker(
 }
 
 export async function setPreferredPaymentAccountForWorker(
+  db: PreferDb,
   workerId: string,
-  accountId: string
+  accountId: string,
 ): Promise<ActionResult> {
-  const ownership = await findOwnedAccount(workerId, accountId);
+  const ownership = await findOwnedAccount(db, workerId, accountId);
   if (ownership) return ownership;
 
   const [, updated] = await db.$transaction([
@@ -110,7 +160,9 @@ export async function setPreferredPaymentAccountForWorker(
       data: { isPreferred: false },
     }),
     db.paymentAccount.update({
-      where: { id: accountId },
+      // workerId in the where scopes the mutation to the owner even if the
+      // account were reassigned between the ownership check and this write.
+      where: { id: accountId, workerId },
       data: { isPreferred: true },
     }),
   ]);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -28,7 +28,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  FileText,
   Undo2,
   User,
   CreditCard,
@@ -37,9 +36,26 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { isAdminInvoiceTransitionAllowed } from "@/lib/invoice-status";
+import type { Invoice, InvoiceLine, InvoiceStatus, Worker } from "@/lib/generated/client/client";
+
+// Shape returned by app/(admin)/admin/invoices/[id]/page.tsx
+type AdminInvoiceWithRelations = Invoice & {
+  lines: InvoiceLine[];
+  worker: Worker & { user: { email: string } | null };
+};
+
+// Legacy invoices predate InvoiceLine rows — a synthetic line is derived from
+// the invoice's flat fields, hence the optional id.
+type LineRow = {
+  id?: string;
+  description: string;
+  quantity: number;
+  unitRate: number;
+  amount: number;
+};
 
 interface AdminInvoiceDetailProps {
-  invoice: any;
+  invoice: AdminInvoiceWithRelations;
 }
 
 export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
@@ -48,11 +64,9 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
   const [loading, setLoading] = useState(false);
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestNote, setRequestNote] = useState("");
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
   const { worker } = invoice;
-  const lines = invoice.lines?.length
+  const lines: LineRow[] = invoice.lines?.length
     ? invoice.lines
     : [
         {
@@ -81,8 +95,8 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
 
       toast.success("Invoice status updated successfully");
       router.refresh();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update status");
       setStatus(invoice.status); // Reset on error
     } finally {
       setLoading(false);
@@ -114,7 +128,8 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
     }
   };
 
-  const formatDate = (date: string | Date) => {
+  const formatDate = (date: string | Date | null) => {
+    if (!date) return "—";
     return new Intl.DateTimeFormat("fr-FR", {
       timeZone: "Europe/Paris",
       day: "2-digit",
@@ -216,7 +231,7 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {lines.map((line: any) => (
+                      {lines.map((line) => (
                         <tr key={line.id || line.description} className="border-t">
                           <td className="px-3 py-3 font-medium">{line.description}</td>
                           <td className="px-3 py-3 text-right">{line.quantity}</td>
@@ -316,7 +331,7 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
             <CardContent className="pt-6 space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Update status to:</label>
-                <Select value={status} onValueChange={(val: any) => setStatus(val)}>
+                <Select value={status} onValueChange={(val) => setStatus(val as InvoiceStatus)}>
                   <SelectTrigger className="bg-accent/30">
                     <SelectValue />
                   </SelectTrigger>

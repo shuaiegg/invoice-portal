@@ -32,7 +32,7 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const result = await updatePaymentAccountForWorker(worker.id, id, await req.json());
+  const result = await updatePaymentAccountForWorker(db, worker.id, id, await req.json());
   return NextResponse.json(result.body, { status: result.status });
 }
 
@@ -46,6 +46,6 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const result = await deletePaymentAccountForWorker(worker.id, id);
+  const result = await deletePaymentAccountForWorker(db, worker.id, id);
   return NextResponse.json(result.body, { status: result.status });
 }

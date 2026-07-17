@@ -1,8 +1,9 @@
 import { StatusBadge } from "@/components/shared/status-badge";
 import { formatDistanceToNow } from "date-fns";
+import type { Invoice } from "@/lib/generated/client/client";
 
 interface ActivityFeedProps {
-  invoices: any[];
+  invoices: (Invoice & { worker: { name: string } })[];
 }
 
 export function ActivityFeed({ invoices }: ActivityFeedProps) {

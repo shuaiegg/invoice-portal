@@ -16,8 +16,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, UserCheck, UserX, ExternalLink, Clock } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
+// Shape produced by the formattedWorkers mapping in app/(admin)/admin/workers/page.tsx
+interface WorkerListItem {
+  id: string;
+  name: string;
+  team: string | null;
+  email: string | null;
+  active: boolean;
+  claimed: boolean;
+  paymentType: string;
+  paymentMethod: string | null;
+  timeDoctorEmail: string | null;
+  invoiceCount: number;
+  lastSubmission: string | Date | null;
+  joinedAt: string | Date;
+}
+
 interface AdminWorkerListProps {
-  workers: any[];
+  workers: WorkerListItem[];
 }
 
 const PAYMENT_METHOD_FILTERS = ["Wise", "PayPal", "Manual"];

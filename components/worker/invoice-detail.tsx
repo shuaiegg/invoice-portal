@@ -10,9 +10,26 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { formatPaymentAccountKeyDetail, PAYMENT_ACCOUNT_TYPE_LABELS, type PaymentAccountType } from "@/lib/payment-accounts";
 import { isWorkerInvoiceEditable } from "@/lib/invoice-status";
+import type { Invoice, InvoiceLine, PaymentAccount, Worker } from "@/lib/generated/client/client";
+
+// Shape returned by app/(worker)/invoice/[id]/page.tsx
+type InvoiceWithRelations = Invoice & {
+  worker: Worker & { paymentAccounts: PaymentAccount[] };
+  lines: InvoiceLine[];
+};
+
+// Legacy invoices predate InvoiceLine rows — a synthetic line is derived from
+// the invoice's flat fields, hence the optional id.
+type LineRow = {
+  id?: string;
+  description: string;
+  quantity: number;
+  unitRate: number;
+  amount: number;
+};
 
 interface InvoiceDetailProps {
-  invoice: any;
+  invoice: InvoiceWithRelations;
   isAdmin?: boolean;
 }
 
@@ -20,7 +37,7 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const { worker } = invoice;
-  const lines = invoice.lines?.length
+  const lines: LineRow[] = invoice.lines?.length
     ? invoice.lines
     : [
         {
@@ -57,8 +74,8 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
 
       toast.success("Invoice revoked");
       router.push("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to revoke invoice");
     } finally {
       setBusy(false);
     }
@@ -167,7 +184,7 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
                 
                 <div className="space-y-3 text-sm border-l pl-8 border-dashed">
                   {(worker.paymentAccounts?.length ?? 0) > 0 ? (
-                    worker.paymentAccounts.map((account: any, index: number) => (
+                    worker.paymentAccounts.map((account, index) => (
                       <div key={account.id} className={index > 0 ? "pt-3 mt-1 border-t border-dashed border-gray-100" : ""}>
                         <div className="text-xs font-semibold uppercase tracking-wider text-secondary-text mb-1">
                           {index === 0 ? "Preferred" : "Alternate"} · {PAYMENT_ACCOUNT_TYPE_LABELS[account.type as PaymentAccountType] ?? account.type}
@@ -244,7 +261,7 @@ export function InvoiceDetail({ invoice, isAdmin }: InvoiceDetailProps) {
                 </tr>
               </thead>
               <tbody>
-                {lines.map((line: any) => (
+                {lines.map((line) => (
                   <tr key={line.id || line.description} className="border-b">
                     <td className="py-4 px-2 align-top max-w-md">
                       <div className="font-medium text-text">{line.description}</div>

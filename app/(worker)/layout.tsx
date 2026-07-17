@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/logout-button";
-import { FileText, User, PlusCircle, LayoutDashboard } from "lucide-react";
+import { User, PlusCircle, LayoutDashboard } from "lucide-react";
 
 export default function WorkerLayout({
   children,

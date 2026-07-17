@@ -29,6 +29,6 @@ export async function POST(
   }
 
   const { id } = await params;
-  const result = await setPreferredPaymentAccountForWorker(worker.id, id);
+  const result = await setPreferredPaymentAccountForWorker(db, worker.id, id);
   return NextResponse.json(result.body, { status: result.status });
 }

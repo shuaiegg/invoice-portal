@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-guard";
+import type { Prisma } from "@/lib/generated/client/client";
 
 export async function PUT(
   request: Request,
@@ -19,7 +20,7 @@ export async function PUT(
     });
 
     if (existing) {
-      const updateData: any = { url, enabled, environment };
+      const updateData: Prisma.WebhookConfigUpdateInput = { url, enabled, environment };
       if (secret !== undefined) updateData.secret = secret;
       if (internalSecret !== undefined) updateData.internalSecret = internalSecret;
 

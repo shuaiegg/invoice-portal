@@ -26,7 +26,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await listPaymentAccountsForWorker(worker.id);
+  const result = await listPaymentAccountsForWorker(db, worker.id);
   return NextResponse.json(result.body, { status: result.status });
 }
 
@@ -36,6 +36,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await createPaymentAccountForWorker(worker.id, await req.json());
+  const result = await createPaymentAccountForWorker(db, worker.id, await req.json());
   return NextResponse.json(result.body, { status: result.status });
 }
