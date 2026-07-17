@@ -117,6 +117,11 @@ export type InvoiceCounter = Prisma.InvoiceCounterModel
  */
 export type XeroToken = Prisma.XeroTokenModel
 /**
+ * Model AppConfig
+ * 
+ */
+export type AppConfig = Prisma.AppConfigModel
+/**
  * Model WebhookConfig
  * 
  */

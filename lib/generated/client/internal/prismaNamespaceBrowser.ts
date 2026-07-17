@@ -66,6 +66,7 @@ export const ModelName = {
   InvoiceLine: 'InvoiceLine',
   InvoiceCounter: 'InvoiceCounter',
   XeroToken: 'XeroToken',
+  AppConfig: 'AppConfig',
   WebhookConfig: 'WebhookConfig'
 } as const
 
@@ -163,6 +164,8 @@ export const WorkerScalarFieldEnum = {
   cryptoNetwork: 'cryptoNetwork',
   cryptoWallet: 'cryptoWallet',
   paypalEmail: 'paypalEmail',
+  claimToken: 'claimToken',
+  claimTokenExpiresAt: 'claimTokenExpiresAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -343,6 +346,15 @@ export const XeroTokenScalarFieldEnum = {
 } as const
 
 export type XeroTokenScalarFieldEnum = (typeof XeroTokenScalarFieldEnum)[keyof typeof XeroTokenScalarFieldEnum]
+
+
+export const AppConfigScalarFieldEnum = {
+  id: 'id',
+  registrationOpen: 'registrationOpen',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppConfigScalarFieldEnum = (typeof AppConfigScalarFieldEnum)[keyof typeof AppConfigScalarFieldEnum]
 
 
 export const WebhookConfigScalarFieldEnum = {

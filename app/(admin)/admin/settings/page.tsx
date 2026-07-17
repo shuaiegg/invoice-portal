@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, CreditCard, Clock } from "lucide-react";
 import Link from "next/link";
 import { WebhookSettings } from "@/components/admin/webhook-settings";
+import { RegistrationToggle } from "@/components/admin/registration-toggle";
+import { isRegistrationOpen } from "@/lib/app-config";
 
 export default async function AdminSettingsPage() {
   const session = await auth.api.getSession({
@@ -18,9 +20,11 @@ export default async function AdminSettingsPage() {
     redirect("/login");
   }
 
-  const webhookConfigs = await db.webhookConfig.findMany({
-    orderBy: { key: "asc" },
-  });
+  const [webhookConfigs, registrationOpen, pendingWorkerCount] = await Promise.all([
+    db.webhookConfig.findMany({ orderBy: { key: "asc" } }),
+    isRegistrationOpen(),
+    db.worker.count({ where: { userId: null } }),
+  ]);
 
   const maskedConfigs = webhookConfigs.map((config) => ({
     key: config.key,
@@ -64,6 +68,7 @@ export default async function AdminSettingsPage() {
           </CardContent>
         </Card>
         <Card><CardHeader><div className="flex items-center gap-2"><Clock className="h-5 w-5 text-primary" /><CardTitle>Time Doctor</CardTitle></div><CardDescription>Configure the read-only monthly hours integration.</CardDescription></CardHeader><CardContent><Link href="/admin/settings/timedoctor"><Button variant="outline" className="w-full">Configure Time Doctor<ExternalLink className="ml-2 h-4 w-4" /></Button></Link></CardContent></Card>
+        <RegistrationToggle initialRegistrationOpen={registrationOpen} pendingCount={pendingWorkerCount} />
       </div>
 
       <div className="space-y-4">

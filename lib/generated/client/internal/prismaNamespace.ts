@@ -399,6 +399,7 @@ export const ModelName = {
   InvoiceLine: 'InvoiceLine',
   InvoiceCounter: 'InvoiceCounter',
   XeroToken: 'XeroToken',
+  AppConfig: 'AppConfig',
   WebhookConfig: 'WebhookConfig'
 } as const
 
@@ -415,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "worker" | "paymentAccount" | "invoice" | "timeDoctorConfig" | "tdSyncRun" | "tdMatchFailure" | "tdIgnoredEmail" | "workerImportBatch" | "workerRateConflict" | "invoiceLine" | "invoiceCounter" | "xeroToken" | "webhookConfig"
+    modelProps: "user" | "session" | "account" | "worker" | "paymentAccount" | "invoice" | "timeDoctorConfig" | "tdSyncRun" | "tdMatchFailure" | "tdIgnoredEmail" | "workerImportBatch" | "workerRateConflict" | "invoiceLine" | "invoiceCounter" | "xeroToken" | "appConfig" | "webhookConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1529,6 +1530,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AppConfig: {
+      payload: Prisma.$AppConfigPayload<ExtArgs>
+      fields: Prisma.AppConfigFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AppConfigFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AppConfigFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>
+        }
+        findFirst: {
+          args: Prisma.AppConfigFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AppConfigFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>
+        }
+        findMany: {
+          args: Prisma.AppConfigFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>[]
+        }
+        create: {
+          args: Prisma.AppConfigCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>
+        }
+        createMany: {
+          args: Prisma.AppConfigCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AppConfigCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>[]
+        }
+        delete: {
+          args: Prisma.AppConfigDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>
+        }
+        update: {
+          args: Prisma.AppConfigUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>
+        }
+        deleteMany: {
+          args: Prisma.AppConfigDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AppConfigUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AppConfigUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>[]
+        }
+        upsert: {
+          args: Prisma.AppConfigUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppConfigPayload>
+        }
+        aggregate: {
+          args: Prisma.AppConfigAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAppConfig>
+        }
+        groupBy: {
+          args: Prisma.AppConfigGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppConfigGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AppConfigCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppConfigCountAggregateOutputType> | number
+        }
+      }
+    }
     WebhookConfig: {
       payload: Prisma.$WebhookConfigPayload<ExtArgs>
       fields: Prisma.WebhookConfigFieldRefs
@@ -1720,6 +1795,8 @@ export const WorkerScalarFieldEnum = {
   cryptoNetwork: 'cryptoNetwork',
   cryptoWallet: 'cryptoWallet',
   paypalEmail: 'paypalEmail',
+  claimToken: 'claimToken',
+  claimTokenExpiresAt: 'claimTokenExpiresAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1900,6 +1977,15 @@ export const XeroTokenScalarFieldEnum = {
 } as const
 
 export type XeroTokenScalarFieldEnum = (typeof XeroTokenScalarFieldEnum)[keyof typeof XeroTokenScalarFieldEnum]
+
+
+export const AppConfigScalarFieldEnum = {
+  id: 'id',
+  registrationOpen: 'registrationOpen',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppConfigScalarFieldEnum = (typeof AppConfigScalarFieldEnum)[keyof typeof AppConfigScalarFieldEnum]
 
 
 export const WebhookConfigScalarFieldEnum = {
@@ -2219,6 +2305,7 @@ export type GlobalOmitConfig = {
   invoiceLine?: Prisma.InvoiceLineOmit
   invoiceCounter?: Prisma.InvoiceCounterOmit
   xeroToken?: Prisma.XeroTokenOmit
+  appConfig?: Prisma.AppConfigOmit
   webhookConfig?: Prisma.WebhookConfigOmit
 }
 

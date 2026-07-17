@@ -1,8 +1,9 @@
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { db } from "./db";
 import { claimPreprovisionedWorker } from "./worker-claim";
 import { runPostSignupTasks } from "./signup-after";
+import { isRegistrationOpen } from "./app-config";
 
 export const auth = betterAuth({
   database: prismaAdapter(db, {
@@ -40,6 +41,23 @@ export const auth = betterAuth({
           const userCount = await db.user.count();
           if (userCount === 0) {
             return { data: { ...user, role: "ADMIN" } };
+          }
+
+          // Closed-registration gate (openspec/changes/close-worker-registration): once an
+          // admin flips AppConfig.registrationOpen off, sign-up only succeeds for an email that
+          // already has an unclaimed pre-provisioned Worker. Deliberately the same check
+          // claimPreprovisionedWorker performs — a claim-token sign-up (lib/claim-token.ts)
+          // always has a matching pending Worker by construction, so it passes this gate for
+          // free without needing a bypass flag. Generic message: never reveal whether the
+          // rejection was "registration closed" or "email not recognized".
+          if (!(await isRegistrationOpen())) {
+            const pending = await db.worker.findFirst({
+              where: { userId: null, timeDoctorEmail: { equals: user.email, mode: "insensitive" } },
+              select: { id: true },
+            });
+            if (!pending) {
+              throw new APIError("FORBIDDEN", { message: "Registration is not available for this account." });
+            }
           }
         },
         after: async (user) => {

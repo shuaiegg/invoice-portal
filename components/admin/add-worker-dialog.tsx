@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus } from "lucide-react";
+import { Check, Copy, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -29,16 +29,25 @@ const initialState: FormState = {
 // generates their draft invoice from real TD hours, exactly like a CSV-imported worker. There's
 // no Manual option here — that's a distinct, deliberate case handled from the worker's own
 // detail page, not this quick-add flow (per user direction 2026-07-17: offering it here just
-// invites finance confusion). Deliberately does not send any automated invite — admin tells the
-// person to register themselves afterward.
+// invites finance confusion). No automated invite is sent — instead, a one-time claim link is
+// generated (openspec/changes/close-worker-registration) for admin to copy and send however they
+// normally reach the person (Slack, in person, etc.).
 export function AddWorkerDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [form, setForm] = useState<FormState>(initialState);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   function update(patch: Partial<FormState>) {
     setForm((current) => ({ ...current, ...patch }));
+  }
+
+  function reset() {
+    setForm(initialState);
+    setClaimUrl(null);
+    setCopied(false);
   }
 
   async function submit() {
@@ -66,69 +75,96 @@ export function AddWorkerDialog() {
     setPending(false);
     if (!response.ok) return toast.error(result.error || "Failed to create worker");
 
-    toast.success(`${form.name.trim()} created — tell them to register on the Portal`);
-    setForm(initialState);
-    setOpen(false);
+    setClaimUrl(`${window.location.origin}/claim/${result.claimToken}`);
     router.refresh();
   }
 
+  async function copyLink() {
+    if (!claimUrl) return;
+    await navigator.clipboard.writeText(claimUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (!next) reset(); }}>
       <DialogTrigger asChild>
         <Button variant="outline"><UserPlus className="mr-2 h-4 w-4" />Add worker</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Add worker</DialogTitle>
-          <DialogDescription>
-            For a new hire this month, tracked in Time Doctor. Set their Time Doctor email so the next sync matches and generates their draft invoice automatically.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
-            <Label htmlFor="add-worker-name">Name</Label>
-            <Input id="add-worker-name" value={form.name} onChange={(e) => update({ name: e.target.value })} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="add-worker-td-email">Time Doctor email</Label>
-            <Input id="add-worker-td-email" type="email" className="w-full" value={form.timeDoctorEmail} onChange={(e) => update({ timeDoctorEmail: e.target.value })} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="add-worker-rate">Hourly rate</Label>
-              <Input id="add-worker-rate" type="number" min="0" step="0.01" value={form.hourlyRate} onChange={(e) => update({ hourlyRate: e.target.value })} />
+        {claimUrl ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>{form.name.trim()} created</DialogTitle>
+              <DialogDescription>
+                Send this link to them however you normally would (Slack, in person, etc.) — it lets them set their own password. It expires in 21 days and works even if registration is closed.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center gap-2 py-2">
+              <Input readOnly value={claimUrl} className="w-full font-mono text-xs" onFocus={(e) => e.target.select()} />
+              <Button type="button" size="icon" variant="outline" onClick={copyLink} aria-label="Copy link">
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
             </div>
-            <div className="grid gap-2 min-w-0">
-              <Label>Currency</Label>
-              <Select value={form.currency} onValueChange={(value) => update({ currency: value })}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Select currency" /></SelectTrigger>
-                <SelectContent>{ACTIVE_CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2 min-w-0">
-              <Label>Channel</Label>
-              <Select value={form.accountType || "MANUAL"} onValueChange={(value) => update({ accountType: value === "MANUAL" ? "" : (value as FormState["accountType"]) })}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MANUAL">Manual</SelectItem>
-                  <SelectItem value="WISE">Wise</SelectItem>
-                  <SelectItem value="PAYPAL">PayPal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {form.accountType ? (
-              <div className="grid gap-2 min-w-0">
-                <Label htmlFor="add-worker-account-email">Account email</Label>
-                <Input id="add-worker-account-email" className="w-full" value={form.accountEmail} onChange={(e) => update({ accountEmail: e.target.value })} />
+            <DialogFooter>
+              <Button onClick={() => setOpen(false)}>Done</Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Add worker</DialogTitle>
+              <DialogDescription>
+                For a new hire this month, tracked in Time Doctor. Set their Time Doctor email so the next sync matches and generates their draft invoice automatically.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label htmlFor="add-worker-name">Name</Label>
+                <Input id="add-worker-name" value={form.name} onChange={(e) => update({ name: e.target.value })} />
               </div>
-            ) : null}
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={submit} disabled={pending}>{pending ? "Creating…" : "Create worker"}</Button>
-        </DialogFooter>
+              <div className="grid gap-2">
+                <Label htmlFor="add-worker-td-email">Time Doctor email</Label>
+                <Input id="add-worker-td-email" type="email" className="w-full" value={form.timeDoctorEmail} onChange={(e) => update({ timeDoctorEmail: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="add-worker-rate">Hourly rate</Label>
+                  <Input id="add-worker-rate" type="number" min="0" step="0.01" value={form.hourlyRate} onChange={(e) => update({ hourlyRate: e.target.value })} />
+                </div>
+                <div className="grid gap-2 min-w-0">
+                  <Label>Currency</Label>
+                  <Select value={form.currency} onValueChange={(value) => update({ currency: value })}>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Select currency" /></SelectTrigger>
+                    <SelectContent>{ACTIVE_CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2 min-w-0">
+                  <Label>Channel</Label>
+                  <Select value={form.accountType || "MANUAL"} onValueChange={(value) => update({ accountType: value === "MANUAL" ? "" : (value as FormState["accountType"]) })}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MANUAL">Manual</SelectItem>
+                      <SelectItem value="WISE">Wise</SelectItem>
+                      <SelectItem value="PAYPAL">PayPal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {form.accountType ? (
+                  <div className="grid gap-2 min-w-0">
+                    <Label htmlFor="add-worker-account-email">Account email</Label>
+                    <Input id="add-worker-account-email" className="w-full" value={form.accountEmail} onChange={(e) => update({ accountEmail: e.target.value })} />
+                  </div>
+                ) : null}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={submit} disabled={pending}>{pending ? "Creating…" : "Create worker"}</Button>
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

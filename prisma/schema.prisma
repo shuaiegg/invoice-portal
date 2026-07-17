@@ -123,6 +123,8 @@ model Worker {
   cryptoNetwork       String?
   cryptoWallet        String?
   paypalEmail         String?
+  claimToken          String?          @unique
+  claimTokenExpiresAt DateTime?
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
 
@@ -320,6 +322,15 @@ model XeroToken {
   tokenExpiry  DateTime
   tenantId     String
   updatedAt    DateTime @updatedAt
+}
+
+// Runtime, admin-toggleable app-wide settings — a singleton row so it's changeable without a
+// deploy (see openspec/changes/close-worker-registration). Absence of the row is treated as
+// registrationOpen: true (see lib/app-config.ts) so a fresh deploy needs no seed step.
+model AppConfig {
+  id               String   @id @default("singleton")
+  registrationOpen Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
 }
 
 model WebhookConfig {

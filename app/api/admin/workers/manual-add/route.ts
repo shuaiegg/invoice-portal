@@ -1,10 +1,18 @@
 import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
+import { Prisma } from "@/lib/generated/client/client";
 import type { PaymentAccountType } from "@/lib/generated/client/enums";
 import { isActiveCurrency } from "@/lib/currencies";
 import { optionalString } from "@/lib/utils";
 import { acquireWorkerProvisioningLock, provisionWorker } from "@/lib/worker-provisioning";
+import { generateClaimToken } from "@/lib/worker-claim-token";
 import { NextResponse } from "next/server";
+
+function isDuplicateTimeDoctorEmail(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") return false;
+  const target = error.meta?.target;
+  return Array.isArray(target) ? target.includes("timeDoctorEmail") : String(target ?? "").includes("timeDoctorEmail");
+}
 
 function parseAccountType(value: unknown): PaymentAccountType | null {
   return value === "WISE" || value === "PAYPAL" ? value : null;
@@ -44,9 +52,12 @@ export async function POST(request: Request) {
     ? body.accountEmail.trim()
     : null;
   try {
-    const { workerId } = await db.$transaction(async (tx) => {
+    // Slightly longer than Prisma's 5s default: this transaction is 3-4 sequential round trips
+    // (advisory lock, worker create, optional payment account, claim token update), and a cold
+    // Neon connection can push that close to the default on the first request of a session.
+    const { workerId, claimToken } = await db.$transaction(async (tx) => {
       await acquireWorkerProvisioningLock(tx);
-      return provisionWorker(tx, null, {
+      const { workerId } = await provisionWorker(tx, null, {
         name,
         timeDoctorEmail,
         hourlyRate: body.hourlyRate,
@@ -62,15 +73,22 @@ export async function POST(request: Request) {
         accountLabel: accountType === "WISE" ? "Wise" : accountType === "PAYPAL" ? "PayPal" : null,
         configuredBy: session.user.id,
       });
-    });
-    return NextResponse.json({ success: true, workerId });
+      // Claim link — only this creation path gets one (openspec/changes/close-worker-registration).
+      const { token, expiresAt } = generateClaimToken();
+      await tx.worker.update({ where: { id: workerId }, data: { claimToken: token, claimTokenExpiresAt: expiresAt } });
+      return { workerId, claimToken: token };
+    }, { maxWait: 10_000, timeout: 15_000 });
+    return NextResponse.json({ success: true, workerId, claimToken });
   } catch (error) {
+    if (isDuplicateTimeDoctorEmail(error)) {
+      return NextResponse.json({ error: "A worker with this Time Doctor email already exists" }, { status: 409 });
+    }
+    // Always logged: the client only ever sees a generic message here, so this is the only way
+    // to see what actually went wrong (e.g. a validation error's message dumps the whole write
+    // payload, which happens to always contain "timeDoctorEmail" as a field name — that used to
+    // get misclassified as a duplicate-email 409 above via a naive string-includes check).
+    console.error("manual-add worker failed:", error);
     const message = error instanceof Error ? error.message : "Failed to create worker";
-    // Unique constraint on Worker.timeDoctorEmail — someone already has this TD email.
-    const isDuplicate = message.includes("Unique constraint") || message.includes("timeDoctorEmail");
-    return NextResponse.json(
-      { error: isDuplicate ? "A worker with this Time Doctor email already exists" : message },
-      { status: isDuplicate ? 409 : 400 },
-    );
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

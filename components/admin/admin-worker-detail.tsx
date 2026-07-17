@@ -14,14 +14,17 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { 
-  ArrowLeft, 
-  User, 
-  Mail, 
-  MapPin, 
-  CreditCard, 
-  ShieldCheck, 
-  History
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  MapPin,
+  CreditCard,
+  ShieldCheck,
+  History,
+  Check,
+  Copy,
+  Link2,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -53,8 +56,33 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
   const [hourlyRate, setHourlyRate] = useState(worker.hourlyRate?.toString() || "");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [claimLinkLoading, setClaimLinkLoading] = useState(false);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [claimCopied, setClaimCopied] = useState(false);
   const paymentAccounts = worker.paymentAccounts || [];
   const preferredAccount = paymentAccounts.find((account) => account.isPreferred);
+
+  const handleRegenerateClaimLink = async () => {
+    setClaimLinkLoading(true);
+    try {
+      const response = await fetch(`/api/admin/workers/${worker.id}/claim-link`, { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to generate claim link");
+      setClaimUrl(`${window.location.origin}/claim/${data.claimToken}`);
+      setClaimCopied(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to generate claim link");
+    } finally {
+      setClaimLinkLoading(false);
+    }
+  };
+
+  const handleCopyClaimLink = async () => {
+    if (!claimUrl) return;
+    await navigator.clipboard.writeText(claimUrl);
+    setClaimCopied(true);
+    setTimeout(() => setClaimCopied(false), 2000);
+  };
 
   const handleToggleActive = async () => {
     setLoading(true);
@@ -156,6 +184,28 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
               </div>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
+              {!worker.userId ? (
+                <div className="rounded-md border border-border bg-accent/10 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold uppercase text-secondary-text tracking-wider flex items-center gap-1.5">
+                      <Link2 className="h-3.5 w-3.5" /> Claim link
+                    </span>
+                    <Button size="sm" variant="outline" onClick={handleRegenerateClaimLink} disabled={claimLinkLoading}>
+                      {claimLinkLoading ? "Generating…" : claimUrl ? "Regenerate" : "Generate claim link"}
+                    </Button>
+                  </div>
+                  {claimUrl ? (
+                    <div className="flex items-center gap-2">
+                      <Input readOnly value={claimUrl} className="font-mono text-xs" onFocus={(e) => e.target.select()} />
+                      <Button type="button" size="icon" variant="outline" onClick={handleCopyClaimLink} aria-label="Copy link">
+                        {claimCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-secondary-text">Generates a one-time link so this worker can set their own password, bypassing the normal self-register flow.</p>
+                  )}
+                </div>
+              ) : null}
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Mail className="h-4 w-4 text-secondary-text mt-0.5" />
