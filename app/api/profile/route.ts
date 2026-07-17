@@ -14,22 +14,20 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = session.user.id;
-
-  // Find or create worker profile
-  let worker = await db.worker.findUnique({
-    where: { userId },
+  const worker = await db.worker.findUnique({
+    where: { userId: session.user.id },
   });
 
+  // No auto-create fallback: a Worker row only exists here if the sign-up `after:create` hook
+  // (claimPreprovisionedWorker) already claimed a pre-provisioned one for this email. If it
+  // didn't, there's no legitimate claim — silently vivifying one is exactly the gap that let any
+  // authenticated user obtain a working profile regardless of any real relationship to the
+  // company. See openspec/changes/td-sync-worker-onboarding.
   if (!worker) {
-    // We create a skeleton worker record if it doesn't exist yet
-    // The name is required in the DB, so we use the user's name or a default
-    worker = await db.worker.create({
-      data: {
-        userId,
-        name: session.user.name || "Worker",
-      },
-    });
+    return NextResponse.json(
+      { error: "not_recognized", message: "Your account isn't linked to a worker profile. Contact your administrator." },
+      { status: 404 },
+    );
   }
 
   return NextResponse.json(worker);
@@ -57,6 +55,9 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "Invalid payment type" }, { status: 400 });
   }
 
+  // timeDoctorEmail is intentionally not in this list — it's the identity key pre-provisioned
+  // workers are claimed by, and is admin-managed only (see PUT /api/admin/workers/[id]) since a
+  // worker editing their own would let them collide with someone else's TD email.
   const profileData = {
     name: data.name,
     team: optionalString(data.team),
@@ -67,17 +68,19 @@ export async function PUT(req: Request) {
     vatRate: parseFloat(data.vatRate) || 0,
     paymentNotes: optionalString(data.paymentNotes),
     ...(paymentType ? { paymentType } : {}),
-    timeDoctorEmail: optionalString(data.timeDoctorEmail),
   };
 
-  const worker = await db.worker.upsert({
-    where: { userId },
-    update: profileData,
-    create: {
-      ...profileData,
-      userId,
-    },
-  });
+  // No upsert/auto-create: a Worker row must already exist (claimed at sign-up) — see the
+  // matching note on GET, above.
+  const existing = await db.worker.findUnique({ where: { userId }, select: { id: true } });
+  if (!existing) {
+    return NextResponse.json(
+      { error: "not_recognized", message: "Your account isn't linked to a worker profile. Contact your administrator." },
+      { status: 404 },
+    );
+  }
+
+  const worker = await db.worker.update({ where: { userId }, data: profileData });
 
   return NextResponse.json(worker);
 }

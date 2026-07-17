@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { AdminWorkerList } from "@/components/admin/admin-worker-list";
+import { AddWorkerDialog } from "@/components/admin/add-worker-dialog";
 import { Prisma } from "@/lib/generated/client/client";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/admin/stats-card";
@@ -93,12 +94,15 @@ export default async function AdminWorkersPage({
         title="Worker Management"
         subtitle="Manage worker accounts and view their submission history"
         action={
-          <Link href="/admin/workers/import">
-            <Button variant="outline">
-              <Upload className="mr-2 h-4 w-4" />
-              Import from Time Doctor
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <AddWorkerDialog />
+            <Link href="/admin/workers/import">
+              <Button variant="outline">
+                <Upload className="mr-2 h-4 w-4" />
+                Import from Time Doctor
+              </Button>
+            </Link>
+          </div>
         }
       />
 

@@ -16,7 +16,7 @@ export default async function ProfilePage() {
 
   const userId = session.user.id;
 
-  let worker = await db.worker.findUnique({
+  const worker = await db.worker.findUnique({
     where: { userId },
     include: {
       paymentAccounts: {
@@ -25,16 +25,20 @@ export default async function ProfilePage() {
     },
   });
 
+  // No auto-create fallback: a Worker row only exists here if sign-up already claimed a
+  // pre-provisioned one for this email — see app/api/profile/route.ts for the matching fix and
+  // openspec/changes/td-sync-worker-onboarding for why (this page used to duplicate the same
+  // auto-vivify gap independently of the API route, since it queries the DB directly).
   if (!worker) {
-    worker = await db.worker.create({
-      data: {
-        userId,
-        name: session.user.name || "Worker",
-      },
-      include: {
-        paymentAccounts: true,
-      },
-    });
+    return (
+      <div className="max-w-4xl mx-auto">
+        <PageHeader title="My Profile" />
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-900">
+          <h2 className="mb-2 text-lg font-semibold">Account not recognized</h2>
+          <p>Your account isn&apos;t linked to a worker profile. Contact your administrator to get set up.</p>
+        </div>
+      </div>
+    );
   }
 
   const hasLegacyPaymentData = [

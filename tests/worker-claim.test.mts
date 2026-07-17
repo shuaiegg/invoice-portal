@@ -4,7 +4,8 @@ import { claimPreprovisionedWorker } from "../lib/worker-claim.ts";
 
 test("claimPreprovisionedWorker links an unclaimed case-insensitive TD email match", async () => {
   const calls: unknown[] = [];
-  const db = {
+  const tx = {
+    $queryRaw: async () => [],
     worker: {
       findFirst: async (args: unknown) => {
         calls.push(args);
@@ -16,6 +17,7 @@ test("claimPreprovisionedWorker links an unclaimed case-insensitive TD email mat
       },
     },
   };
+  const db = { $transaction: <T,>(fn: (t: typeof tx) => Promise<T>) => fn(tx) };
 
   assert.equal(await claimPreprovisionedWorker(db, { id: "user-1", email: "Jane@Example.com" }), true);
   assert.match(JSON.stringify(calls[0]), /"mode":"insensitive"/);
@@ -23,11 +25,13 @@ test("claimPreprovisionedWorker links an unclaimed case-insensitive TD email mat
 });
 
 test("claimPreprovisionedWorker does nothing without a match", async () => {
-  const db = {
+  const tx = {
+    $queryRaw: async () => [],
     worker: {
       findFirst: async () => null,
       updateMany: async () => { throw new Error("must not update"); },
     },
   };
+  const db = { $transaction: <T,>(fn: (t: typeof tx) => Promise<T>) => fn(tx) };
   assert.equal(await claimPreprovisionedWorker(db, { id: "user-1", email: "none@example.com" }), false);
 });

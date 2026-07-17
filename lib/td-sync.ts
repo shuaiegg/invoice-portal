@@ -8,11 +8,73 @@ import { buildTdWorkerMatcher } from "./td-worker-matching";
 
 export type TdSyncOptions = { year: number; month: number; triggeredBy?: string | null };
 
+export type TdInvoiceWorker = {
+  id: string;
+  name: string;
+  hourlyRate: number;
+  currency: string;
+  vatRate: number;
+  paymentType: string;
+};
+
+// Builds the full Invoice create-data for one worker's TD-tracked hours in one billing month.
+// Shared by the main sync loop (batched invoice numbers, tdSyncRunId set) and TD sync failure
+// resolution (single invoice number per backfill, no tdSyncRunId — the invoice wasn't produced
+// by a sync run, it's a delayed backfill). invoiceDate/dueDate are derived from `year`/`month`,
+// not "now" — a failure resolved weeks later still gets the historically-correct invoice date.
+export function buildTdInvoiceData({
+  worker,
+  year,
+  month,
+  quantity,
+  invoiceNumber,
+  tdSyncRunId = null,
+}: {
+  worker: TdInvoiceWorker;
+  year: number;
+  month: number;
+  quantity: number;
+  invoiceNumber: string;
+  tdSyncRunId?: string | null;
+}) {
+  const billingMonth = `${year}-${String(month).padStart(2, "0")}`;
+  const invoiceDate = new Date(Date.UTC(year, month, 0));
+  const dueDate = new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const description = `${billingMonth} hours — Time Doctor`;
+
+  // TD hourly rates are VAT-inclusive: hours × rate is the gross the worker is
+  // paid, and any VAT is carved out of it — never added on top.
+  const gross = Math.round(quantity * worker.hourlyRate * 100) / 100;
+  const amounts = calculateInvoiceAmounts(gross, worker.vatRate, true);
+  const subtotal = Math.round(amounts.subtotal * 100) / 100;
+  const vatAmount = Math.round((gross - subtotal) * 100) / 100;
+
+  return {
+    workerId: worker.id,
+    tdSyncRunId,
+    billingMonth,
+    invoiceNumber,
+    invoiceDate,
+    dueDate,
+    serviceDate: invoiceDate,
+    status: worker.paymentType === "TD_PLUS" ? ("DRAFT" as const) : ("SUBMITTED" as const),
+    description,
+    period: billingMonth,
+    quantity,
+    rate: worker.hourlyRate,
+    subtotal,
+    vatAmount,
+    totalAmount: gross,
+    vatRate: worker.vatRate,
+    vatInclusive: true,
+    currency: worker.currency,
+    lines: { create: { description, quantity, unitRate: worker.hourlyRate, amount: gross } },
+  };
+}
+
 export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptions) {
   const billingMonth = `${year}-${String(month).padStart(2, "0")}`;
   const run = await db.tdSyncRun.create({ data: { triggeredBy, billingMonth } });
-  const invoiceDate = new Date(Date.UTC(year, month, 0));
-  const dueDate = new Date(invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000);
   let invoicesCreated = 0;
   let skippedExisting = 0;
   let matchFailed = 0;
@@ -29,13 +91,16 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
     });
     const workerMatcher = buildTdWorkerMatcher(workers);
     type PendingInvoice = {
-      worker: (typeof workers)[number];
+      worker: TdInvoiceWorker;
       quantity: number;
-      subtotal: number;
-      vatAmount: number;
-      total: number;
-      rate: number;
-      currency: string; // already validated non-null below — kept separately so it stays narrowed
+    };
+    type PendingFailure = {
+      tdUserId: string;
+      tdEmail: string;
+      tdName: string;
+      reason: "UNMATCHED" | "NEEDS_SETUP" | "MISSING_RATE";
+      workerId: string | null;
+      quantity: number;
     };
 
     // Batched up front — with 200+ TD users, checking each individually turned the sync into
@@ -53,8 +118,10 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
     // invoice, without writing anything yet — lets us reserve exactly the right number of
     // invoice numbers in one batched call instead of one atomic increment per invoice.
     const pending: PendingInvoice[] = [];
+    const pendingFailures: PendingFailure[] = [];
     for (const tdUser of totals) {
       const match = workerMatcher.match(tdUser.email);
+      const quantity = hoursFromSeconds(tdUser.totalSec);
       if (match.kind === "inactive") {
         inactiveSkipped += 1;
         continue;
@@ -64,19 +131,34 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
           ignoredSkipped += 1;
           continue;
         }
-        await db.tdMatchFailure.create({ data: {
-          syncRunId: run.id, tdUserId: tdUser.userId, tdEmail: tdUser.email, tdName: tdUser.name,
-        } });
+        pendingFailures.push({
+          tdUserId: tdUser.userId, tdEmail: tdUser.email, tdName: tdUser.name,
+          reason: "UNMATCHED", workerId: null, quantity,
+        });
         matchFailed += 1;
         continue;
       }
       const activeWorker = match.worker;
-      if (activeWorker.paymentType === "MANUAL") continue;
+      if (activeWorker.paymentType === "MANUAL") {
+        // A deliberately-configured Manual worker (admin chose it, or it came in via an import
+        // that always sets a non-MANUAL paymentType) self-reports every invoice line by hand —
+        // Worker.hourlyRate is never used for them, so there's nothing to flag. A worker who's
+        // still sitting on the schema default (never touched by CSV import or an admin) is
+        // indistinguishable from that at the paymentType level alone, which is exactly what
+        // paymentConfigured disambiguates: flag those as needing setup instead of skipping silently.
+        if (activeWorker.paymentConfigured) continue;
+        pendingFailures.push({
+          tdUserId: tdUser.userId, tdEmail: tdUser.email, tdName: tdUser.name,
+          reason: "NEEDS_SETUP", workerId: activeWorker.id, quantity,
+        });
+        matchFailed += 1;
+        continue;
+      }
       if (activeWorker.hourlyRate === null || !activeWorker.currency) {
-        await db.tdMatchFailure.create({ data: {
-          syncRunId: run.id, tdUserId: tdUser.userId, tdEmail: tdUser.email,
-          tdName: `${tdUser.name} (missing rate or currency)`,
-        } });
+        pendingFailures.push({
+          tdUserId: tdUser.userId, tdEmail: tdUser.email, tdName: tdUser.name,
+          reason: "MISSING_RATE", workerId: activeWorker.id, quantity,
+        });
         matchFailed += 1;
         continue;
       }
@@ -85,49 +167,37 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
         continue;
       }
 
-      const quantity = hoursFromSeconds(tdUser.totalSec);
-      // TD hourly rates are VAT-inclusive: hours × rate is the gross the worker is
-      // paid, and any VAT is carved out of it — never added on top.
-      const gross = Math.round(quantity * activeWorker.hourlyRate * 100) / 100;
-      const amounts = calculateInvoiceAmounts(gross, activeWorker.vatRate, true);
-      const subtotal = Math.round(amounts.subtotal * 100) / 100;
       pending.push({
-        worker: activeWorker, quantity, subtotal,
-        vatAmount: Math.round((gross - subtotal) * 100) / 100,
-        total: gross, rate: activeWorker.hourlyRate, currency: activeWorker.currency,
+        worker: {
+          id: activeWorker.id, name: activeWorker.name, hourlyRate: activeWorker.hourlyRate, currency: activeWorker.currency,
+          vatRate: activeWorker.vatRate, paymentType: activeWorker.paymentType,
+        },
+        quantity,
+      });
+    }
+
+    if (pendingFailures.length) {
+      await db.tdMatchFailure.createMany({
+        data: pendingFailures.map((f) => ({
+          syncRunId: run.id, tdUserId: f.tdUserId, tdEmail: f.tdEmail, tdName: f.tdName,
+          reason: f.reason, workerId: f.workerId, billingMonth, quantity: f.quantity,
+        })),
       });
     }
 
     const invoiceNumbers = await reserveInvoiceNumbers(year, pending.length);
-    const description = `${billingMonth} hours — Time Doctor`;
 
     for (let i = 0; i < pending.length; i += 1) {
-      const { worker: activeWorker, quantity, subtotal, vatAmount, total, rate, currency } = pending[i];
+      const { worker: activeWorker, quantity } = pending[i];
       try {
-        const invoice = await db.invoice.create({ data: {
-          workerId: activeWorker.id,
-          tdSyncRunId: run.id,
-          billingMonth,
-          invoiceNumber: invoiceNumbers[i],
-          invoiceDate,
-          dueDate,
-          serviceDate: invoiceDate,
-          status: activeWorker.paymentType === "TD_PLUS" ? "DRAFT" : "SUBMITTED",
-          description,
-          period: billingMonth,
-          quantity,
-          rate,
-          subtotal,
-          vatAmount,
-          totalAmount: total,
-          vatRate: activeWorker.vatRate,
-          vatInclusive: true,
-          currency,
-          lines: { create: { description, quantity, unitRate: rate, amount: total } },
-        } });
+        const invoice = await db.invoice.create({
+          data: buildTdInvoiceData({
+            worker: activeWorker, year, month, quantity, invoiceNumber: invoiceNumbers[i], tdSyncRunId: run.id,
+          }),
+        });
         invoicesCreated += 1;
-        totalAmount += total;
-        totalsByCurrency[currency] = (totalsByCurrency[currency] ?? 0) + total;
+        totalAmount += invoice.totalAmount;
+        totalsByCurrency[invoice.currency] = (totalsByCurrency[invoice.currency] ?? 0) + invoice.totalAmount;
         if (activeWorker.paymentType === "TD_PLUS") tdPlusDraftReady(invoice, activeWorker);
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") continue;

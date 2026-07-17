@@ -314,6 +314,23 @@ export type EnumInvoiceStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumInvoiceStatusFilter<$PrismaModel>
 }
 
+export type EnumTdFailureReasonFilter<$PrismaModel = never> = {
+  equals?: $Enums.TdFailureReason | Prisma.EnumTdFailureReasonFieldRefInput<$PrismaModel>
+  in?: $Enums.TdFailureReason[] | Prisma.ListEnumTdFailureReasonFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TdFailureReason[] | Prisma.ListEnumTdFailureReasonFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTdFailureReasonFilter<$PrismaModel> | $Enums.TdFailureReason
+}
+
+export type EnumTdFailureReasonWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TdFailureReason | Prisma.EnumTdFailureReasonFieldRefInput<$PrismaModel>
+  in?: $Enums.TdFailureReason[] | Prisma.ListEnumTdFailureReasonFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TdFailureReason[] | Prisma.ListEnumTdFailureReasonFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTdFailureReasonWithAggregatesFilter<$PrismaModel> | $Enums.TdFailureReason
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTdFailureReasonFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTdFailureReasonFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -614,6 +631,23 @@ export type NestedEnumInvoiceStatusWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumInvoiceStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumInvoiceStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumTdFailureReasonFilter<$PrismaModel = never> = {
+  equals?: $Enums.TdFailureReason | Prisma.EnumTdFailureReasonFieldRefInput<$PrismaModel>
+  in?: $Enums.TdFailureReason[] | Prisma.ListEnumTdFailureReasonFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TdFailureReason[] | Prisma.ListEnumTdFailureReasonFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTdFailureReasonFilter<$PrismaModel> | $Enums.TdFailureReason
+}
+
+export type NestedEnumTdFailureReasonWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TdFailureReason | Prisma.EnumTdFailureReasonFieldRefInput<$PrismaModel>
+  in?: $Enums.TdFailureReason[] | Prisma.ListEnumTdFailureReasonFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TdFailureReason[] | Prisma.ListEnumTdFailureReasonFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTdFailureReasonWithAggregatesFilter<$PrismaModel> | $Enums.TdFailureReason
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTdFailureReasonFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTdFailureReasonFilter<$PrismaModel>
 }
 
 

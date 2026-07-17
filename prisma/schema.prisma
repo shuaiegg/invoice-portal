@@ -31,6 +31,12 @@ enum PaymentType {
   MANUAL
 }
 
+enum TdFailureReason {
+  UNMATCHED
+  NEEDS_SETUP
+  MISSING_RATE
+}
+
 enum PaymentAccountType {
   BANK_TRANSFER
   WISE
@@ -105,7 +111,8 @@ model Worker {
   postCode            String?
   secondaryPayment    String?
   paymentType         PaymentType      @default(MANUAL)
-  timeDoctorEmail     String?
+  paymentConfigured   Boolean          @default(false)
+  timeDoctorEmail     String?          @unique
   xeroContactId       String?
   hourlyRate          Float?
   hourlyRateSource    HourlyRateSource @default(TD_IMPORT)
@@ -123,6 +130,7 @@ model Worker {
   invoices        Invoice[]
   paymentAccounts PaymentAccount[]
   rateConflicts   WorkerRateConflict[]
+  matchFailures   TdMatchFailure[]
 }
 
 model PaymentAccount {
@@ -223,17 +231,23 @@ model TdSyncRun {
 }
 
 model TdMatchFailure {
-  id         String    @id @default(cuid())
-  syncRunId  String
-  tdUserId   String
-  tdEmail    String
-  tdName     String
-  resolved   Boolean   @default(false)
-  resolvedAt DateTime?
-  syncRun    TdSyncRun @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+  id           String          @id @default(cuid())
+  syncRunId    String
+  tdUserId     String
+  tdEmail      String
+  tdName       String
+  reason       TdFailureReason @default(UNMATCHED)
+  workerId     String?
+  billingMonth String?
+  quantity     Float?
+  resolved     Boolean         @default(false)
+  resolvedAt   DateTime?
+  syncRun      TdSyncRun       @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+  worker       Worker?         @relation(fields: [workerId], references: [id], onDelete: SetNull)
 
   @@index([syncRunId])
   @@index([resolved])
+  @@index([workerId])
 }
 
 // TD users who should never be treated as invoiceable workers (e.g. the company owner's own

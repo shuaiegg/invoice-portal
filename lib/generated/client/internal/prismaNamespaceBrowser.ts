@@ -151,6 +151,7 @@ export const WorkerScalarFieldEnum = {
   postCode: 'postCode',
   secondaryPayment: 'secondaryPayment',
   paymentType: 'paymentType',
+  paymentConfigured: 'paymentConfigured',
   timeDoctorEmail: 'timeDoctorEmail',
   xeroContactId: 'xeroContactId',
   hourlyRate: 'hourlyRate',
@@ -259,6 +260,10 @@ export const TdMatchFailureScalarFieldEnum = {
   tdUserId: 'tdUserId',
   tdEmail: 'tdEmail',
   tdName: 'tdName',
+  reason: 'reason',
+  workerId: 'workerId',
+  billingMonth: 'billingMonth',
+  quantity: 'quantity',
   resolved: 'resolved',
   resolvedAt: 'resolvedAt'
 } as const

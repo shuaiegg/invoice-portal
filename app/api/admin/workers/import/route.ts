@@ -4,6 +4,7 @@ import { Prisma } from "@/lib/generated/client/client";
 import { tdWorkerInvite } from "@/lib/slack";
 import { buildTdWorkerMatcher } from "@/lib/td-worker-matching";
 import { fetchTeamsByEmail } from "@/lib/timedoctor";
+import { acquireWorkerProvisioningLock, provisionWorker } from "@/lib/worker-provisioning";
 import {
   decideRateImport,
   isTransientConnectionError,
@@ -49,11 +50,12 @@ export async function POST(request: Request) {
       const createdWorkers: Array<{ name: string; timeDoctorEmail: string }> = [];
       // Non-blocking advisory lock, held for the transaction's lifetime and auto-released on
       // commit/rollback. Prevents two overlapping imports (e.g. an impatient double-click) from
-      // racing on the same rows — Worker.timeDoctorEmail has no unique constraint, so without this
-      // two concurrent transactions could each decide "no existing worker" for the same email and
-      // both insert, or otherwise step on each other's writes.
-      const [lock] = await tx.$queryRaw<{ locked: boolean }[]>`SELECT pg_try_advisory_xact_lock(hashtext('worker-import')) AS locked`;
-      if (!lock?.locked) {
+      // racing on the same rows — and, since Worker.timeDoctorEmail is unique, from racing the
+      // other worker-creation entry points (TD sync failure resolution, manual admin add) that
+      // share this same lock via lib/worker-provisioning.ts.
+      try {
+        await acquireWorkerProvisioningLock(tx);
+      } catch {
         throw new Error("Another Time Doctor import is already running. Please wait for it to finish before starting a new one.");
       }
 
@@ -102,33 +104,23 @@ export async function POST(request: Request) {
         const accountType = paymentAccountTypeForTdMethod(row.paymentMethod);
         const team = teamsByEmail.get(row.email);
 
+        const accountEmail = accountType === "PAYPAL" ? row.email : null;
+
         if (!worker) {
-          const created = await tx.worker.create({
-            data: {
-              userId: null,
-              name: row.name,
-              timeDoctorEmail: row.email,
-              hourlyRate: row.hourlyRate,
-              hourlyRateSource: "TD_IMPORT",
-              hourlyRateUpdatedAt: new Date(),
-              currency: row.currency,
-              paymentMethod: row.paymentMethod,
-              paymentType: TD_IMPORT_PAYMENT_TYPE,
-              ...(team ? { team } : {}),
-            },
+          await provisionWorker(tx, null, {
+            name: row.name,
+            timeDoctorEmail: row.email,
+            team,
+            hourlyRate: row.hourlyRate,
+            hourlyRateSource: "TD_IMPORT",
+            currency: row.currency,
+            paymentType: TD_IMPORT_PAYMENT_TYPE,
+            paymentMethod: row.paymentMethod,
+            accountType,
+            accountEmail,
+            configuredBy: null,
           });
-          if (accountType) {
-            await tx.paymentAccount.create({
-              data: {
-                workerId: created.id,
-                type: accountType,
-                email: accountType === "PAYPAL" ? row.email : null,
-                label: `Time Doctor ${row.paymentMethod}`,
-                isPreferred: true,
-              },
-            });
-          }
-          createdWorkers.push({ name: created.name, timeDoctorEmail: row.email });
+          createdWorkers.push({ name: row.name, timeDoctorEmail: row.email });
           createdCount += 1;
           continue;
         }
@@ -144,49 +136,38 @@ export async function POST(request: Request) {
             },
           });
           conflictCount += 1;
+
+          // Rate is deliberately left untouched on conflict, but payment-account details (Wise/
+          // PayPal identifiers) aren't part of the rate conflict — those still get refreshed.
+          if (accountType) {
+            const account = await tx.paymentAccount.findFirst({ where: { workerId: worker.id, type: accountType } });
+            if (account) {
+              await tx.paymentAccount.update({ where: { id: account.id }, data: { email: accountEmail ?? account.email } });
+            } else {
+              await tx.paymentAccount.create({
+                data: { workerId: worker.id, type: accountType, email: accountEmail, label: `Time Doctor ${row.paymentMethod}` },
+              });
+            }
+          }
         } else {
-          await tx.worker.update({
-            where: { id: worker.id },
-            data: {
-              name: row.name,
-              // Backfill timeDoctorEmail if this worker was only found via the user.email
-              // fallback — self-heals the primary match key so future imports/syncs don't
-              // need the fallback at all.
-              timeDoctorEmail: row.email,
-              hourlyRate: row.hourlyRate,
-              hourlyRateSource: "TD_IMPORT",
-              hourlyRateUpdatedAt: new Date(),
-              hourlyRateUpdatedBy: null,
-              currency: row.currency,
-              paymentMethod: row.paymentMethod,
-              paymentType: TD_IMPORT_PAYMENT_TYPE,
-              // Best-effort: only overwrite team when this run actually resolved one for this
-              // email, so a failed/partial TD tags lookup never wipes out a previously-set team.
-              ...(team ? { team } : {}),
-            },
+          // Backfill timeDoctorEmail if this worker was only found via the user.email fallback —
+          // self-heals the primary match key so future imports/syncs don't need the fallback at all.
+          await provisionWorker(tx, worker.id, {
+            name: row.name,
+            timeDoctorEmail: row.email,
+            // Best-effort: only overwrite team when this run actually resolved one for this
+            // email, so a failed/partial TD tags lookup never wipes out a previously-set team.
+            team,
+            hourlyRate: row.hourlyRate,
+            hourlyRateSource: "TD_IMPORT",
+            currency: row.currency,
+            paymentType: TD_IMPORT_PAYMENT_TYPE,
+            paymentMethod: row.paymentMethod,
+            accountType,
+            accountEmail,
+            configuredBy: null,
           });
           updatedCount += 1;
-        }
-
-        if (accountType) {
-          const account = await tx.paymentAccount.findFirst({
-            where: { workerId: worker.id, type: accountType },
-          });
-          if (account) {
-            await tx.paymentAccount.update({
-              where: { id: account.id },
-              data: { email: accountType === "PAYPAL" ? row.email : account.email },
-            });
-          } else {
-            await tx.paymentAccount.create({
-              data: {
-                workerId: worker.id,
-                type: accountType,
-                email: accountType === "PAYPAL" ? row.email : null,
-                label: `Time Doctor ${row.paymentMethod}`,
-              },
-            });
-          }
         }
       }
 

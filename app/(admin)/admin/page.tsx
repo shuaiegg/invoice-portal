@@ -139,7 +139,7 @@ export default async function AdminDashboardPage({
 
       <TdSyncPanel
         runs={syncRuns.map((run) => ({ ...run, runAt: run.runAt.toISOString(), triggeredByName: run.triggeredBy ? actorNames.get(run.triggeredBy) || "Admin" : "Cron" }))}
-        failures={syncFailures.map(({ id, tdName, tdEmail }) => ({ id, tdName, tdEmail }))}
+        failures={syncFailures.map(({ id, tdName, tdEmail, reason, workerId, quantity, billingMonth }) => ({ id, tdName, tdEmail, reason, workerId, quantity, billingMonth }))}
         workers={syncWorkers}
       />
 

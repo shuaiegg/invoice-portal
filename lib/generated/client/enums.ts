@@ -45,6 +45,15 @@ export const PaymentType = {
 export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
 
 
+export const TdFailureReason = {
+  UNMATCHED: 'UNMATCHED',
+  NEEDS_SETUP: 'NEEDS_SETUP',
+  MISSING_RATE: 'MISSING_RATE'
+} as const
+
+export type TdFailureReason = (typeof TdFailureReason)[keyof typeof TdFailureReason]
+
+
 export const PaymentAccountType = {
   BANK_TRANSFER: 'BANK_TRANSFER',
   WISE: 'WISE',

@@ -1708,6 +1708,7 @@ export const WorkerScalarFieldEnum = {
   postCode: 'postCode',
   secondaryPayment: 'secondaryPayment',
   paymentType: 'paymentType',
+  paymentConfigured: 'paymentConfigured',
   timeDoctorEmail: 'timeDoctorEmail',
   xeroContactId: 'xeroContactId',
   hourlyRate: 'hourlyRate',
@@ -1816,6 +1817,10 @@ export const TdMatchFailureScalarFieldEnum = {
   tdUserId: 'tdUserId',
   tdEmail: 'tdEmail',
   tdName: 'tdName',
+  reason: 'reason',
+  workerId: 'workerId',
+  billingMonth: 'billingMonth',
+  quantity: 'quantity',
   resolved: 'resolved',
   resolvedAt: 'resolvedAt'
 } as const
@@ -2073,6 +2078,20 @@ export type EnumInvoiceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'InvoiceStatus[]'
  */
 export type ListEnumInvoiceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvoiceStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TdFailureReason'
+ */
+export type EnumTdFailureReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TdFailureReason'>
+    
+
+
+/**
+ * Reference to a field of type 'TdFailureReason[]'
+ */
+export type ListEnumTdFailureReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TdFailureReason[]'>
     
 
 /**

@@ -182,19 +182,15 @@ export function ProfileForm({ initialData, paymentAccounts, hasLegacyPaymentData
           <CardDescription>Optional routing details outside payment methods</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="timeDoctorEmail">Time Doctor Email (Optional)</Label>
-              <Input
-                id="timeDoctorEmail"
-                type="email"
-                value={formData.timeDoctorEmail || ""}
-                onChange={handleChange}
-                disabled={loading}
-                placeholder="timedoctor@example.com"
-              />
+          {formData.timeDoctorEmail ? (
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="timeDoctorEmail">Time Doctor Email</Label>
+                <Input id="timeDoctorEmail" type="email" value={formData.timeDoctorEmail} disabled readOnly />
+                <p className="text-xs text-secondary-text">Managed by your administrator — contact them to change this.</p>
+              </div>
             </div>
-          </div>
+          ) : null}
           <div className="grid gap-2">
             <Label htmlFor="paymentNotes">Payment Notes (Optional)</Label>
             <Textarea

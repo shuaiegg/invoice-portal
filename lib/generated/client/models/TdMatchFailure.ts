@@ -20,8 +20,18 @@ export type TdMatchFailureModel = runtime.Types.Result.DefaultSelection<Prisma.$
 
 export type AggregateTdMatchFailure = {
   _count: TdMatchFailureCountAggregateOutputType | null
+  _avg: TdMatchFailureAvgAggregateOutputType | null
+  _sum: TdMatchFailureSumAggregateOutputType | null
   _min: TdMatchFailureMinAggregateOutputType | null
   _max: TdMatchFailureMaxAggregateOutputType | null
+}
+
+export type TdMatchFailureAvgAggregateOutputType = {
+  quantity: number | null
+}
+
+export type TdMatchFailureSumAggregateOutputType = {
+  quantity: number | null
 }
 
 export type TdMatchFailureMinAggregateOutputType = {
@@ -30,6 +40,10 @@ export type TdMatchFailureMinAggregateOutputType = {
   tdUserId: string | null
   tdEmail: string | null
   tdName: string | null
+  reason: $Enums.TdFailureReason | null
+  workerId: string | null
+  billingMonth: string | null
+  quantity: number | null
   resolved: boolean | null
   resolvedAt: Date | null
 }
@@ -40,6 +54,10 @@ export type TdMatchFailureMaxAggregateOutputType = {
   tdUserId: string | null
   tdEmail: string | null
   tdName: string | null
+  reason: $Enums.TdFailureReason | null
+  workerId: string | null
+  billingMonth: string | null
+  quantity: number | null
   resolved: boolean | null
   resolvedAt: Date | null
 }
@@ -50,11 +68,23 @@ export type TdMatchFailureCountAggregateOutputType = {
   tdUserId: number
   tdEmail: number
   tdName: number
+  reason: number
+  workerId: number
+  billingMonth: number
+  quantity: number
   resolved: number
   resolvedAt: number
   _all: number
 }
 
+
+export type TdMatchFailureAvgAggregateInputType = {
+  quantity?: true
+}
+
+export type TdMatchFailureSumAggregateInputType = {
+  quantity?: true
+}
 
 export type TdMatchFailureMinAggregateInputType = {
   id?: true
@@ -62,6 +92,10 @@ export type TdMatchFailureMinAggregateInputType = {
   tdUserId?: true
   tdEmail?: true
   tdName?: true
+  reason?: true
+  workerId?: true
+  billingMonth?: true
+  quantity?: true
   resolved?: true
   resolvedAt?: true
 }
@@ -72,6 +106,10 @@ export type TdMatchFailureMaxAggregateInputType = {
   tdUserId?: true
   tdEmail?: true
   tdName?: true
+  reason?: true
+  workerId?: true
+  billingMonth?: true
+  quantity?: true
   resolved?: true
   resolvedAt?: true
 }
@@ -82,6 +120,10 @@ export type TdMatchFailureCountAggregateInputType = {
   tdUserId?: true
   tdEmail?: true
   tdName?: true
+  reason?: true
+  workerId?: true
+  billingMonth?: true
+  quantity?: true
   resolved?: true
   resolvedAt?: true
   _all?: true
@@ -125,6 +167,18 @@ export type TdMatchFailureAggregateArgs<ExtArgs extends runtime.Types.Extensions
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: TdMatchFailureAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: TdMatchFailureSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: TdMatchFailureMinAggregateInputType
@@ -155,6 +209,8 @@ export type TdMatchFailureGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   _count?: TdMatchFailureCountAggregateInputType | true
+  _avg?: TdMatchFailureAvgAggregateInputType
+  _sum?: TdMatchFailureSumAggregateInputType
   _min?: TdMatchFailureMinAggregateInputType
   _max?: TdMatchFailureMaxAggregateInputType
 }
@@ -165,9 +221,15 @@ export type TdMatchFailureGroupByOutputType = {
   tdUserId: string
   tdEmail: string
   tdName: string
+  reason: $Enums.TdFailureReason
+  workerId: string | null
+  billingMonth: string | null
+  quantity: number | null
   resolved: boolean
   resolvedAt: Date | null
   _count: TdMatchFailureCountAggregateOutputType | null
+  _avg: TdMatchFailureAvgAggregateOutputType | null
+  _sum: TdMatchFailureSumAggregateOutputType | null
   _min: TdMatchFailureMinAggregateOutputType | null
   _max: TdMatchFailureMaxAggregateOutputType | null
 }
@@ -196,9 +258,14 @@ export type TdMatchFailureWhereInput = {
   tdUserId?: Prisma.StringFilter<"TdMatchFailure"> | string
   tdEmail?: Prisma.StringFilter<"TdMatchFailure"> | string
   tdName?: Prisma.StringFilter<"TdMatchFailure"> | string
+  reason?: Prisma.EnumTdFailureReasonFilter<"TdMatchFailure"> | $Enums.TdFailureReason
+  workerId?: Prisma.StringNullableFilter<"TdMatchFailure"> | string | null
+  billingMonth?: Prisma.StringNullableFilter<"TdMatchFailure"> | string | null
+  quantity?: Prisma.FloatNullableFilter<"TdMatchFailure"> | number | null
   resolved?: Prisma.BoolFilter<"TdMatchFailure"> | boolean
   resolvedAt?: Prisma.DateTimeNullableFilter<"TdMatchFailure"> | Date | string | null
   syncRun?: Prisma.XOR<Prisma.TdSyncRunScalarRelationFilter, Prisma.TdSyncRunWhereInput>
+  worker?: Prisma.XOR<Prisma.WorkerNullableScalarRelationFilter, Prisma.WorkerWhereInput> | null
 }
 
 export type TdMatchFailureOrderByWithRelationInput = {
@@ -207,9 +274,14 @@ export type TdMatchFailureOrderByWithRelationInput = {
   tdUserId?: Prisma.SortOrder
   tdEmail?: Prisma.SortOrder
   tdName?: Prisma.SortOrder
+  reason?: Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  billingMonth?: Prisma.SortOrderInput | Prisma.SortOrder
+  quantity?: Prisma.SortOrderInput | Prisma.SortOrder
   resolved?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   syncRun?: Prisma.TdSyncRunOrderByWithRelationInput
+  worker?: Prisma.WorkerOrderByWithRelationInput
 }
 
 export type TdMatchFailureWhereUniqueInput = Prisma.AtLeast<{
@@ -221,9 +293,14 @@ export type TdMatchFailureWhereUniqueInput = Prisma.AtLeast<{
   tdUserId?: Prisma.StringFilter<"TdMatchFailure"> | string
   tdEmail?: Prisma.StringFilter<"TdMatchFailure"> | string
   tdName?: Prisma.StringFilter<"TdMatchFailure"> | string
+  reason?: Prisma.EnumTdFailureReasonFilter<"TdMatchFailure"> | $Enums.TdFailureReason
+  workerId?: Prisma.StringNullableFilter<"TdMatchFailure"> | string | null
+  billingMonth?: Prisma.StringNullableFilter<"TdMatchFailure"> | string | null
+  quantity?: Prisma.FloatNullableFilter<"TdMatchFailure"> | number | null
   resolved?: Prisma.BoolFilter<"TdMatchFailure"> | boolean
   resolvedAt?: Prisma.DateTimeNullableFilter<"TdMatchFailure"> | Date | string | null
   syncRun?: Prisma.XOR<Prisma.TdSyncRunScalarRelationFilter, Prisma.TdSyncRunWhereInput>
+  worker?: Prisma.XOR<Prisma.WorkerNullableScalarRelationFilter, Prisma.WorkerWhereInput> | null
 }, "id">
 
 export type TdMatchFailureOrderByWithAggregationInput = {
@@ -232,11 +309,17 @@ export type TdMatchFailureOrderByWithAggregationInput = {
   tdUserId?: Prisma.SortOrder
   tdEmail?: Prisma.SortOrder
   tdName?: Prisma.SortOrder
+  reason?: Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  billingMonth?: Prisma.SortOrderInput | Prisma.SortOrder
+  quantity?: Prisma.SortOrderInput | Prisma.SortOrder
   resolved?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TdMatchFailureCountOrderByAggregateInput
+  _avg?: Prisma.TdMatchFailureAvgOrderByAggregateInput
   _max?: Prisma.TdMatchFailureMaxOrderByAggregateInput
   _min?: Prisma.TdMatchFailureMinOrderByAggregateInput
+  _sum?: Prisma.TdMatchFailureSumOrderByAggregateInput
 }
 
 export type TdMatchFailureScalarWhereWithAggregatesInput = {
@@ -248,6 +331,10 @@ export type TdMatchFailureScalarWhereWithAggregatesInput = {
   tdUserId?: Prisma.StringWithAggregatesFilter<"TdMatchFailure"> | string
   tdEmail?: Prisma.StringWithAggregatesFilter<"TdMatchFailure"> | string
   tdName?: Prisma.StringWithAggregatesFilter<"TdMatchFailure"> | string
+  reason?: Prisma.EnumTdFailureReasonWithAggregatesFilter<"TdMatchFailure"> | $Enums.TdFailureReason
+  workerId?: Prisma.StringNullableWithAggregatesFilter<"TdMatchFailure"> | string | null
+  billingMonth?: Prisma.StringNullableWithAggregatesFilter<"TdMatchFailure"> | string | null
+  quantity?: Prisma.FloatNullableWithAggregatesFilter<"TdMatchFailure"> | number | null
   resolved?: Prisma.BoolWithAggregatesFilter<"TdMatchFailure"> | boolean
   resolvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TdMatchFailure"> | Date | string | null
 }
@@ -257,9 +344,13 @@ export type TdMatchFailureCreateInput = {
   tdUserId: string
   tdEmail: string
   tdName: string
+  reason?: $Enums.TdFailureReason
+  billingMonth?: string | null
+  quantity?: number | null
   resolved?: boolean
   resolvedAt?: Date | string | null
   syncRun: Prisma.TdSyncRunCreateNestedOneWithoutMatchFailuresInput
+  worker?: Prisma.WorkerCreateNestedOneWithoutMatchFailuresInput
 }
 
 export type TdMatchFailureUncheckedCreateInput = {
@@ -268,6 +359,10 @@ export type TdMatchFailureUncheckedCreateInput = {
   tdUserId: string
   tdEmail: string
   tdName: string
+  reason?: $Enums.TdFailureReason
+  workerId?: string | null
+  billingMonth?: string | null
+  quantity?: number | null
   resolved?: boolean
   resolvedAt?: Date | string | null
 }
@@ -277,9 +372,13 @@ export type TdMatchFailureUpdateInput = {
   tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
   tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
   tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   syncRun?: Prisma.TdSyncRunUpdateOneRequiredWithoutMatchFailuresNestedInput
+  worker?: Prisma.WorkerUpdateOneWithoutMatchFailuresNestedInput
 }
 
 export type TdMatchFailureUncheckedUpdateInput = {
@@ -288,6 +387,10 @@ export type TdMatchFailureUncheckedUpdateInput = {
   tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
   tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
   tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -298,6 +401,10 @@ export type TdMatchFailureCreateManyInput = {
   tdUserId: string
   tdEmail: string
   tdName: string
+  reason?: $Enums.TdFailureReason
+  workerId?: string | null
+  billingMonth?: string | null
+  quantity?: number | null
   resolved?: boolean
   resolvedAt?: Date | string | null
 }
@@ -307,6 +414,9 @@ export type TdMatchFailureUpdateManyMutationInput = {
   tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
   tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
   tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -317,6 +427,10 @@ export type TdMatchFailureUncheckedUpdateManyInput = {
   tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
   tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
   tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -337,8 +451,16 @@ export type TdMatchFailureCountOrderByAggregateInput = {
   tdUserId?: Prisma.SortOrder
   tdEmail?: Prisma.SortOrder
   tdName?: Prisma.SortOrder
+  reason?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
+  billingMonth?: Prisma.SortOrder
+  quantity?: Prisma.SortOrder
   resolved?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
+}
+
+export type TdMatchFailureAvgOrderByAggregateInput = {
+  quantity?: Prisma.SortOrder
 }
 
 export type TdMatchFailureMaxOrderByAggregateInput = {
@@ -347,6 +469,10 @@ export type TdMatchFailureMaxOrderByAggregateInput = {
   tdUserId?: Prisma.SortOrder
   tdEmail?: Prisma.SortOrder
   tdName?: Prisma.SortOrder
+  reason?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
+  billingMonth?: Prisma.SortOrder
+  quantity?: Prisma.SortOrder
   resolved?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
 }
@@ -357,8 +483,58 @@ export type TdMatchFailureMinOrderByAggregateInput = {
   tdUserId?: Prisma.SortOrder
   tdEmail?: Prisma.SortOrder
   tdName?: Prisma.SortOrder
+  reason?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
+  billingMonth?: Prisma.SortOrder
+  quantity?: Prisma.SortOrder
   resolved?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
+}
+
+export type TdMatchFailureSumOrderByAggregateInput = {
+  quantity?: Prisma.SortOrder
+}
+
+export type TdMatchFailureCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.TdMatchFailureCreateWithoutWorkerInput, Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput> | Prisma.TdMatchFailureCreateWithoutWorkerInput[] | Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.TdMatchFailureCreateOrConnectWithoutWorkerInput | Prisma.TdMatchFailureCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.TdMatchFailureCreateManyWorkerInputEnvelope
+  connect?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+}
+
+export type TdMatchFailureUncheckedCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.TdMatchFailureCreateWithoutWorkerInput, Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput> | Prisma.TdMatchFailureCreateWithoutWorkerInput[] | Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.TdMatchFailureCreateOrConnectWithoutWorkerInput | Prisma.TdMatchFailureCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.TdMatchFailureCreateManyWorkerInputEnvelope
+  connect?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+}
+
+export type TdMatchFailureUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.TdMatchFailureCreateWithoutWorkerInput, Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput> | Prisma.TdMatchFailureCreateWithoutWorkerInput[] | Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.TdMatchFailureCreateOrConnectWithoutWorkerInput | Prisma.TdMatchFailureCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.TdMatchFailureUpsertWithWhereUniqueWithoutWorkerInput | Prisma.TdMatchFailureUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.TdMatchFailureCreateManyWorkerInputEnvelope
+  set?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+  disconnect?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+  delete?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+  connect?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+  update?: Prisma.TdMatchFailureUpdateWithWhereUniqueWithoutWorkerInput | Prisma.TdMatchFailureUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.TdMatchFailureUpdateManyWithWhereWithoutWorkerInput | Prisma.TdMatchFailureUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.TdMatchFailureScalarWhereInput | Prisma.TdMatchFailureScalarWhereInput[]
+}
+
+export type TdMatchFailureUncheckedUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.TdMatchFailureCreateWithoutWorkerInput, Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput> | Prisma.TdMatchFailureCreateWithoutWorkerInput[] | Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.TdMatchFailureCreateOrConnectWithoutWorkerInput | Prisma.TdMatchFailureCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.TdMatchFailureUpsertWithWhereUniqueWithoutWorkerInput | Prisma.TdMatchFailureUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.TdMatchFailureCreateManyWorkerInputEnvelope
+  set?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+  disconnect?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+  delete?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+  connect?: Prisma.TdMatchFailureWhereUniqueInput | Prisma.TdMatchFailureWhereUniqueInput[]
+  update?: Prisma.TdMatchFailureUpdateWithWhereUniqueWithoutWorkerInput | Prisma.TdMatchFailureUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.TdMatchFailureUpdateManyWithWhereWithoutWorkerInput | Prisma.TdMatchFailureUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.TdMatchFailureScalarWhereInput | Prisma.TdMatchFailureScalarWhereInput[]
 }
 
 export type TdMatchFailureCreateNestedManyWithoutSyncRunInput = {
@@ -403,13 +579,90 @@ export type TdMatchFailureUncheckedUpdateManyWithoutSyncRunNestedInput = {
   deleteMany?: Prisma.TdMatchFailureScalarWhereInput | Prisma.TdMatchFailureScalarWhereInput[]
 }
 
+export type EnumTdFailureReasonFieldUpdateOperationsInput = {
+  set?: $Enums.TdFailureReason
+}
+
+export type TdMatchFailureCreateWithoutWorkerInput = {
+  id?: string
+  tdUserId: string
+  tdEmail: string
+  tdName: string
+  reason?: $Enums.TdFailureReason
+  billingMonth?: string | null
+  quantity?: number | null
+  resolved?: boolean
+  resolvedAt?: Date | string | null
+  syncRun: Prisma.TdSyncRunCreateNestedOneWithoutMatchFailuresInput
+}
+
+export type TdMatchFailureUncheckedCreateWithoutWorkerInput = {
+  id?: string
+  syncRunId: string
+  tdUserId: string
+  tdEmail: string
+  tdName: string
+  reason?: $Enums.TdFailureReason
+  billingMonth?: string | null
+  quantity?: number | null
+  resolved?: boolean
+  resolvedAt?: Date | string | null
+}
+
+export type TdMatchFailureCreateOrConnectWithoutWorkerInput = {
+  where: Prisma.TdMatchFailureWhereUniqueInput
+  create: Prisma.XOR<Prisma.TdMatchFailureCreateWithoutWorkerInput, Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput>
+}
+
+export type TdMatchFailureCreateManyWorkerInputEnvelope = {
+  data: Prisma.TdMatchFailureCreateManyWorkerInput | Prisma.TdMatchFailureCreateManyWorkerInput[]
+  skipDuplicates?: boolean
+}
+
+export type TdMatchFailureUpsertWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.TdMatchFailureWhereUniqueInput
+  update: Prisma.XOR<Prisma.TdMatchFailureUpdateWithoutWorkerInput, Prisma.TdMatchFailureUncheckedUpdateWithoutWorkerInput>
+  create: Prisma.XOR<Prisma.TdMatchFailureCreateWithoutWorkerInput, Prisma.TdMatchFailureUncheckedCreateWithoutWorkerInput>
+}
+
+export type TdMatchFailureUpdateWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.TdMatchFailureWhereUniqueInput
+  data: Prisma.XOR<Prisma.TdMatchFailureUpdateWithoutWorkerInput, Prisma.TdMatchFailureUncheckedUpdateWithoutWorkerInput>
+}
+
+export type TdMatchFailureUpdateManyWithWhereWithoutWorkerInput = {
+  where: Prisma.TdMatchFailureScalarWhereInput
+  data: Prisma.XOR<Prisma.TdMatchFailureUpdateManyMutationInput, Prisma.TdMatchFailureUncheckedUpdateManyWithoutWorkerInput>
+}
+
+export type TdMatchFailureScalarWhereInput = {
+  AND?: Prisma.TdMatchFailureScalarWhereInput | Prisma.TdMatchFailureScalarWhereInput[]
+  OR?: Prisma.TdMatchFailureScalarWhereInput[]
+  NOT?: Prisma.TdMatchFailureScalarWhereInput | Prisma.TdMatchFailureScalarWhereInput[]
+  id?: Prisma.StringFilter<"TdMatchFailure"> | string
+  syncRunId?: Prisma.StringFilter<"TdMatchFailure"> | string
+  tdUserId?: Prisma.StringFilter<"TdMatchFailure"> | string
+  tdEmail?: Prisma.StringFilter<"TdMatchFailure"> | string
+  tdName?: Prisma.StringFilter<"TdMatchFailure"> | string
+  reason?: Prisma.EnumTdFailureReasonFilter<"TdMatchFailure"> | $Enums.TdFailureReason
+  workerId?: Prisma.StringNullableFilter<"TdMatchFailure"> | string | null
+  billingMonth?: Prisma.StringNullableFilter<"TdMatchFailure"> | string | null
+  quantity?: Prisma.FloatNullableFilter<"TdMatchFailure"> | number | null
+  resolved?: Prisma.BoolFilter<"TdMatchFailure"> | boolean
+  resolvedAt?: Prisma.DateTimeNullableFilter<"TdMatchFailure"> | Date | string | null
+}
+
 export type TdMatchFailureCreateWithoutSyncRunInput = {
   id?: string
   tdUserId: string
   tdEmail: string
   tdName: string
+  reason?: $Enums.TdFailureReason
+  billingMonth?: string | null
+  quantity?: number | null
   resolved?: boolean
   resolvedAt?: Date | string | null
+  worker?: Prisma.WorkerCreateNestedOneWithoutMatchFailuresInput
 }
 
 export type TdMatchFailureUncheckedCreateWithoutSyncRunInput = {
@@ -417,6 +670,10 @@ export type TdMatchFailureUncheckedCreateWithoutSyncRunInput = {
   tdUserId: string
   tdEmail: string
   tdName: string
+  reason?: $Enums.TdFailureReason
+  workerId?: string | null
+  billingMonth?: string | null
+  quantity?: number | null
   resolved?: boolean
   resolvedAt?: Date | string | null
 }
@@ -447,17 +704,56 @@ export type TdMatchFailureUpdateManyWithWhereWithoutSyncRunInput = {
   data: Prisma.XOR<Prisma.TdMatchFailureUpdateManyMutationInput, Prisma.TdMatchFailureUncheckedUpdateManyWithoutSyncRunInput>
 }
 
-export type TdMatchFailureScalarWhereInput = {
-  AND?: Prisma.TdMatchFailureScalarWhereInput | Prisma.TdMatchFailureScalarWhereInput[]
-  OR?: Prisma.TdMatchFailureScalarWhereInput[]
-  NOT?: Prisma.TdMatchFailureScalarWhereInput | Prisma.TdMatchFailureScalarWhereInput[]
-  id?: Prisma.StringFilter<"TdMatchFailure"> | string
-  syncRunId?: Prisma.StringFilter<"TdMatchFailure"> | string
-  tdUserId?: Prisma.StringFilter<"TdMatchFailure"> | string
-  tdEmail?: Prisma.StringFilter<"TdMatchFailure"> | string
-  tdName?: Prisma.StringFilter<"TdMatchFailure"> | string
-  resolved?: Prisma.BoolFilter<"TdMatchFailure"> | boolean
-  resolvedAt?: Prisma.DateTimeNullableFilter<"TdMatchFailure"> | Date | string | null
+export type TdMatchFailureCreateManyWorkerInput = {
+  id?: string
+  syncRunId: string
+  tdUserId: string
+  tdEmail: string
+  tdName: string
+  reason?: $Enums.TdFailureReason
+  billingMonth?: string | null
+  quantity?: number | null
+  resolved?: boolean
+  resolvedAt?: Date | string | null
+}
+
+export type TdMatchFailureUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  syncRun?: Prisma.TdSyncRunUpdateOneRequiredWithoutMatchFailuresNestedInput
+}
+
+export type TdMatchFailureUncheckedUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  syncRunId?: Prisma.StringFieldUpdateOperationsInput | string
+  tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type TdMatchFailureUncheckedUpdateManyWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  syncRunId?: Prisma.StringFieldUpdateOperationsInput | string
+  tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type TdMatchFailureCreateManySyncRunInput = {
@@ -465,6 +761,10 @@ export type TdMatchFailureCreateManySyncRunInput = {
   tdUserId: string
   tdEmail: string
   tdName: string
+  reason?: $Enums.TdFailureReason
+  workerId?: string | null
+  billingMonth?: string | null
+  quantity?: number | null
   resolved?: boolean
   resolvedAt?: Date | string | null
 }
@@ -474,8 +774,12 @@ export type TdMatchFailureUpdateWithoutSyncRunInput = {
   tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
   tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
   tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  worker?: Prisma.WorkerUpdateOneWithoutMatchFailuresNestedInput
 }
 
 export type TdMatchFailureUncheckedUpdateWithoutSyncRunInput = {
@@ -483,6 +787,10 @@ export type TdMatchFailureUncheckedUpdateWithoutSyncRunInput = {
   tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
   tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
   tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -492,6 +800,10 @@ export type TdMatchFailureUncheckedUpdateManyWithoutSyncRunInput = {
   tdUserId?: Prisma.StringFieldUpdateOperationsInput | string
   tdEmail?: Prisma.StringFieldUpdateOperationsInput | string
   tdName?: Prisma.StringFieldUpdateOperationsInput | string
+  reason?: Prisma.EnumTdFailureReasonFieldUpdateOperationsInput | $Enums.TdFailureReason
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  quantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   resolved?: Prisma.BoolFieldUpdateOperationsInput | boolean
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -504,9 +816,14 @@ export type TdMatchFailureSelect<ExtArgs extends runtime.Types.Extensions.Intern
   tdUserId?: boolean
   tdEmail?: boolean
   tdName?: boolean
+  reason?: boolean
+  workerId?: boolean
+  billingMonth?: boolean
+  quantity?: boolean
   resolved?: boolean
   resolvedAt?: boolean
   syncRun?: boolean | Prisma.TdSyncRunDefaultArgs<ExtArgs>
+  worker?: boolean | Prisma.TdMatchFailure$workerArgs<ExtArgs>
 }, ExtArgs["result"]["tdMatchFailure"]>
 
 export type TdMatchFailureSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -515,9 +832,14 @@ export type TdMatchFailureSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   tdUserId?: boolean
   tdEmail?: boolean
   tdName?: boolean
+  reason?: boolean
+  workerId?: boolean
+  billingMonth?: boolean
+  quantity?: boolean
   resolved?: boolean
   resolvedAt?: boolean
   syncRun?: boolean | Prisma.TdSyncRunDefaultArgs<ExtArgs>
+  worker?: boolean | Prisma.TdMatchFailure$workerArgs<ExtArgs>
 }, ExtArgs["result"]["tdMatchFailure"]>
 
 export type TdMatchFailureSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -526,9 +848,14 @@ export type TdMatchFailureSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   tdUserId?: boolean
   tdEmail?: boolean
   tdName?: boolean
+  reason?: boolean
+  workerId?: boolean
+  billingMonth?: boolean
+  quantity?: boolean
   resolved?: boolean
   resolvedAt?: boolean
   syncRun?: boolean | Prisma.TdSyncRunDefaultArgs<ExtArgs>
+  worker?: boolean | Prisma.TdMatchFailure$workerArgs<ExtArgs>
 }, ExtArgs["result"]["tdMatchFailure"]>
 
 export type TdMatchFailureSelectScalar = {
@@ -537,25 +864,33 @@ export type TdMatchFailureSelectScalar = {
   tdUserId?: boolean
   tdEmail?: boolean
   tdName?: boolean
+  reason?: boolean
+  workerId?: boolean
+  billingMonth?: boolean
+  quantity?: boolean
   resolved?: boolean
   resolvedAt?: boolean
 }
 
-export type TdMatchFailureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "syncRunId" | "tdUserId" | "tdEmail" | "tdName" | "resolved" | "resolvedAt", ExtArgs["result"]["tdMatchFailure"]>
+export type TdMatchFailureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "syncRunId" | "tdUserId" | "tdEmail" | "tdName" | "reason" | "workerId" | "billingMonth" | "quantity" | "resolved" | "resolvedAt", ExtArgs["result"]["tdMatchFailure"]>
 export type TdMatchFailureInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   syncRun?: boolean | Prisma.TdSyncRunDefaultArgs<ExtArgs>
+  worker?: boolean | Prisma.TdMatchFailure$workerArgs<ExtArgs>
 }
 export type TdMatchFailureIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   syncRun?: boolean | Prisma.TdSyncRunDefaultArgs<ExtArgs>
+  worker?: boolean | Prisma.TdMatchFailure$workerArgs<ExtArgs>
 }
 export type TdMatchFailureIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   syncRun?: boolean | Prisma.TdSyncRunDefaultArgs<ExtArgs>
+  worker?: boolean | Prisma.TdMatchFailure$workerArgs<ExtArgs>
 }
 
 export type $TdMatchFailurePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TdMatchFailure"
   objects: {
     syncRun: Prisma.$TdSyncRunPayload<ExtArgs>
+    worker: Prisma.$WorkerPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -563,6 +898,10 @@ export type $TdMatchFailurePayload<ExtArgs extends runtime.Types.Extensions.Inte
     tdUserId: string
     tdEmail: string
     tdName: string
+    reason: $Enums.TdFailureReason
+    workerId: string | null
+    billingMonth: string | null
+    quantity: number | null
     resolved: boolean
     resolvedAt: Date | null
   }, ExtArgs["result"]["tdMatchFailure"]>
@@ -960,6 +1299,7 @@ readonly fields: TdMatchFailureFieldRefs;
 export interface Prisma__TdMatchFailureClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   syncRun<T extends Prisma.TdSyncRunDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TdSyncRunDefaultArgs<ExtArgs>>): Prisma.Prisma__TdSyncRunClient<runtime.Types.Result.GetResult<Prisma.$TdSyncRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  worker<T extends Prisma.TdMatchFailure$workerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TdMatchFailure$workerArgs<ExtArgs>>): Prisma.Prisma__WorkerClient<runtime.Types.Result.GetResult<Prisma.$WorkerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -994,6 +1334,10 @@ export interface TdMatchFailureFieldRefs {
   readonly tdUserId: Prisma.FieldRef<"TdMatchFailure", 'String'>
   readonly tdEmail: Prisma.FieldRef<"TdMatchFailure", 'String'>
   readonly tdName: Prisma.FieldRef<"TdMatchFailure", 'String'>
+  readonly reason: Prisma.FieldRef<"TdMatchFailure", 'TdFailureReason'>
+  readonly workerId: Prisma.FieldRef<"TdMatchFailure", 'String'>
+  readonly billingMonth: Prisma.FieldRef<"TdMatchFailure", 'String'>
+  readonly quantity: Prisma.FieldRef<"TdMatchFailure", 'Float'>
   readonly resolved: Prisma.FieldRef<"TdMatchFailure", 'Boolean'>
   readonly resolvedAt: Prisma.FieldRef<"TdMatchFailure", 'DateTime'>
 }
@@ -1394,6 +1738,25 @@ export type TdMatchFailureDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many TdMatchFailures to delete.
    */
   limit?: number
+}
+
+/**
+ * TdMatchFailure.worker
+ */
+export type TdMatchFailure$workerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Worker
+   */
+  select?: Prisma.WorkerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Worker
+   */
+  omit?: Prisma.WorkerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkerInclude<ExtArgs> | null
+  where?: Prisma.WorkerWhereInput
 }
 
 /**
