@@ -161,11 +161,11 @@ export function TdSyncPanel({ runs, failures, workers }: { runs: Run[]; failures
         ) : null}
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2 min-w-0">
-            <Label>Payment account</Label>
-            <Select value={form.accountType || "NONE"} onValueChange={(value) => updateForm(failure.id, failure.tdName, { accountType: value === "NONE" ? "" : (value as ProvisionForm["accountType"]) })}>
+            <Label>Channel</Label>
+            <Select value={form.accountType || "MANUAL"} onValueChange={(value) => updateForm(failure.id, failure.tdName, { accountType: value === "MANUAL" ? "" : (value as ProvisionForm["accountType"]) })}>
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="NONE">None / other</SelectItem>
+                <SelectItem value="MANUAL">Manual</SelectItem>
                 <SelectItem value="WISE">Wise</SelectItem>
                 <SelectItem value="PAYPAL">PayPal</SelectItem>
               </SelectContent>
@@ -235,10 +235,12 @@ export function TdSyncPanel({ runs, failures, workers }: { runs: Run[]; failures
                       <DialogDescription>
                         {failure.reason === "MISSING_RATE"
                           ? "This worker is already set up — just fill in the missing rate and currency."
+                          : failure.reason === "UNMATCHED"
+                          ? "Tracked in Time Doctor with no Portal account yet. Sets them up as TD Plus and immediately backfills any unresolved months, including this one."
                           : "Sets this worker's payment configuration and immediately backfills any unresolved months for them, including this one."}
                       </DialogDescription>
                     </DialogHeader>
-                    <ProvisionFields failure={failure} showPaymentType={failure.reason !== "MISSING_RATE"} />
+                    <ProvisionFields failure={failure} showPaymentType={failure.reason === "NEEDS_SETUP"} />
                     <DialogFooter>
                       <Button onClick={() => submitProvision(failure, failure.reason === "UNMATCHED" ? "create" : "configure")}>Save</Button>
                     </DialogFooter>

@@ -169,6 +169,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const parsed = parseProvisionFields(body, existingWorker?.name ?? null, session.user.id);
     if ("error" in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
+    // A brand-new worker only ever reaches "create" because they showed up in this month's TD
+    // hours with no Portal account at all — same reasoning as the Add Worker dialog, hardcoded
+    // here too rather than trusting the client. "configure" (NEEDS_SETUP) keeps whatever
+    // paymentType the admin chose — that one's a genuine judgment call, see design.md.
+    if (action === "create") parsed.fields.paymentType = "TD_PLUS";
 
     const result = await db.$transaction(async (tx) => {
       if (!existingWorker) await acquireWorkerProvisioningLock(tx);
