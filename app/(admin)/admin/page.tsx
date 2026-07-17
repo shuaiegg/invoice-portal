@@ -6,6 +6,7 @@ import { ActivityFeed } from "@/components/admin/activity-feed";
 import { CurrencyTotalsBreakdown } from "@/components/admin/currency-totals";
 import { SettlementMonthSelect } from "@/components/admin/settlement-month-select";
 import { StatsCard } from "@/components/admin/stats-card";
+import { StatusCountsBreakdown } from "@/components/admin/status-counts-breakdown";
 import { TdSyncPanel } from "@/components/admin/td-sync-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { InvoiceStatus } from "@/lib/generated/client/client";
-import { currencyTotalsFromGroups, formatCurrencyTotals } from "@/lib/money";
+import { currencyTotalsFromGroups } from "@/lib/money";
 import { isSettlementComplete, previousParisBillingMonth } from "@/lib/settlement";
 
 export default async function AdminDashboardPage({
@@ -76,7 +77,7 @@ export default async function AdminDashboardPage({
   const paidCount = statusCounts.PAID ?? 0;
   const complete = isSettlementComplete(statusCounts, unresolvedFailures);
   const monthTotals = currencyTotalsFromGroups(totalsGroups);
-  const paidLabel = formatCurrencyTotals(currencyTotalsFromGroups(paidGroups));
+  const paidTotals = currencyTotalsFromGroups(paidGroups);
   const availableMonths = [...new Set([
     billingMonth,
     ...availableMonthRows.flatMap((row) => row.billingMonth ? [row.billingMonth] : []),
@@ -131,8 +132,8 @@ export default async function AdminDashboardPage({
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard title="Invoices This Month" value={invoiceCount} icon={<FileText />} subtitle={`Billing month ${billingMonth}`} />
-        <StatsCard title="Pending Approval" value={statusCounts.SUBMITTED ?? 0} icon={<Clock />} subtitle="Invoices awaiting review" />
-        <StatsCard title="Paid This Month" value={paidLabel || "—"} icon={<CheckCircle2 />} subtitle={`Billing month ${billingMonth}`} />
+        <StatsCard title="Pending Approval" value={<StatusCountsBreakdown counts={statusCounts} />} icon={<Clock />} subtitle={`Billing month ${billingMonth}`} />
+        <StatsCard title="Paid This Month" value={<CurrencyTotalsBreakdown totals={paidTotals} />} icon={<CheckCircle2 />} subtitle={`Billing month ${billingMonth}`} />
         <StatsCard title="Active Workers" value={activeWorkers} icon={<Users />} subtitle="Registered and active accounts" />
       </div>
 

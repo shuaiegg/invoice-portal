@@ -1,0 +1,24 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]: InvoicePortal
+          - generic [ref=e8]:
+            - link "Dashboard" [ref=e9] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e10]
+              - text: Dashboard
+            - link "New Invoice" [ref=e15] [cursor=pointer]:
+              - /url: /invoice/new
+              - img [ref=e16]
+              - text: New Invoice
+            - link "Profile" [ref=e18] [cursor=pointer]:
+              - /url: /profile
+              - img [ref=e19]
+              - text: Profile
+        - button "Logout" [ref=e23]:
+          - img
+          - text: Logout
+    - main [ref=e24]
+  - region "Notifications alt+T"

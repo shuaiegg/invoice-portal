@@ -1,0 +1,25 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: systeme.io
+      - generic [ref=e7]: Invoice Generator
+      - generic [ref=e8]: Sign in to submit and manage your invoices
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Email
+        - textbox "Email" [ref=e13]:
+          - /placeholder: name@example.com
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: Password
+          - link "Forgot password?" [ref=e17] [cursor=pointer]:
+            - /url: /forgot-password
+        - textbox "Password" [ref=e18]
+      - button "Sign In" [ref=e19]
+    - generic [ref=e21]:
+      - text: Don't have an account?
+      - link "Register now" [ref=e22] [cursor=pointer]:
+        - /url: /register
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e28] [cursor=pointer]:
+    - img [ref=e29]
