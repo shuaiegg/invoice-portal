@@ -30,6 +30,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { AdminInvoiceTable } from "./admin-invoice-table";
 import { PAYMENT_TYPE_LABELS } from "@/lib/payment-types";
+import { ACTIVE_CURRENCIES } from "@/lib/currencies";
 import { deriveChannel } from "@/lib/payment-channel";
 import type { Invoice, PaymentAccount, Worker } from "@/lib/generated/client/client";
 import {
@@ -54,6 +55,7 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
   const [paymentType, setPaymentType] = useState(worker.paymentType || "MANUAL");
   const [timeDoctorEmail, setTimeDoctorEmail] = useState(worker.timeDoctorEmail || "");
   const [hourlyRate, setHourlyRate] = useState(worker.hourlyRate?.toString() || "");
+  const [currency, setCurrency] = useState(worker.currency || "");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [claimLinkLoading, setClaimLinkLoading] = useState(false);
@@ -115,6 +117,7 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
           paymentType,
           timeDoctorEmail,
           ...(hourlyRate !== "" ? { hourlyRate: Number(hourlyRate) } : {}),
+          ...(currency !== "" ? { currency } : {}),
         }),
       });
 
@@ -284,16 +287,28 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
                 <Label htmlFor="hourlyRate">Hourly Rate</Label>
                 <Input
                   id="hourlyRate"
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={hourlyRate}
-                  onChange={(event) => setHourlyRate(event.target.value)}
+                  onChange={(event) => setHourlyRate(event.target.value.replace(",", ".").replace(/[^0-9.]/g, ""))}
                   placeholder="0.00"
                 />
                 <p className="text-xs text-muted-foreground">
                   Source: {worker.hourlyRateSource === "MANUAL" ? "Portal override" : "TD import"}
                 </p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="currency">Currency</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger id="currency">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ACTIVE_CURRENCIES.map((code) => (
+                      <SelectItem key={code} value={code}>{code}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="timeDoctorEmail">Time Doctor Email</Label>

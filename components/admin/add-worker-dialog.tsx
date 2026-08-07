@@ -130,7 +130,7 @@ export function AddWorkerDialog() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="add-worker-rate">Hourly rate</Label>
-                  <Input id="add-worker-rate" type="number" min="0" step="0.01" value={form.hourlyRate} onChange={(e) => update({ hourlyRate: e.target.value })} />
+                  <Input id="add-worker-rate" type="text" inputMode="decimal" value={form.hourlyRate} onChange={(e) => update({ hourlyRate: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "") })} />
                 </div>
                 <div className="grid gap-2 min-w-0">
                   <Label>Currency</Label>

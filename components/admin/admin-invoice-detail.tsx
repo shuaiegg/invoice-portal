@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { isAdminInvoiceTransitionAllowed } from "@/lib/invoice-status";
+import { isAdminInvoiceTransitionAllowed, isWorkerInvoiceEditable } from "@/lib/invoice-status";
 import type { Invoice, InvoiceLine, InvoiceStatus, Worker } from "@/lib/generated/client/client";
 
 // Shape returned by app/(admin)/admin/invoices/[id]/page.tsx
@@ -180,6 +180,11 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
           </Button>
         </Link>
         <div className="flex items-center gap-3">
+          {isWorkerInvoiceEditable(invoice.status) && (
+            <Link href={`/admin/invoices/${invoice.id}/edit`}>
+              <Button variant="outline" size="sm">Edit</Button>
+            </Link>
+          )}
           <span className="text-sm font-medium text-secondary-text">Current Status:</span>
           <StatusBadge status={invoice.status} />
         </div>

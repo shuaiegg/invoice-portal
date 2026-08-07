@@ -29,6 +29,7 @@ export function buildTdInvoiceData({
   quantity,
   invoiceNumber,
   tdSyncRunId = null,
+  supplementNo = 0,
 }: {
   worker: TdInvoiceWorker;
   year: number;
@@ -36,6 +37,7 @@ export function buildTdInvoiceData({
   quantity: number;
   invoiceNumber: string;
   tdSyncRunId?: string | null;
+  supplementNo?: number;
 }) {
   const billingMonth = `${year}-${String(month).padStart(2, "0")}`;
   const invoiceDate = new Date(Date.UTC(year, month, 0));
@@ -53,6 +55,7 @@ export function buildTdInvoiceData({
     workerId: worker.id,
     tdSyncRunId,
     billingMonth,
+    supplementNo,
     invoiceNumber,
     invoiceDate,
     dueDate,
@@ -93,6 +96,7 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
     type PendingInvoice = {
       worker: TdInvoiceWorker;
       quantity: number;
+      supplementNo: number;
     };
     type PendingFailure = {
       tdUserId: string;
@@ -109,10 +113,25 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
     const ignoredEmails = new Set(
       (await db.tdIgnoredEmail.findMany({ select: { email: true } })).map((row) => row.email.toLowerCase()),
     );
-    // Primaries only: a worker-created supplement must not block the month's primary invoice
+    // A worker only counts as "already covered" this month if their primary (supplementNo 0)
+    // is a real invoice — a VOID primary means that invoice never actually happened, so a
+    // fresh sync should still generate one. It just can't reuse supplementNo 0 once that slot
+    // is physically taken (DB unique constraint), so we also track the next free slot per
+    // worker from every existing row this month, void or not.
+    const existingInvoicesThisMonth = await db.invoice.findMany({
+      where: { billingMonth },
+      select: { workerId: true, supplementNo: true, status: true },
+    });
     const existingInvoiceWorkerIds = new Set(
-      (await db.invoice.findMany({ where: { billingMonth, supplementNo: 0 }, select: { workerId: true } })).map((row) => row.workerId),
+      existingInvoicesThisMonth
+        .filter((row) => row.supplementNo === 0 && row.status !== "VOID")
+        .map((row) => row.workerId),
     );
+    const nextSupplementNoByWorker = new Map<string, number>();
+    for (const row of existingInvoicesThisMonth) {
+      const next = Math.max(nextSupplementNoByWorker.get(row.workerId) ?? 0, row.supplementNo + 1);
+      nextSupplementNoByWorker.set(row.workerId, next);
+    }
 
     // First pass: classify every TD user and compute amounts for the ones that need a new
     // invoice, without writing anything yet — lets us reserve exactly the right number of
@@ -173,6 +192,7 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
           vatRate: activeWorker.vatRate, paymentType: activeWorker.paymentType,
         },
         quantity,
+        supplementNo: nextSupplementNoByWorker.get(activeWorker.id) ?? 0,
       });
     }
 
@@ -188,11 +208,11 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
     const invoiceNumbers = await reserveInvoiceNumbers(year, pending.length);
 
     for (let i = 0; i < pending.length; i += 1) {
-      const { worker: activeWorker, quantity } = pending[i];
+      const { worker: activeWorker, quantity, supplementNo } = pending[i];
       try {
         const invoice = await db.invoice.create({
           data: buildTdInvoiceData({
-            worker: activeWorker, year, month, quantity, invoiceNumber: invoiceNumbers[i], tdSyncRunId: run.id,
+            worker: activeWorker, year, month, quantity, invoiceNumber: invoiceNumbers[i], tdSyncRunId: run.id, supplementNo,
           }),
         });
         invoicesCreated += 1;

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
 import { parsePaymentType } from "@/lib/payment-types";
+import { isActiveCurrency } from "@/lib/currencies";
 import { optionalString } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
@@ -79,7 +80,7 @@ export async function PUT(
   const session = guard.session!;
 
   const { id } = await params;
-  const { active, paymentType: rawPaymentType, timeDoctorEmail, hourlyRate } = await req.json();
+  const { active, paymentType: rawPaymentType, timeDoctorEmail, hourlyRate, currency } = await req.json();
   const paymentType = parsePaymentType(rawPaymentType);
 
   if (active !== undefined && typeof active !== "boolean") {
@@ -92,6 +93,10 @@ export async function PUT(
 
   if (hourlyRate !== undefined && (typeof hourlyRate !== "number" || !Number.isFinite(hourlyRate) || hourlyRate < 0)) {
     return NextResponse.json({ error: "Invalid hourly rate" }, { status: 400 });
+  }
+
+  if (currency !== undefined && !isActiveCurrency(currency)) {
+    return NextResponse.json({ error: "Invalid currency" }, { status: 400 });
   }
 
   const result = await db.$transaction(async (tx) => {
@@ -116,6 +121,7 @@ export async function PUT(
               hourlyRateUpdatedBy: session.user.id,
             }
           : {}),
+        ...(currency !== undefined ? { currency } : {}),
       },
     });
     if (active !== undefined) {
@@ -139,5 +145,6 @@ export async function PUT(
     timeDoctorEmail: updatedWorker.timeDoctorEmail,
     hourlyRate: updatedWorker.hourlyRate,
     hourlyRateSource: updatedWorker.hourlyRateSource,
+    currency: updatedWorker.currency,
   });
 }

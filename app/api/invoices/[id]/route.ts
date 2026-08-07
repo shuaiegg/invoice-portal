@@ -78,7 +78,9 @@ export async function PUT(
     return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
   }
 
-  if (invoice.worker.userId !== session.user.id) {
+  const isOwner = invoice.worker.userId === session.user.id;
+  const isAdmin = isOwner ? false : await isAdminUser(session.user.id);
+  if (!isOwner && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

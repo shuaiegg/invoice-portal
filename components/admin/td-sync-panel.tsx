@@ -132,7 +132,7 @@ export function TdSyncPanel({ runs, failures, workers }: { runs: Run[]; failures
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label htmlFor={`rate-${failure.id}`}>Hourly rate</Label>
-            <Input id={`rate-${failure.id}`} type="number" min="0" step="0.01" value={form.hourlyRate} onChange={(e) => updateForm(failure.id, failure.tdName, { hourlyRate: e.target.value })} />
+            <Input id={`rate-${failure.id}`} type="text" inputMode="decimal" value={form.hourlyRate} onChange={(e) => updateForm(failure.id, failure.tdName, { hourlyRate: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "") })} />
           </div>
           <div className="grid gap-2 min-w-0">
             <Label>Currency</Label>

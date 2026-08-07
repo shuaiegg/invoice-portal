@@ -31,7 +31,8 @@ interface ProfileFormProps {
 export function ProfileForm({ initialData, paymentAccounts, hasLegacyPaymentData }: ProfileFormProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const [formData, setFormData] = useState(initialData);
+  // vatRate kept as a string while editing — see handleDecimalChange.
+  const [formData, setFormData] = useState({ ...initialData, vatRate: String(initialData.vatRate) });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,10 +63,15 @@ export function ProfileForm({ initialData, paymentAccounts, hasLegacyPaymentData
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: id === "vatRate" ? parseFloat(value) || 0 : value,
-    }));
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  // type="number" hard-rejects "," as a decimal separator, which some keyboard layouts /
+  // OS locales send for the decimal key — the "." never even reaches onChange. Using a plain
+  // text input with our own filtering accepts either character regardless of locale.
+  const handleDecimalChange = (id: string, raw: string) => {
+    const normalized = raw.replace(",", ".").replace(/[^0-9.]/g, "");
+    setFormData((prev) => ({ ...prev, [id]: normalized }));
   };
 
   return (
@@ -161,10 +167,10 @@ export function ProfileForm({ initialData, paymentAccounts, hasLegacyPaymentData
             <Label htmlFor="vatRate">Default VAT Rate (%)</Label>
             <Input
               id="vatRate"
-              type="number"
-              step="0.01"
+              type="text"
+              inputMode="decimal"
               value={formData.vatRate}
-              onChange={handleChange}
+              onChange={(e) => handleDecimalChange("vatRate", e.target.value)}
               disabled={loading}
             />
           </div>

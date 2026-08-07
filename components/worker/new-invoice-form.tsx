@@ -19,8 +19,12 @@ import { Loader2, Plus, Send, Trash2 } from "lucide-react";
 
 type InvoiceFormLine = {
   description: string;
-  quantity: number;
-  unitRate: number;
+  // Kept as raw strings while editing — parsing to a number on every keystroke and feeding
+  // it back into a controlled input strips an in-progress "9." or "0." before the next digit
+  // can be typed, making decimals impossible to enter. Parsed to numbers only where the
+  // value is actually used (totals, submit payload).
+  quantity: string;
+  unitRate: string;
 };
 
 type InitialInvoiceData = {
@@ -34,7 +38,8 @@ type InitialInvoiceData = {
   vatRate?: number | null;
   vatInclusive?: boolean | null;
   currency?: string | null;
-  lines?: Array<InvoiceFormLine & { id?: string; rate?: number | null }>;
+  // From the DB (InvoiceLine rows) — numeric, unlike the string-based form state.
+  lines?: Array<{ id?: string; description: string; quantity: number; unitRate?: number | null; rate?: number | null }>;
 };
 
 interface NewInvoiceFormProps {
@@ -90,14 +95,14 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
     initialData?.lines?.length
       ? initialData.lines.map((line) => ({
           description: line.description || "",
-          quantity: line.quantity || 1,
-          unitRate: line.unitRate ?? line.rate ?? 0,
+          quantity: String(line.quantity || 1),
+          unitRate: String(line.unitRate ?? line.rate ?? 0),
         }))
       : [
           {
             description: initialData?.description || "",
-            quantity: initialData?.quantity || 1,
-            unitRate: initialData?.rate || 0,
+            quantity: String(initialData?.quantity || 1),
+            unitRate: String(initialData?.rate || 0),
           },
         ];
 
@@ -108,13 +113,13 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
     period: initialData?.period || "",
     serviceDate: initialData?.serviceDate ? formatDateForInput(initialData.serviceDate) : "",
     invoiceDate: initialData?.invoiceDate ? formatDateForInput(initialData.invoiceDate) : getTodayInParis(),
-    vatRate: initialVatRate,
+    vatRate: String(initialVatRate),
     currency: initialData?.currency || "USD",
   });
 
   const amounts = useMemo(() => {
-    const effectiveVatRate = applyVat ? formData.vatRate : 0;
-    const lineSubtotal = lines.reduce((sum, line) => sum + (line.quantity || 0) * (line.unitRate || 0), 0);
+    const effectiveVatRate = applyVat ? parseFloat(formData.vatRate) || 0 : 0;
+    const lineSubtotal = lines.reduce((sum, line) => sum + (parseFloat(line.quantity) || 0) * (parseFloat(line.unitRate) || 0), 0);
     let subtotal: number, vatAmount: number, totalAmount: number;
     if (applyVat && vatInclusive) {
       // Inclusive: user enters gross amount, extract VAT from it
@@ -130,29 +135,32 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
     return { subtotal, vatAmount, totalAmount };
   }, [lines, formData.vatRate, applyVat, vatInclusive]);
 
+  // type="number" hard-rejects "," as a decimal separator, which some keyboard layouts /
+  // OS locales send for the decimal key — the "." never even reaches onChange. Fields that
+  // need decimals use type="text" plus this filter instead, so either character works.
+  const normalizeDecimal = (raw: string) => raw.replace(",", ".").replace(/[^0-9.]/g, "");
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [id]: id === "vatRate" ? parseFloat(value) || 0 : value,
+      [id]: id === "vatRate" ? normalizeDecimal(value) : value,
     }));
   };
 
   const handleLineChange = (index: number, field: keyof InvoiceFormLine, value: string) => {
+    const normalized = field === "description" ? value : normalizeDecimal(value);
     setLines((prev) =>
       prev.map((line, lineIndex) =>
         lineIndex === index
-          ? {
-              ...line,
-              [field]: field === "description" ? value : parseFloat(value) || 0,
-            }
+          ? { ...line, [field]: normalized }
           : line
       )
     );
   };
 
   const addLine = () => {
-    setLines((prev) => [...prev, { description: "", quantity: 1, unitRate: 0 }]);
+    setLines((prev) => [...prev, { description: "", quantity: "1", unitRate: "0" }]);
   };
 
   const removeLine = (index: number) => {
@@ -271,7 +279,7 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
 
                 <div className="space-y-2">
                   {lines.map((line, index) => {
-                    const amount = (line.quantity || 0) * (line.unitRate || 0);
+                    const amount = (parseFloat(line.quantity) || 0) * (parseFloat(line.unitRate) || 0);
 
                     return (
                       <div key={index} className="grid gap-2 rounded-lg border p-2 md:grid-cols-[2fr_80px_110px_110px_40px] md:items-center">
@@ -291,9 +299,8 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                           <Label htmlFor={`line-quantity-${index}`} className="md:hidden text-xs text-muted-foreground">Qty</Label>
                           <Input
                             id={`line-quantity-${index}`}
-                            type="number"
-                            step="0.01"
-                            min="0.01"
+                            type="text"
+                            inputMode="decimal"
                             value={line.quantity}
                             onChange={(e) => handleLineChange(index, "quantity", e.target.value)}
                             required
@@ -303,8 +310,8 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                           <Label htmlFor={`line-rate-${index}`} className="md:hidden text-xs text-muted-foreground">Rate</Label>
                           <Input
                             id={`line-rate-${index}`}
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
                             value={line.unitRate}
                             onChange={(e) => handleLineChange(index, "unitRate", e.target.value)}
                             required
@@ -332,7 +339,7 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                 </div>
                 <div className="flex justify-end text-sm font-semibold">
                   <span className="mr-3 text-muted-foreground">Line total</span>
-                  <span>{formatCurrency(lines.reduce((sum, line) => sum + (line.quantity || 0) * (line.unitRate || 0), 0))}</span>
+                  <span>{formatCurrency(lines.reduce((sum, line) => sum + (parseFloat(line.quantity) || 0) * (parseFloat(line.unitRate) || 0), 0))}</span>
                 </div>
               </div>
 
@@ -353,10 +360,8 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                     <div className="flex items-center gap-2">
                       <Input
                         id="vatRate"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="100"
+                        type="text"
+                        inputMode="decimal"
                         value={formData.vatRate}
                         onChange={handleChange}
                         className="w-20"
