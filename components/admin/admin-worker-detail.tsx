@@ -29,6 +29,7 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { AdminInvoiceTable } from "./admin-invoice-table";
+import { PaymentAccountList } from "@/components/worker/payment-account-list";
 import { PAYMENT_TYPE_LABELS } from "@/lib/payment-types";
 import { ACTIVE_CURRENCIES } from "@/lib/currencies";
 import { deriveChannel } from "@/lib/payment-channel";
@@ -47,15 +48,17 @@ type AdminWorkerWithRelations = Worker & {
 
 interface AdminWorkerDetailProps {
   worker: AdminWorkerWithRelations;
+  teams?: string[];
 }
 
-export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
+export function AdminWorkerDetail({ worker, teams = [] }: AdminWorkerDetailProps) {
   const router = useRouter();
   const [active, setActive] = useState(worker.user?.active ?? false);
   const [paymentType, setPaymentType] = useState(worker.paymentType || "MANUAL");
   const [timeDoctorEmail, setTimeDoctorEmail] = useState(worker.timeDoctorEmail || "");
   const [hourlyRate, setHourlyRate] = useState(worker.hourlyRate?.toString() || "");
   const [currency, setCurrency] = useState(worker.currency || "");
+  const [team, setTeam] = useState(worker.team || "");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [claimLinkLoading, setClaimLinkLoading] = useState(false);
@@ -116,6 +119,7 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
         body: JSON.stringify({
           paymentType,
           timeDoctorEmail,
+          team: team.trim() || null,
           ...(hourlyRate !== "" ? { hourlyRate: Number(hourlyRate) } : {}),
           ...(currency !== "" ? { currency } : {}),
         }),
@@ -311,6 +315,22 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
                 </Select>
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="team">Team</Label>
+                <Input
+                  id="team"
+                  type="text"
+                  list="team-suggestions"
+                  value={team}
+                  onChange={(e) => setTeam(e.target.value)}
+                  placeholder="e.g. Marketing, Dev"
+                />
+                <datalist id="team-suggestions">
+                  {teams.map((t) => (
+                    <option key={t} value={t} />
+                  ))}
+                </datalist>
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="timeDoctorEmail">Time Doctor Email</Label>
                 <Input
                   id="timeDoctorEmail"
@@ -328,6 +348,16 @@ export function AdminWorkerDetail({ worker }: AdminWorkerDetailProps) {
         </div>
 
         <div className="md:col-span-2 space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <PaymentAccountList
+                accounts={paymentAccounts}
+                hasLegacyPaymentData={false}
+                apiBase={`/api/admin/workers/${worker.id}/payment-accounts`}
+              />
+            </CardContent>
+          </Card>
+
           <div className="flex items-center gap-2">
             <History className="h-6 w-6 text-secondary-text" />
             <h2 className="text-2xl font-bold tracking-tight text-text">Invoice History</h2>

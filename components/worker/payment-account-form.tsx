@@ -65,6 +65,7 @@ interface PaymentAccountFormProps {
   onOpenChange: (open: boolean) => void;
   account?: PaymentAccount | null;
   onSaved: (account: PaymentAccount) => void;
+  apiBase?: string;
 }
 
 const emptyForm: PaymentAccountFormData = {
@@ -102,6 +103,7 @@ export function PaymentAccountForm({
   onOpenChange,
   account,
   onSaved,
+  apiBase = "/api/payment-accounts",
 }: PaymentAccountFormProps) {
   const [formData, setFormData] = useState<PaymentAccountFormData>(() => formFromAccount(account));
   const [loading, setLoading] = useState(false);
@@ -132,7 +134,7 @@ export function PaymentAccountForm({
 
     setLoading(true);
     try {
-      const response = await fetch(account ? `/api/payment-accounts/${account.id}` : "/api/payment-accounts", {
+      const response = await fetch(account ? `${apiBase}/${account.id}` : apiBase, {
         method: account ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

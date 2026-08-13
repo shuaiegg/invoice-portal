@@ -19,28 +19,38 @@ export default async function AdminWorkerDetailsPage({
 
   const { id } = await params;
 
-  const worker = await db.worker.findUnique({
-    where: { id },
-    include: {
-      user: {
-        select: {
-          email: true,
-          active: true,
-          createdAt: true,
+  const [worker, teamRows] = await Promise.all([
+    db.worker.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            email: true,
+            active: true,
+            createdAt: true,
+          },
+        },
+        invoices: {
+          orderBy: { createdAt: "desc" },
+        },
+        paymentAccounts: {
+          orderBy: [{ isPreferred: "desc" }, { createdAt: "desc" }],
         },
       },
-      invoices: {
-        orderBy: { createdAt: "desc" },
-      },
-      paymentAccounts: {
-        orderBy: [{ isPreferred: "desc" }, { createdAt: "desc" }],
-      },
-    },
-  });
+    }),
+    db.worker.findMany({
+      where: { team: { not: null } },
+      select: { team: true },
+      distinct: ["team"],
+      orderBy: { team: "asc" },
+    }),
+  ]);
 
   if (!worker) {
     notFound();
   }
 
-  return <AdminWorkerDetail worker={worker} />;
+  const teams = teamRows.map((r) => r.team as string);
+
+  return <AdminWorkerDetail worker={worker} teams={teams} />;
 }

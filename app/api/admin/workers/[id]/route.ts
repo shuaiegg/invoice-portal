@@ -80,8 +80,12 @@ export async function PUT(
   const session = guard.session!;
 
   const { id } = await params;
-  const { active, paymentType: rawPaymentType, timeDoctorEmail, hourlyRate, currency } = await req.json();
+  const { active, paymentType: rawPaymentType, timeDoctorEmail, hourlyRate, currency, team } = await req.json();
   const paymentType = parsePaymentType(rawPaymentType);
+
+  if (team !== undefined && typeof team !== "string" && team !== null) {
+    return NextResponse.json({ error: "Invalid team value" }, { status: 400 });
+  }
 
   if (active !== undefined && typeof active !== "boolean") {
     return NextResponse.json({ error: "Invalid active status" }, { status: 400 });
@@ -122,6 +126,7 @@ export async function PUT(
             }
           : {}),
         ...(currency !== undefined ? { currency } : {}),
+        ...(team !== undefined ? { team: team?.trim() || null } : {}),
       },
     });
     if (active !== undefined) {

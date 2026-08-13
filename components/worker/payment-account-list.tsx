@@ -21,11 +21,13 @@ import {
 interface PaymentAccountListProps {
   accounts: PaymentAccount[];
   hasLegacyPaymentData: boolean;
+  apiBase?: string;
 }
 
 export function PaymentAccountList({
   accounts: initialAccounts,
   hasLegacyPaymentData,
+  apiBase = "/api/payment-accounts",
 }: PaymentAccountListProps) {
   const router = useRouter();
   const [accounts, setAccounts] = useState(initialAccounts);
@@ -34,7 +36,7 @@ export function PaymentAccountList({
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const refreshAccounts = async () => {
-    const response = await fetch("/api/payment-accounts");
+    const response = await fetch(apiBase);
     if (!response.ok) throw new Error("Failed to refresh payment methods");
     setAccounts(await response.json());
     router.refresh();
@@ -57,7 +59,7 @@ export function PaymentAccountList({
   const handleSetPreferred = async (account: PaymentAccount) => {
     setLoadingId(account.id);
     try {
-      const response = await fetch(`/api/payment-accounts/${account.id}/prefer`, {
+      const response = await fetch(`${apiBase}/${account.id}/prefer`, {
         method: "POST",
       });
       const payload = await response.json();
@@ -78,7 +80,7 @@ export function PaymentAccountList({
 
     setLoadingId(account.id);
     try {
-      const response = await fetch(`/api/payment-accounts/${account.id}`, {
+      const response = await fetch(`${apiBase}/${account.id}`, {
         method: "DELETE",
       });
       const payload = await response.json();
@@ -206,6 +208,7 @@ export function PaymentAccountList({
         onOpenChange={setFormOpen}
         account={editingAccount}
         onSaved={handleSaved}
+        apiBase={apiBase}
       />
     </section>
   );
