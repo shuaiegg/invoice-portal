@@ -66,6 +66,7 @@ export async function GET(request: Request) {
   }
 
   // 3. Upsert XeroToken
+  const existing = await db.xeroToken.findUnique({ where: { id: "singleton" }, select: { tenantId: true } });
   await db.xeroToken.upsert({
     where: { id: "singleton" },
     update: {
@@ -82,6 +83,12 @@ export async function GET(request: Request) {
       tenantId,
     },
   });
+
+  // If the tenant changed (new org or reconnect after disconnect), cached Xero
+  // contact IDs are invalid — clear them so the next sync re-creates contacts.
+  if (existing?.tenantId !== tenantId) {
+    await db.worker.updateMany({ data: { xeroContactId: null } });
+  }
 
   return NextResponse.redirect(new URL("/admin/settings/xero", request.url));
 }

@@ -94,18 +94,15 @@ export async function PUT(
     },
   });
 
-  // Xero sync happens at PAID — this is the final authoritative invoice
+  // Xero sync happens at PAID — failure keeps the invoice PAID (payment is recorded)
+  // and sets xeroSynced=false so the retry endpoint can re-attempt later.
+  let xeroWarning: string | undefined;
   if (status === "PAID") {
     try {
       await syncInvoiceToXero(updatedInvoice, updatedInvoice.worker);
     } catch (error) {
       console.error("Xero sync failed on PAID transition:", error);
-      // Revert status back to APPROVED so admin can retry
-      await db.invoice.update({ where: { id }, data: { status: currentStatus } }).catch(() => {});
-      return NextResponse.json(
-        { error: "Payment marked but Xero sync failed. Invoice reverted to APPROVED. Please try again." },
-        { status: 500 }
-      );
+      xeroWarning = error instanceof Error ? error.message : "Xero sync failed";
     }
   }
 
@@ -118,5 +115,5 @@ export async function PUT(
     invoiceChangesRequested(updatedInvoice, updatedInvoice.worker, typeof note === "string" ? note.trim() || null : null);
   }
 
-  return NextResponse.json(updatedInvoice);
+  return NextResponse.json({ ...updatedInvoice, xeroWarning });
 }

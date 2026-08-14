@@ -32,6 +32,7 @@ import {
   User,
   CreditCard,
   History,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -61,7 +62,9 @@ interface AdminInvoiceDetailProps {
 export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
   const router = useRouter();
   const [status, setStatus] = useState(invoice.status);
+  const [xeroSynced, setXeroSynced] = useState(invoice.xeroSynced);
   const [loading, setLoading] = useState(false);
+  const [xeroLoading, setXeroLoading] = useState(false);
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestNote, setRequestNote] = useState("");
 
@@ -93,7 +96,12 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
         throw new Error(error.error || "Failed to update status");
       }
 
-      toast.success("Invoice status updated successfully");
+      const data = await response.json();
+      if (data.xeroWarning) {
+        toast.warning(`Invoice marked as Paid. Xero sync failed: ${data.xeroWarning}`);
+      } else {
+        toast.success("Invoice status updated successfully");
+      }
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update status");
@@ -147,8 +155,31 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
     }).format(amount);
   };
 
+  const handleSyncToXero = async () => {
+    setXeroLoading(true);
+    try {
+      const response = await fetch("/api/admin/invoices/retry-xero", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceIds: [invoice.id] }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Sync failed");
+      if (data.xeroFailed > 0) {
+        throw new Error(data.failedInvoices?.[0]?.reason || "Xero sync failed");
+      }
+      toast.success("Synced to Xero successfully");
+      setXeroSynced(true);
+      router.refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Xero sync failed");
+    } finally {
+      setXeroLoading(false);
+    }
+  };
+
   const getXeroStatus = () => {
-    if (invoice.xeroSynced) {
+    if (xeroSynced) {
       return {
         label: "Synced",
         color: "text-success",
@@ -157,14 +188,21 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
         id: invoice.xeroInvoiceId,
       };
     }
-    
+    if (invoice.status === "PAID") {
+      return {
+        label: "Sync Pending",
+        color: "text-warning",
+        icon: <AlertCircle className="h-5 w-5" />,
+        description: "Paid but not yet synced to Xero. Use the button below to retry.",
+      };
+    }
     return {
       label: "Not Synced",
       color: "text-secondary-text",
       icon: <AlertCircle className="h-5 w-5" />,
-      description: invoice.status === "VOID" 
+      description: invoice.status === "VOID"
         ? "Invoice voided — not synced to Xero."
-        : "Direct sync not established (legacy invoice).",
+        : "Will sync to Xero when marked as Paid.",
     };
   };
 
@@ -373,6 +411,19 @@ export function AdminInvoiceDetail({ invoice }: AdminInvoiceDetailProps) {
                     )}
                   </div>
                 </div>
+                {invoice.status === "PAID" && !xeroSynced && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleSyncToXero}
+                    disabled={xeroLoading}
+                  >
+                    {xeroLoading
+                      ? <Clock className="mr-2 h-4 w-4 animate-spin" />
+                      : <RefreshCw className="mr-2 h-4 w-4" />}
+                    Sync to Xero
+                  </Button>
+                )}
               </div>
             </CardContent>
             <CardFooter>
