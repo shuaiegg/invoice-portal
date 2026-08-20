@@ -14,7 +14,6 @@ import { currencyTotalsFromGroups, formatCurrencyTotals } from "@/lib/money";
 import {
   PAYMENT_CHANNEL_LABELS,
   PAYMENT_CHANNELS,
-  deriveChannel,
   filterWorkerIdsByChannel,
   parsePaymentChannel,
   type PaymentChannel,
@@ -64,47 +63,65 @@ export default async function AdminInvoicesPage({
 
   // Channel tab counts: aggregate invoices per worker in SQL (bounded by
   // worker count, not invoice count), then bucket by each worker's channel.
-  const [workerChannels, workerGroups, availableMonths] = await Promise.all([
-    resolveWorkerChannelMap(),
-    db.invoice.groupBy({ by: ["workerId"], where: baseWhere, _count: { _all: true } }),
-    db.invoice.groupBy({
-      by: ["billingMonth"],
-      where: { billingMonth: { not: null } },
-      orderBy: { billingMonth: "desc" },
-    }),
-  ]);
+  //
+  // When no channel filter, the invoice data queries don't depend on workerChannels,
+  // so both rounds can run fully in parallel. When a channel filter is active, we
+  // need workerChannels first to build the workerId IN-list.
+  const invoiceSelect = {
+    orderBy: { createdAt: "desc" } as const,
+    skip: (page - 1) * limit,
+    take: limit,
+    include: { worker: { select: { name: true, team: true } } },
+  };
+
+  let workerChannels: Awaited<ReturnType<typeof resolveWorkerChannelMap>>;
+  let workerGroups: Array<{ workerId: string; _count: { _all: number } }>;
+  let availableMonths: Array<{ billingMonth: string | null }>;
+  let invoices: Awaited<ReturnType<typeof db.invoice.findMany<typeof invoiceSelect>>>;
+  let total: number;
+  let totalsByCurrency: Array<{ currency: string; _sum: { totalAmount: number | null } }>;
+
+  if (!channel) {
+    // All 6 queries in parallel — invoice data queries use baseWhere directly
+    [
+      [workerChannels, workerGroups, availableMonths],
+      [invoices, total, totalsByCurrency],
+    ] = await Promise.all([
+      Promise.all([
+        resolveWorkerChannelMap(),
+        db.invoice.groupBy({ by: ["workerId"], where: baseWhere, _count: { _all: true } }),
+        db.invoice.groupBy({ by: ["billingMonth"], where: { billingMonth: { not: null } }, orderBy: { billingMonth: "desc" } }),
+      ]),
+      Promise.all([
+        db.invoice.findMany({ where: baseWhere, ...invoiceSelect }),
+        db.invoice.count({ where: baseWhere }),
+        db.invoice.groupBy({ by: ["currency"], where: baseWhere, _sum: { totalAmount: true } }),
+      ]),
+    ]);
+  } else {
+    // Channel filter requires workerChannels to build workerId IN-list first
+    [workerChannels, workerGroups, availableMonths] = await Promise.all([
+      resolveWorkerChannelMap(),
+      db.invoice.groupBy({ by: ["workerId"], where: baseWhere, _count: { _all: true } }),
+      db.invoice.groupBy({ by: ["billingMonth"], where: { billingMonth: { not: null } }, orderBy: { billingMonth: "desc" } }),
+    ]);
+    const channelWhere: Prisma.InvoiceWhereInput = {
+      ...baseWhere,
+      workerId: { in: filterWorkerIdsByChannel(workerChannels, channel) },
+    };
+    [invoices, total, totalsByCurrency] = await Promise.all([
+      db.invoice.findMany({ where: channelWhere, ...invoiceSelect }),
+      db.invoice.count({ where: channelWhere }),
+      db.invoice.groupBy({ by: ["currency"], where: channelWhere, _sum: { totalAmount: true } }),
+    ]);
+  }
+
   const channelCounts: Record<PaymentChannel, number> = { WISE: 0, PAYPAL: 0, MANUAL: 0 };
   let matchingTotal = 0;
   for (const group of workerGroups) {
     channelCounts[workerChannels.get(group.workerId) ?? "MANUAL"] += group._count._all;
     matchingTotal += group._count._all;
   }
-
-  const where: Prisma.InvoiceWhereInput = { ...baseWhere };
-  if (channel) {
-    where.workerId = { in: filterWorkerIdsByChannel(workerChannels, channel) };
-  }
-
-  const [invoices, total, totalsByCurrency] = await Promise.all([
-    db.invoice.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        worker: {
-          select: {
-            name: true,
-            team: true,
-            paymentMethod: true,
-            paymentAccounts: { select: { type: true, isPreferred: true } },
-          },
-        },
-      },
-    }),
-    db.invoice.count({ where }),
-    db.invoice.groupBy({ by: ["currency"], where, _sum: { totalAmount: true } }),
-  ]);
 
   const exportParams = new URLSearchParams();
   for (const key of ["status", "period", "workerName", "month", "channel", "xero"] as const) {
@@ -143,11 +160,12 @@ export default async function AdminInvoicesPage({
 
       <InvoiceFilters availableMonths={availableMonths.flatMap((row) => row.billingMonth ? [row.billingMonth] : [])} />
       <AdminInvoiceTable
-        invoices={invoices.map((invoice) => ({ ...invoice, channel: deriveChannel(invoice.worker) }))}
+        invoices={invoices.map((invoice) => ({ ...invoice, channel: workerChannels.get(invoice.workerId) ?? "MANUAL" }))}
         total={total}
         page={page}
         pageSize={limit}
         totalPages={Math.ceil(total / limit)}
+        totalsByCurrency={currencyTotalsFromGroups(totalsByCurrency)}
       />
     </div>
   );

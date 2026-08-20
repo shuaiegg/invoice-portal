@@ -67,7 +67,12 @@ export const ModelName = {
   InvoiceCounter: 'InvoiceCounter',
   XeroToken: 'XeroToken',
   AppConfig: 'AppConfig',
-  WebhookConfig: 'WebhookConfig'
+  WebhookConfig: 'WebhookConfig',
+  AutomationConfig: 'AutomationConfig',
+  AutomationRun: 'AutomationRun',
+  AnomalyFlag: 'AnomalyFlag',
+  MonthlyReport: 'MonthlyReport',
+  AuditLog: 'AuditLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -373,12 +378,85 @@ export const WebhookConfigScalarFieldEnum = {
 export type WebhookConfigScalarFieldEnum = (typeof WebhookConfigScalarFieldEnum)[keyof typeof WebhookConfigScalarFieldEnum]
 
 
+export const AutomationConfigScalarFieldEnum = {
+  id: 'id',
+  hourDeviationThreshold: 'hourDeviationThreshold',
+  amountCeiling: 'amountCeiling',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AutomationConfigScalarFieldEnum = (typeof AutomationConfigScalarFieldEnum)[keyof typeof AutomationConfigScalarFieldEnum]
+
+
+export const AutomationRunScalarFieldEnum = {
+  id: 'id',
+  billingMonth: 'billingMonth',
+  status: 'status',
+  triggeredBy: 'triggeredBy',
+  completedAt: 'completedAt',
+  errorLog: 'errorLog',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AutomationRunScalarFieldEnum = (typeof AutomationRunScalarFieldEnum)[keyof typeof AutomationRunScalarFieldEnum]
+
+
+export const AnomalyFlagScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  invoiceId: 'invoiceId',
+  workerId: 'workerId',
+  type: 'type',
+  severity: 'severity',
+  details: 'details',
+  createdAt: 'createdAt'
+} as const
+
+export type AnomalyFlagScalarFieldEnum = (typeof AnomalyFlagScalarFieldEnum)[keyof typeof AnomalyFlagScalarFieldEnum]
+
+
+export const MonthlyReportScalarFieldEnum = {
+  id: 'id',
+  year: 'year',
+  month: 'month',
+  generatedAt: 'generatedAt',
+  totalAmount: 'totalAmount',
+  workerCount: 'workerCount',
+  currencyBreakdown: 'currencyBreakdown',
+  xeroStatus: 'xeroStatus'
+} as const
+
+export type MonthlyReportScalarFieldEnum = (typeof MonthlyReportScalarFieldEnum)[keyof typeof MonthlyReportScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  id: 'id',
+  action: 'action',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  actorId: 'actorId',
+  actorName: 'actorName',
+  details: 'details',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -395,4 +473,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

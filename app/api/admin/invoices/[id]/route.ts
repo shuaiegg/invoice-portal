@@ -4,6 +4,7 @@ import { invoiceChangesRequested, invoicePaidWorkerNotification, invoiceStatusCh
 import { isAdminInvoiceTransitionAllowed } from "@/lib/invoice-status";
 import type { InvoiceStatus } from "@/lib/generated/client/enums";
 import { syncInvoiceToXero } from "@/lib/xero";
+import { logInvoiceStatusChanged } from "@/lib/audit";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -44,8 +45,10 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { authorized, response } = await requireAdmin();
-  if (!authorized) return response;
+  const adminCheck = await requireAdmin();
+  if (!adminCheck.authorized) return adminCheck.response;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const session = adminCheck.session!;
 
   const { id } = await params;
   const { status, note } = await req.json();
@@ -114,6 +117,18 @@ export async function PUT(
   if (currentStatus === "SUBMITTED" && status === "DRAFT") {
     invoiceChangesRequested(updatedInvoice, updatedInvoice.worker, typeof note === "string" ? note.trim() || null : null);
   }
+
+  await logInvoiceStatusChanged(
+    session.user.id,
+    session.user.name ?? session.user.email,
+    updatedInvoice.id,
+    {
+      invoiceNumber: updatedInvoice.invoiceNumber,
+      workerName: updatedInvoice.worker.name,
+      from: currentStatus,
+      to: status,
+    }
+  );
 
   return NextResponse.json({ ...updatedInvoice, xeroWarning });
 }

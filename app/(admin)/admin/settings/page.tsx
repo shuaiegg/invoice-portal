@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, CreditCard, Clock } from "lucide-react";
+import { ExternalLink, CreditCard, Clock, Users } from "lucide-react";
 import Link from "next/link";
 import { WebhookSettings } from "@/components/admin/webhook-settings";
 import { RegistrationToggle } from "@/components/admin/registration-toggle";
@@ -69,6 +69,25 @@ export default async function AdminSettingsPage() {
         </Card>
         <Card><CardHeader><div className="flex items-center gap-2"><Clock className="h-5 w-5 text-primary" /><CardTitle>Time Doctor</CardTitle></div><CardDescription>Configure the read-only monthly hours integration.</CardDescription></CardHeader><CardContent><Link href="/admin/settings/timedoctor"><Button variant="outline" className="w-full">Configure Time Doctor<ExternalLink className="ml-2 h-4 w-4" /></Button></Link></CardContent></Card>
         <RegistrationToggle initialRegistrationOpen={registrationOpen} pendingCount={pendingWorkerCount} />
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              <CardTitle>User Management</CardTitle>
+            </div>
+            <CardDescription>
+              Promote workers to Admin or revoke admin access.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/admin/settings/users">
+              <Button variant="outline" className="w-full">
+                Manage Users
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="space-y-4">

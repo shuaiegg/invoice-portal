@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Search, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 
 const statuses = [
   { label: "Submitted", value: "SUBMITTED" },
@@ -30,6 +30,7 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const [workerName, setWorkerName] = useState(searchParams.get("workerName") || "");
   const [period, setPeriod] = useState(searchParams.get("period") || "");
@@ -41,7 +42,7 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
 
   const updateFilters = (updates: Record<string, string | string[] | null>) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     Object.entries(updates).forEach(([key, value]) => {
       if (value === null || value === "" || value === "all" || (Array.isArray(value) && value.length === 0)) {
         params.delete(key);
@@ -52,17 +53,17 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
       }
     });
 
-    // Reset to page 1 on filter change
     params.set("page", "1");
-    
-    router.push(`${pathname}?${params.toString()}`);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`);
+    });
   };
 
   const handleStatusChange = (status: string, checked: boolean) => {
     const nextStatuses = checked
       ? [...selectedStatuses, status]
       : selectedStatuses.filter((s) => s !== status);
-    
+
     setSelectedStatuses(nextStatuses);
     updateFilters({ status: nextStatuses });
   };
@@ -71,8 +72,16 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
     setWorkerName("");
     setPeriod("");
     setSelectedStatuses([]);
-    router.push(pathname);
+    // Preserve the current month — clearing filters should not reset the month view
+    const params = new URLSearchParams();
+    const currentMonth = searchParams.get("month");
+    if (currentMonth) params.set("month", currentMonth);
+    startTransition(() => {
+      router.push(params.toString() ? `${pathname}?${params.toString()}` : pathname);
+    });
   };
+
+  const hasNonMonthFilters = !!(workerName || period || xero !== "all" || selectedStatuses.length > 0);
 
   return (
     <div className="bg-white p-6 rounded-xl border space-y-6 shadow-sm">
@@ -162,14 +171,22 @@ export function InvoiceFilters({ availableMonths = [] }: { availableMonths?: str
         </div>
       </div>
 
-      {(workerName || period || month !== "all" || xero !== "all" || selectedStatuses.length > 0) && (
-        <div className="pt-2 border-t flex justify-end">
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+      <div className="pt-2 border-t flex items-center justify-between">
+        <div>
+          {isPending && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Loading…
+            </span>
+          )}
+        </div>
+        {hasNonMonthFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground" disabled={isPending}>
             <X className="mr-2 h-4 w-4" />
             Clear all filters
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

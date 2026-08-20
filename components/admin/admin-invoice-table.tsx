@@ -32,6 +32,7 @@ interface AdminInvoiceTableProps {
   page: number;
   pageSize: number;
   totalPages: number;
+  totalsByCurrency?: Record<string, number>;
 }
 
 interface AdminInvoice {
@@ -61,7 +62,7 @@ type BulkResult = {
   xeroFailed: number;
 };
 
-export function AdminInvoiceTable({ invoices, total, page, pageSize, totalPages }: AdminInvoiceTableProps) {
+export function AdminInvoiceTable({ invoices, total, page, pageSize, totalPages, totalsByCurrency = {} }: AdminInvoiceTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -74,6 +75,19 @@ export function AdminInvoiceTable({ invoices, total, page, pageSize, totalPages 
   const selectableInvoices = invoices.filter((invoice) => invoice.status === "SUBMITTED" || invoice.status === "APPROVED");
   const selectedInvoices = selectableInvoices.filter((invoice) => selectedIds.includes(invoice.id));
   const selectedStatuses = new Set(selectedInvoices.map((invoice) => invoice.status));
+
+  // Compute totals for the currently selected invoices (page mode only)
+  const selectedTotalsByCurrency: Record<string, number> = {};
+  for (const invoice of selectedInvoices) {
+    selectedTotalsByCurrency[invoice.currency] = (selectedTotalsByCurrency[invoice.currency] ?? 0) + invoice.totalAmount;
+  }
+
+  // Header checkbox state: true = all selected, "indeterminate" = some selected, false = none
+  const headerChecked = selectedIds.length === 0
+    ? false
+    : selectedIds.length === selectableInvoices.length
+      ? true
+      : "indeterminate" as const;
   const filterStatuses = new Set(searchParams.get("status")?.split(",") ?? []);
 
   function currentFilter() {
@@ -191,7 +205,6 @@ export function AdminInvoiceTable({ invoices, total, page, pageSize, totalPages 
     }).format(new Date(date));
   }
 
-  const hasSelection = selectionMode === "filter" || selectedIds.length > 0;
   const mayApprove = selectionMode === "filter"
     ? filterStatuses.size === 0 || filterStatuses.has("SUBMITTED")
     : selectedStatuses.has("SUBMITTED");
@@ -203,8 +216,35 @@ export function AdminInvoiceTable({ invoices, total, page, pageSize, totalPages 
   failedParams.set("xero", "failed");
   failedParams.delete("page");
 
+  const isFilterMode = selectionMode === "filter";
+  const hasSelection = isFilterMode || selectedIds.length > 0;
+
+  // Stats bar: show selected amounts when something is selected, otherwise server totals
+  const statsCount = isFilterMode ? total : selectedIds.length > 0 ? selectedIds.length : total;
+  const statsAmounts = isFilterMode
+    ? formatCurrencyTotals(totalsByCurrency)
+    : selectedIds.length > 0
+      ? formatCurrencyTotals(selectedTotalsByCurrency)
+      : formatCurrencyTotals(totalsByCurrency);
+  const statsLabel = isFilterMode
+    ? `${statsCount} selected`
+    : selectedIds.length > 0
+      ? `${statsCount} selected`
+      : `${statsCount} invoice${statsCount === 1 ? "" : "s"}`;
+
   return (
     <div className="flex flex-col gap-4">
+      {statsAmounts ? (
+        <div className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${hasSelection ? "border-blue-200 bg-blue-50" : "border-border bg-muted/40"}`}>
+          <span className={`text-sm font-semibold ${hasSelection ? "text-blue-900" : "text-foreground"}`}>
+            {statsLabel}
+          </span>
+          <span className={`text-sm ${hasSelection ? "text-blue-700" : "text-muted-foreground"}`}>
+            {statsAmounts}
+          </span>
+        </div>
+      ) : null}
+
       {searchParams.get("month") ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-accent/30 p-4">
           <p className="text-sm font-medium">Month actions — apply to every matching invoice, not just this page</p>
@@ -267,7 +307,7 @@ export function AdminInvoiceTable({ invoices, total, page, pageSize, totalPages 
         <Table>
           <TableHeader>
             <TableRow className="bg-accent/50">
-              <TableHead className="w-12"><Checkbox onCheckedChange={(checked) => toggleSelectAll(!!checked)} checked={selectedIds.length > 0 && selectedIds.length === selectableInvoices.length} /></TableHead>
+              <TableHead className="w-12"><Checkbox onCheckedChange={(checked) => toggleSelectAll(!!checked)} checked={headerChecked} /></TableHead>
               <TableHead>Invoice #</TableHead><TableHead>Worker</TableHead><TableHead>Channel</TableHead><TableHead>Period</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead><TableHead>Xero Sync</TableHead><TableHead className="text-right">Date</TableHead>
             </TableRow>
           </TableHeader>

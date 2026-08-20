@@ -1,4 +1,4 @@
-import { runTdSync } from "@/lib/td-sync";
+import { runAutomation } from "@/lib/automation-run";
 import { after, NextResponse } from "next/server";
 
 export const maxDuration = 300;
@@ -9,6 +9,6 @@ export async function GET(request: Request) {
   }
   const now = new Date();
   const previous = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-  after(() => runTdSync({ year: previous.getUTCFullYear(), month: previous.getUTCMonth() + 1 }));
+  after(() => runAutomation({ year: previous.getUTCFullYear(), month: previous.getUTCMonth() + 1 }));
   return NextResponse.json({ started: true }, { status: 200 });
 }

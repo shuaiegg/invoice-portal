@@ -54,6 +54,33 @@ export const TdFailureReason = {
 export type TdFailureReason = (typeof TdFailureReason)[keyof typeof TdFailureReason]
 
 
+export const AutomationRunStatus = {
+  RUNNING: 'RUNNING',
+  RUN_PAUSED: 'RUN_PAUSED',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type AutomationRunStatus = (typeof AutomationRunStatus)[keyof typeof AutomationRunStatus]
+
+
+export const AnomalyType = {
+  HOUR_DEVIATION: 'HOUR_DEVIATION',
+  AMOUNT_CEILING: 'AMOUNT_CEILING',
+  MISSING_TD_DATA: 'MISSING_TD_DATA'
+} as const
+
+export type AnomalyType = (typeof AnomalyType)[keyof typeof AnomalyType]
+
+
+export const AnomalySeverity = {
+  HIGH: 'HIGH',
+  MEDIUM: 'MEDIUM'
+} as const
+
+export type AnomalySeverity = (typeof AnomalySeverity)[keyof typeof AnomalySeverity]
+
+
 export const PaymentAccountType = {
   BANK_TRANSFER: 'BANK_TRANSFER',
   WISE: 'WISE',

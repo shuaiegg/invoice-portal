@@ -18,13 +18,15 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  if (session.user.role === "ADMIN") {
-    redirect("/admin");
-  }
-
   const worker = await db.worker.findUnique({
     where: { userId: session.user.id },
   });
+
+  // ADMIN without a worker profile → go to admin panel
+  // ADMIN with a worker profile → fall through and show their invoices
+  if (session.user.role === "ADMIN" && !worker) {
+    redirect("/admin");
+  }
 
   const isProfileComplete = isWorkerProfileComplete(worker);
 

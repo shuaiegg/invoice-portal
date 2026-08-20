@@ -13,13 +13,16 @@ import {
   syncBulkInvoicesToXero,
 } from "@/lib/bulk-invoice-server";
 import { bulkOperationDigest, invoicePaidWorkerNotification } from "@/lib/slack";
+import { logInvoiceStatusChangedBulk } from "@/lib/audit";
 import { withConnectionRetry } from "@/lib/worker-import";
 
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
-  const { authorized, response } = await requireAdmin();
-  if (!authorized) return response;
+  const adminCheck = await requireAdmin();
+  if (!adminCheck.authorized) return adminCheck.response;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const session = adminCheck.session!;
 
   // Everything below returns JSON even on unexpected failures — an unhandled throw
   // gives the client an empty 500 body ("Unexpected end of JSON" in the UI).
@@ -98,6 +101,20 @@ export async function POST(req: Request) {
         ...summarizeInvoices(transitionedInvoices),
         xeroFailed: xero.xeroFailed,
       });
+      await logInvoiceStatusChangedBulk(
+        session.user.id,
+        session.user.name ?? session.user.email,
+        transitionedInvoices.map((invoice) => ({
+          invoiceId: invoice.id,
+          details: {
+            invoiceNumber: invoice.invoiceNumber,
+            workerName: invoice.worker.name,
+            from: transition.expected,
+            to: transition.target,
+            bulk: true,
+          },
+        }))
+      );
     }
 
     return NextResponse.json({

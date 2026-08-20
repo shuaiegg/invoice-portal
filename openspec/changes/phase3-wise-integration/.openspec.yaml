@@ -1,2 +1,11 @@
 schema: spec-driven
 created: 2026-07-07
+status: deferred
+deferred_reason: >
+  Wise sandbox environment (api.sandbox.wise.com) is inaccessible from the
+  development network. Worker Portal account registration rate is too low (~3
+  of 259 workers) to have meaningful payment data for testing. Payment flow
+  remains manual (finance transfers externally, admin marks PAID in portal).
+  Revisit when: (1) Wise network access is resolved, (2) worker registration
+  rate is sufficient to justify automation.
+deferred_date: 2026-08-12

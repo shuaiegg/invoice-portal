@@ -403,6 +403,7 @@ export type InvoiceWhereInput = {
   worker?: Prisma.XOR<Prisma.WorkerScalarRelationFilter, Prisma.WorkerWhereInput>
   tdSyncRun?: Prisma.XOR<Prisma.TdSyncRunNullableScalarRelationFilter, Prisma.TdSyncRunWhereInput> | null
   lines?: Prisma.InvoiceLineListRelationFilter
+  anomalyFlags?: Prisma.AnomalyFlagListRelationFilter
 }
 
 export type InvoiceOrderByWithRelationInput = {
@@ -434,6 +435,7 @@ export type InvoiceOrderByWithRelationInput = {
   worker?: Prisma.WorkerOrderByWithRelationInput
   tdSyncRun?: Prisma.TdSyncRunOrderByWithRelationInput
   lines?: Prisma.InvoiceLineOrderByRelationAggregateInput
+  anomalyFlags?: Prisma.AnomalyFlagOrderByRelationAggregateInput
 }
 
 export type InvoiceWhereUniqueInput = Prisma.AtLeast<{
@@ -469,6 +471,7 @@ export type InvoiceWhereUniqueInput = Prisma.AtLeast<{
   worker?: Prisma.XOR<Prisma.WorkerScalarRelationFilter, Prisma.WorkerWhereInput>
   tdSyncRun?: Prisma.XOR<Prisma.TdSyncRunNullableScalarRelationFilter, Prisma.TdSyncRunWhereInput> | null
   lines?: Prisma.InvoiceLineListRelationFilter
+  anomalyFlags?: Prisma.AnomalyFlagListRelationFilter
 }, "id" | "invoiceNumber" | "workerId_billingMonth_supplementNo">
 
 export type InvoiceOrderByWithAggregationInput = {
@@ -562,6 +565,7 @@ export type InvoiceCreateInput = {
   worker: Prisma.WorkerCreateNestedOneWithoutInvoicesInput
   tdSyncRun?: Prisma.TdSyncRunCreateNestedOneWithoutInvoicesInput
   lines?: Prisma.InvoiceLineCreateNestedManyWithoutInvoiceInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutInvoiceInput
 }
 
 export type InvoiceUncheckedCreateInput = {
@@ -591,6 +595,7 @@ export type InvoiceUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.InvoiceLineUncheckedCreateNestedManyWithoutInvoiceInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutInvoiceInput
 }
 
 export type InvoiceUpdateInput = {
@@ -620,6 +625,7 @@ export type InvoiceUpdateInput = {
   worker?: Prisma.WorkerUpdateOneRequiredWithoutInvoicesNestedInput
   tdSyncRun?: Prisma.TdSyncRunUpdateOneWithoutInvoicesNestedInput
   lines?: Prisma.InvoiceLineUpdateManyWithoutInvoiceNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutInvoiceNestedInput
 }
 
 export type InvoiceUncheckedUpdateInput = {
@@ -649,6 +655,7 @@ export type InvoiceUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.InvoiceLineUncheckedUpdateManyWithoutInvoiceNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutInvoiceNestedInput
 }
 
 export type InvoiceCreateManyInput = {
@@ -858,6 +865,11 @@ export type InvoiceScalarRelationFilter = {
   isNot?: Prisma.InvoiceWhereInput
 }
 
+export type InvoiceNullableScalarRelationFilter = {
+  is?: Prisma.InvoiceWhereInput | null
+  isNot?: Prisma.InvoiceWhereInput | null
+}
+
 export type InvoiceCreateNestedManyWithoutWorkerInput = {
   create?: Prisma.XOR<Prisma.InvoiceCreateWithoutWorkerInput, Prisma.InvoiceUncheckedCreateWithoutWorkerInput> | Prisma.InvoiceCreateWithoutWorkerInput[] | Prisma.InvoiceUncheckedCreateWithoutWorkerInput[]
   connectOrCreate?: Prisma.InvoiceCreateOrConnectWithoutWorkerInput | Prisma.InvoiceCreateOrConnectWithoutWorkerInput[]
@@ -968,6 +980,22 @@ export type InvoiceUpdateOneRequiredWithoutLinesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InvoiceUpdateToOneWithWhereWithoutLinesInput, Prisma.InvoiceUpdateWithoutLinesInput>, Prisma.InvoiceUncheckedUpdateWithoutLinesInput>
 }
 
+export type InvoiceCreateNestedOneWithoutAnomalyFlagsInput = {
+  create?: Prisma.XOR<Prisma.InvoiceCreateWithoutAnomalyFlagsInput, Prisma.InvoiceUncheckedCreateWithoutAnomalyFlagsInput>
+  connectOrCreate?: Prisma.InvoiceCreateOrConnectWithoutAnomalyFlagsInput
+  connect?: Prisma.InvoiceWhereUniqueInput
+}
+
+export type InvoiceUpdateOneWithoutAnomalyFlagsNestedInput = {
+  create?: Prisma.XOR<Prisma.InvoiceCreateWithoutAnomalyFlagsInput, Prisma.InvoiceUncheckedCreateWithoutAnomalyFlagsInput>
+  connectOrCreate?: Prisma.InvoiceCreateOrConnectWithoutAnomalyFlagsInput
+  upsert?: Prisma.InvoiceUpsertWithoutAnomalyFlagsInput
+  disconnect?: Prisma.InvoiceWhereInput | boolean
+  delete?: Prisma.InvoiceWhereInput | boolean
+  connect?: Prisma.InvoiceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InvoiceUpdateToOneWithWhereWithoutAnomalyFlagsInput, Prisma.InvoiceUpdateWithoutAnomalyFlagsInput>, Prisma.InvoiceUncheckedUpdateWithoutAnomalyFlagsInput>
+}
+
 export type InvoiceCreateWithoutWorkerInput = {
   id?: string
   billingMonth?: string | null
@@ -994,6 +1022,7 @@ export type InvoiceCreateWithoutWorkerInput = {
   updatedAt?: Date | string
   tdSyncRun?: Prisma.TdSyncRunCreateNestedOneWithoutInvoicesInput
   lines?: Prisma.InvoiceLineCreateNestedManyWithoutInvoiceInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutInvoiceInput
 }
 
 export type InvoiceUncheckedCreateWithoutWorkerInput = {
@@ -1022,6 +1051,7 @@ export type InvoiceUncheckedCreateWithoutWorkerInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.InvoiceLineUncheckedCreateNestedManyWithoutInvoiceInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutInvoiceInput
 }
 
 export type InvoiceCreateOrConnectWithoutWorkerInput = {
@@ -1107,6 +1137,7 @@ export type InvoiceCreateWithoutTdSyncRunInput = {
   updatedAt?: Date | string
   worker: Prisma.WorkerCreateNestedOneWithoutInvoicesInput
   lines?: Prisma.InvoiceLineCreateNestedManyWithoutInvoiceInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutInvoiceInput
 }
 
 export type InvoiceUncheckedCreateWithoutTdSyncRunInput = {
@@ -1135,6 +1166,7 @@ export type InvoiceUncheckedCreateWithoutTdSyncRunInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   lines?: Prisma.InvoiceLineUncheckedCreateNestedManyWithoutInvoiceInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutInvoiceInput
 }
 
 export type InvoiceCreateOrConnectWithoutTdSyncRunInput = {
@@ -1189,6 +1221,7 @@ export type InvoiceCreateWithoutLinesInput = {
   updatedAt?: Date | string
   worker: Prisma.WorkerCreateNestedOneWithoutInvoicesInput
   tdSyncRun?: Prisma.TdSyncRunCreateNestedOneWithoutInvoicesInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutInvoiceInput
 }
 
 export type InvoiceUncheckedCreateWithoutLinesInput = {
@@ -1217,6 +1250,7 @@ export type InvoiceUncheckedCreateWithoutLinesInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutInvoiceInput
 }
 
 export type InvoiceCreateOrConnectWithoutLinesInput = {
@@ -1261,6 +1295,7 @@ export type InvoiceUpdateWithoutLinesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   worker?: Prisma.WorkerUpdateOneRequiredWithoutInvoicesNestedInput
   tdSyncRun?: Prisma.TdSyncRunUpdateOneWithoutInvoicesNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutInvoiceNestedInput
 }
 
 export type InvoiceUncheckedUpdateWithoutLinesInput = {
@@ -1289,6 +1324,139 @@ export type InvoiceUncheckedUpdateWithoutLinesInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutInvoiceNestedInput
+}
+
+export type InvoiceCreateWithoutAnomalyFlagsInput = {
+  id?: string
+  billingMonth?: string | null
+  supplementNo?: number
+  invoiceNumber: string
+  invoiceDate: Date | string
+  dueDate: Date | string
+  serviceDate?: Date | string | null
+  status?: $Enums.InvoiceStatus
+  description?: string | null
+  period: string
+  quantity: number
+  rate: number
+  subtotal: number
+  vatAmount: number
+  totalAmount: number
+  vatRate?: number
+  vatInclusive?: boolean
+  currency?: string
+  xeroSynced?: boolean
+  xeroInvoiceId?: string | null
+  xeroSyncedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  worker: Prisma.WorkerCreateNestedOneWithoutInvoicesInput
+  tdSyncRun?: Prisma.TdSyncRunCreateNestedOneWithoutInvoicesInput
+  lines?: Prisma.InvoiceLineCreateNestedManyWithoutInvoiceInput
+}
+
+export type InvoiceUncheckedCreateWithoutAnomalyFlagsInput = {
+  id?: string
+  workerId: string
+  tdSyncRunId?: string | null
+  billingMonth?: string | null
+  supplementNo?: number
+  invoiceNumber: string
+  invoiceDate: Date | string
+  dueDate: Date | string
+  serviceDate?: Date | string | null
+  status?: $Enums.InvoiceStatus
+  description?: string | null
+  period: string
+  quantity: number
+  rate: number
+  subtotal: number
+  vatAmount: number
+  totalAmount: number
+  vatRate?: number
+  vatInclusive?: boolean
+  currency?: string
+  xeroSynced?: boolean
+  xeroInvoiceId?: string | null
+  xeroSyncedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lines?: Prisma.InvoiceLineUncheckedCreateNestedManyWithoutInvoiceInput
+}
+
+export type InvoiceCreateOrConnectWithoutAnomalyFlagsInput = {
+  where: Prisma.InvoiceWhereUniqueInput
+  create: Prisma.XOR<Prisma.InvoiceCreateWithoutAnomalyFlagsInput, Prisma.InvoiceUncheckedCreateWithoutAnomalyFlagsInput>
+}
+
+export type InvoiceUpsertWithoutAnomalyFlagsInput = {
+  update: Prisma.XOR<Prisma.InvoiceUpdateWithoutAnomalyFlagsInput, Prisma.InvoiceUncheckedUpdateWithoutAnomalyFlagsInput>
+  create: Prisma.XOR<Prisma.InvoiceCreateWithoutAnomalyFlagsInput, Prisma.InvoiceUncheckedCreateWithoutAnomalyFlagsInput>
+  where?: Prisma.InvoiceWhereInput
+}
+
+export type InvoiceUpdateToOneWithWhereWithoutAnomalyFlagsInput = {
+  where?: Prisma.InvoiceWhereInput
+  data: Prisma.XOR<Prisma.InvoiceUpdateWithoutAnomalyFlagsInput, Prisma.InvoiceUncheckedUpdateWithoutAnomalyFlagsInput>
+}
+
+export type InvoiceUpdateWithoutAnomalyFlagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supplementNo?: Prisma.IntFieldUpdateOperationsInput | number
+  invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
+  subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  worker?: Prisma.WorkerUpdateOneRequiredWithoutInvoicesNestedInput
+  tdSyncRun?: Prisma.TdSyncRunUpdateOneWithoutInvoicesNestedInput
+  lines?: Prisma.InvoiceLineUpdateManyWithoutInvoiceNestedInput
+}
+
+export type InvoiceUncheckedUpdateWithoutAnomalyFlagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workerId?: Prisma.StringFieldUpdateOperationsInput | string
+  tdSyncRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingMonth?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supplementNo?: Prisma.IntFieldUpdateOperationsInput | number
+  invoiceNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  invoiceDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInvoiceStatusFieldUpdateOperationsInput | $Enums.InvoiceStatus
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  period?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  rate?: Prisma.FloatFieldUpdateOperationsInput | number
+  subtotal?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalAmount?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  vatInclusive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroSynced?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroInvoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lines?: Prisma.InvoiceLineUncheckedUpdateManyWithoutInvoiceNestedInput
 }
 
 export type InvoiceCreateManyWorkerInput = {
@@ -1344,6 +1512,7 @@ export type InvoiceUpdateWithoutWorkerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tdSyncRun?: Prisma.TdSyncRunUpdateOneWithoutInvoicesNestedInput
   lines?: Prisma.InvoiceLineUpdateManyWithoutInvoiceNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutInvoiceNestedInput
 }
 
 export type InvoiceUncheckedUpdateWithoutWorkerInput = {
@@ -1372,6 +1541,7 @@ export type InvoiceUncheckedUpdateWithoutWorkerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.InvoiceLineUncheckedUpdateManyWithoutInvoiceNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutInvoiceNestedInput
 }
 
 export type InvoiceUncheckedUpdateManyWithoutWorkerInput = {
@@ -1454,6 +1624,7 @@ export type InvoiceUpdateWithoutTdSyncRunInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   worker?: Prisma.WorkerUpdateOneRequiredWithoutInvoicesNestedInput
   lines?: Prisma.InvoiceLineUpdateManyWithoutInvoiceNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutInvoiceNestedInput
 }
 
 export type InvoiceUncheckedUpdateWithoutTdSyncRunInput = {
@@ -1482,6 +1653,7 @@ export type InvoiceUncheckedUpdateWithoutTdSyncRunInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lines?: Prisma.InvoiceLineUncheckedUpdateManyWithoutInvoiceNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutInvoiceNestedInput
 }
 
 export type InvoiceUncheckedUpdateManyWithoutTdSyncRunInput = {
@@ -1518,10 +1690,12 @@ export type InvoiceUncheckedUpdateManyWithoutTdSyncRunInput = {
 
 export type InvoiceCountOutputType = {
   lines: number
+  anomalyFlags: number
 }
 
 export type InvoiceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lines?: boolean | InvoiceCountOutputTypeCountLinesArgs
+  anomalyFlags?: boolean | InvoiceCountOutputTypeCountAnomalyFlagsArgs
 }
 
 /**
@@ -1539,6 +1713,13 @@ export type InvoiceCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
  */
 export type InvoiceCountOutputTypeCountLinesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.InvoiceLineWhereInput
+}
+
+/**
+ * InvoiceCountOutputType without action
+ */
+export type InvoiceCountOutputTypeCountAnomalyFlagsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AnomalyFlagWhereInput
 }
 
 
@@ -1571,6 +1752,7 @@ export type InvoiceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   worker?: boolean | Prisma.WorkerDefaultArgs<ExtArgs>
   tdSyncRun?: boolean | Prisma.Invoice$tdSyncRunArgs<ExtArgs>
   lines?: boolean | Prisma.Invoice$linesArgs<ExtArgs>
+  anomalyFlags?: boolean | Prisma.Invoice$anomalyFlagsArgs<ExtArgs>
   _count?: boolean | Prisma.InvoiceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["invoice"]>
 
@@ -1667,6 +1849,7 @@ export type InvoiceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   worker?: boolean | Prisma.WorkerDefaultArgs<ExtArgs>
   tdSyncRun?: boolean | Prisma.Invoice$tdSyncRunArgs<ExtArgs>
   lines?: boolean | Prisma.Invoice$linesArgs<ExtArgs>
+  anomalyFlags?: boolean | Prisma.Invoice$anomalyFlagsArgs<ExtArgs>
   _count?: boolean | Prisma.InvoiceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InvoiceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1684,6 +1867,7 @@ export type $InvoicePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     worker: Prisma.$WorkerPayload<ExtArgs>
     tdSyncRun: Prisma.$TdSyncRunPayload<ExtArgs> | null
     lines: Prisma.$InvoiceLinePayload<ExtArgs>[]
+    anomalyFlags: Prisma.$AnomalyFlagPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2108,6 +2292,7 @@ export interface Prisma__InvoiceClient<T, Null = never, ExtArgs extends runtime.
   worker<T extends Prisma.WorkerDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkerDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkerClient<runtime.Types.Result.GetResult<Prisma.$WorkerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   tdSyncRun<T extends Prisma.Invoice$tdSyncRunArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Invoice$tdSyncRunArgs<ExtArgs>>): Prisma.Prisma__TdSyncRunClient<runtime.Types.Result.GetResult<Prisma.$TdSyncRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   lines<T extends Prisma.Invoice$linesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Invoice$linesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvoiceLinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  anomalyFlags<T extends Prisma.Invoice$anomalyFlagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Invoice$anomalyFlagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AnomalyFlagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2603,6 +2788,30 @@ export type Invoice$linesArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.InvoiceLineScalarFieldEnum | Prisma.InvoiceLineScalarFieldEnum[]
+}
+
+/**
+ * Invoice.anomalyFlags
+ */
+export type Invoice$anomalyFlagsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AnomalyFlag
+   */
+  select?: Prisma.AnomalyFlagSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AnomalyFlag
+   */
+  omit?: Prisma.AnomalyFlagOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnomalyFlagInclude<ExtArgs> | null
+  where?: Prisma.AnomalyFlagWhereInput
+  orderBy?: Prisma.AnomalyFlagOrderByWithRelationInput | Prisma.AnomalyFlagOrderByWithRelationInput[]
+  cursor?: Prisma.AnomalyFlagWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AnomalyFlagScalarFieldEnum | Prisma.AnomalyFlagScalarFieldEnum[]
 }
 
 /**

@@ -449,6 +449,7 @@ export type WorkerWhereInput = {
   paymentAccounts?: Prisma.PaymentAccountListRelationFilter
   rateConflicts?: Prisma.WorkerRateConflictListRelationFilter
   matchFailures?: Prisma.TdMatchFailureListRelationFilter
+  anomalyFlags?: Prisma.AnomalyFlagListRelationFilter
 }
 
 export type WorkerOrderByWithRelationInput = {
@@ -490,6 +491,7 @@ export type WorkerOrderByWithRelationInput = {
   paymentAccounts?: Prisma.PaymentAccountOrderByRelationAggregateInput
   rateConflicts?: Prisma.WorkerRateConflictOrderByRelationAggregateInput
   matchFailures?: Prisma.TdMatchFailureOrderByRelationAggregateInput
+  anomalyFlags?: Prisma.AnomalyFlagOrderByRelationAggregateInput
 }
 
 export type WorkerWhereUniqueInput = Prisma.AtLeast<{
@@ -534,6 +536,7 @@ export type WorkerWhereUniqueInput = Prisma.AtLeast<{
   paymentAccounts?: Prisma.PaymentAccountListRelationFilter
   rateConflicts?: Prisma.WorkerRateConflictListRelationFilter
   matchFailures?: Prisma.TdMatchFailureListRelationFilter
+  anomalyFlags?: Prisma.AnomalyFlagListRelationFilter
 }, "id" | "userId" | "timeDoctorEmail" | "claimToken">
 
 export type WorkerOrderByWithAggregationInput = {
@@ -654,6 +657,7 @@ export type WorkerCreateInput = {
   paymentAccounts?: Prisma.PaymentAccountCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerUncheckedCreateInput = {
@@ -694,6 +698,7 @@ export type WorkerUncheckedCreateInput = {
   paymentAccounts?: Prisma.PaymentAccountUncheckedCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureUncheckedCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerUpdateInput = {
@@ -734,6 +739,7 @@ export type WorkerUpdateInput = {
   paymentAccounts?: Prisma.PaymentAccountUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerUncheckedUpdateInput = {
@@ -774,6 +780,7 @@ export type WorkerUncheckedUpdateInput = {
   paymentAccounts?: Prisma.PaymentAccountUncheckedUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUncheckedUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerCreateManyInput = {
@@ -1125,6 +1132,22 @@ export type WorkerUpdateOneRequiredWithoutRateConflictsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.WorkerUpdateToOneWithWhereWithoutRateConflictsInput, Prisma.WorkerUpdateWithoutRateConflictsInput>, Prisma.WorkerUncheckedUpdateWithoutRateConflictsInput>
 }
 
+export type WorkerCreateNestedOneWithoutAnomalyFlagsInput = {
+  create?: Prisma.XOR<Prisma.WorkerCreateWithoutAnomalyFlagsInput, Prisma.WorkerUncheckedCreateWithoutAnomalyFlagsInput>
+  connectOrCreate?: Prisma.WorkerCreateOrConnectWithoutAnomalyFlagsInput
+  connect?: Prisma.WorkerWhereUniqueInput
+}
+
+export type WorkerUpdateOneWithoutAnomalyFlagsNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkerCreateWithoutAnomalyFlagsInput, Prisma.WorkerUncheckedCreateWithoutAnomalyFlagsInput>
+  connectOrCreate?: Prisma.WorkerCreateOrConnectWithoutAnomalyFlagsInput
+  upsert?: Prisma.WorkerUpsertWithoutAnomalyFlagsInput
+  disconnect?: Prisma.WorkerWhereInput | boolean
+  delete?: Prisma.WorkerWhereInput | boolean
+  connect?: Prisma.WorkerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkerUpdateToOneWithWhereWithoutAnomalyFlagsInput, Prisma.WorkerUpdateWithoutAnomalyFlagsInput>, Prisma.WorkerUncheckedUpdateWithoutAnomalyFlagsInput>
+}
+
 export type WorkerCreateWithoutUserInput = {
   id?: string
   name: string
@@ -1162,6 +1185,7 @@ export type WorkerCreateWithoutUserInput = {
   paymentAccounts?: Prisma.PaymentAccountCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerUncheckedCreateWithoutUserInput = {
@@ -1201,6 +1225,7 @@ export type WorkerUncheckedCreateWithoutUserInput = {
   paymentAccounts?: Prisma.PaymentAccountUncheckedCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureUncheckedCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerCreateOrConnectWithoutUserInput = {
@@ -1256,6 +1281,7 @@ export type WorkerUpdateWithoutUserInput = {
   paymentAccounts?: Prisma.PaymentAccountUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerUncheckedUpdateWithoutUserInput = {
@@ -1295,6 +1321,7 @@ export type WorkerUncheckedUpdateWithoutUserInput = {
   paymentAccounts?: Prisma.PaymentAccountUncheckedUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUncheckedUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerCreateWithoutPaymentAccountsInput = {
@@ -1334,6 +1361,7 @@ export type WorkerCreateWithoutPaymentAccountsInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerUncheckedCreateWithoutPaymentAccountsInput = {
@@ -1373,6 +1401,7 @@ export type WorkerUncheckedCreateWithoutPaymentAccountsInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureUncheckedCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerCreateOrConnectWithoutPaymentAccountsInput = {
@@ -1428,6 +1457,7 @@ export type WorkerUpdateWithoutPaymentAccountsInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerUncheckedUpdateWithoutPaymentAccountsInput = {
@@ -1467,6 +1497,7 @@ export type WorkerUncheckedUpdateWithoutPaymentAccountsInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUncheckedUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerCreateWithoutInvoicesInput = {
@@ -1506,6 +1537,7 @@ export type WorkerCreateWithoutInvoicesInput = {
   paymentAccounts?: Prisma.PaymentAccountCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerUncheckedCreateWithoutInvoicesInput = {
@@ -1545,6 +1577,7 @@ export type WorkerUncheckedCreateWithoutInvoicesInput = {
   paymentAccounts?: Prisma.PaymentAccountUncheckedCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureUncheckedCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerCreateOrConnectWithoutInvoicesInput = {
@@ -1600,6 +1633,7 @@ export type WorkerUpdateWithoutInvoicesInput = {
   paymentAccounts?: Prisma.PaymentAccountUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerUncheckedUpdateWithoutInvoicesInput = {
@@ -1639,6 +1673,7 @@ export type WorkerUncheckedUpdateWithoutInvoicesInput = {
   paymentAccounts?: Prisma.PaymentAccountUncheckedUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUncheckedUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerCreateWithoutMatchFailuresInput = {
@@ -1678,6 +1713,7 @@ export type WorkerCreateWithoutMatchFailuresInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutWorkerInput
   paymentAccounts?: Prisma.PaymentAccountCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerUncheckedCreateWithoutMatchFailuresInput = {
@@ -1717,6 +1753,7 @@ export type WorkerUncheckedCreateWithoutMatchFailuresInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutWorkerInput
   paymentAccounts?: Prisma.PaymentAccountUncheckedCreateNestedManyWithoutWorkerInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerCreateOrConnectWithoutMatchFailuresInput = {
@@ -1772,6 +1809,7 @@ export type WorkerUpdateWithoutMatchFailuresInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutWorkerNestedInput
   paymentAccounts?: Prisma.PaymentAccountUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerUncheckedUpdateWithoutMatchFailuresInput = {
@@ -1811,6 +1849,7 @@ export type WorkerUncheckedUpdateWithoutMatchFailuresInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutWorkerNestedInput
   paymentAccounts?: Prisma.PaymentAccountUncheckedUpdateManyWithoutWorkerNestedInput
   rateConflicts?: Prisma.WorkerRateConflictUncheckedUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerCreateWithoutRateConflictsInput = {
@@ -1850,6 +1889,7 @@ export type WorkerCreateWithoutRateConflictsInput = {
   invoices?: Prisma.InvoiceCreateNestedManyWithoutWorkerInput
   paymentAccounts?: Prisma.PaymentAccountCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerUncheckedCreateWithoutRateConflictsInput = {
@@ -1889,6 +1929,7 @@ export type WorkerUncheckedCreateWithoutRateConflictsInput = {
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutWorkerInput
   paymentAccounts?: Prisma.PaymentAccountUncheckedCreateNestedManyWithoutWorkerInput
   matchFailures?: Prisma.TdMatchFailureUncheckedCreateNestedManyWithoutWorkerInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedCreateNestedManyWithoutWorkerInput
 }
 
 export type WorkerCreateOrConnectWithoutRateConflictsInput = {
@@ -1944,6 +1985,7 @@ export type WorkerUpdateWithoutRateConflictsInput = {
   invoices?: Prisma.InvoiceUpdateManyWithoutWorkerNestedInput
   paymentAccounts?: Prisma.PaymentAccountUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUpdateManyWithoutWorkerNestedInput
 }
 
 export type WorkerUncheckedUpdateWithoutRateConflictsInput = {
@@ -1983,6 +2025,183 @@ export type WorkerUncheckedUpdateWithoutRateConflictsInput = {
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutWorkerNestedInput
   paymentAccounts?: Prisma.PaymentAccountUncheckedUpdateManyWithoutWorkerNestedInput
   matchFailures?: Prisma.TdMatchFailureUncheckedUpdateManyWithoutWorkerNestedInput
+  anomalyFlags?: Prisma.AnomalyFlagUncheckedUpdateManyWithoutWorkerNestedInput
+}
+
+export type WorkerCreateWithoutAnomalyFlagsInput = {
+  id?: string
+  name: string
+  team?: string | null
+  address?: string | null
+  city?: string | null
+  country?: string | null
+  vatNumber?: string | null
+  vatRate?: number
+  paymentMethod?: string | null
+  paymentAccount?: string | null
+  paymentNotes?: string | null
+  bankName?: string | null
+  swiftCode?: string | null
+  postCode?: string | null
+  secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  paymentConfigured?: boolean
+  timeDoctorEmail?: string | null
+  xeroContactId?: string | null
+  hourlyRate?: number | null
+  hourlyRateSource?: $Enums.HourlyRateSource
+  hourlyRateUpdatedAt?: Date | string | null
+  hourlyRateUpdatedBy?: string | null
+  currency?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
+  claimToken?: string | null
+  claimTokenExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutWorkerInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutWorkerInput
+  paymentAccounts?: Prisma.PaymentAccountCreateNestedManyWithoutWorkerInput
+  rateConflicts?: Prisma.WorkerRateConflictCreateNestedManyWithoutWorkerInput
+  matchFailures?: Prisma.TdMatchFailureCreateNestedManyWithoutWorkerInput
+}
+
+export type WorkerUncheckedCreateWithoutAnomalyFlagsInput = {
+  id?: string
+  userId?: string | null
+  name: string
+  team?: string | null
+  address?: string | null
+  city?: string | null
+  country?: string | null
+  vatNumber?: string | null
+  vatRate?: number
+  paymentMethod?: string | null
+  paymentAccount?: string | null
+  paymentNotes?: string | null
+  bankName?: string | null
+  swiftCode?: string | null
+  postCode?: string | null
+  secondaryPayment?: string | null
+  paymentType?: $Enums.PaymentType
+  paymentConfigured?: boolean
+  timeDoctorEmail?: string | null
+  xeroContactId?: string | null
+  hourlyRate?: number | null
+  hourlyRateSource?: $Enums.HourlyRateSource
+  hourlyRateUpdatedAt?: Date | string | null
+  hourlyRateUpdatedBy?: string | null
+  currency?: string | null
+  cryptoCoin?: string | null
+  cryptoNetwork?: string | null
+  cryptoWallet?: string | null
+  paypalEmail?: string | null
+  claimToken?: string | null
+  claimTokenExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutWorkerInput
+  paymentAccounts?: Prisma.PaymentAccountUncheckedCreateNestedManyWithoutWorkerInput
+  rateConflicts?: Prisma.WorkerRateConflictUncheckedCreateNestedManyWithoutWorkerInput
+  matchFailures?: Prisma.TdMatchFailureUncheckedCreateNestedManyWithoutWorkerInput
+}
+
+export type WorkerCreateOrConnectWithoutAnomalyFlagsInput = {
+  where: Prisma.WorkerWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkerCreateWithoutAnomalyFlagsInput, Prisma.WorkerUncheckedCreateWithoutAnomalyFlagsInput>
+}
+
+export type WorkerUpsertWithoutAnomalyFlagsInput = {
+  update: Prisma.XOR<Prisma.WorkerUpdateWithoutAnomalyFlagsInput, Prisma.WorkerUncheckedUpdateWithoutAnomalyFlagsInput>
+  create: Prisma.XOR<Prisma.WorkerCreateWithoutAnomalyFlagsInput, Prisma.WorkerUncheckedCreateWithoutAnomalyFlagsInput>
+  where?: Prisma.WorkerWhereInput
+}
+
+export type WorkerUpdateToOneWithWhereWithoutAnomalyFlagsInput = {
+  where?: Prisma.WorkerWhereInput
+  data: Prisma.XOR<Prisma.WorkerUpdateWithoutAnomalyFlagsInput, Prisma.WorkerUncheckedUpdateWithoutAnomalyFlagsInput>
+}
+
+export type WorkerUpdateWithoutAnomalyFlagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  team?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vatNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  paymentConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
+  hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hourlyRateUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutWorkerNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutWorkerNestedInput
+  paymentAccounts?: Prisma.PaymentAccountUpdateManyWithoutWorkerNestedInput
+  rateConflicts?: Prisma.WorkerRateConflictUpdateManyWithoutWorkerNestedInput
+  matchFailures?: Prisma.TdMatchFailureUpdateManyWithoutWorkerNestedInput
+}
+
+export type WorkerUncheckedUpdateWithoutAnomalyFlagsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  team?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vatNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  vatRate?: Prisma.FloatFieldUpdateOperationsInput | number
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  swiftCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryPayment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
+  paymentConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timeDoctorEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroContactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hourlyRateSource?: Prisma.EnumHourlyRateSourceFieldUpdateOperationsInput | $Enums.HourlyRateSource
+  hourlyRateUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hourlyRateUpdatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoCoin?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoNetwork?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cryptoWallet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paypalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutWorkerNestedInput
+  paymentAccounts?: Prisma.PaymentAccountUncheckedUpdateManyWithoutWorkerNestedInput
+  rateConflicts?: Prisma.WorkerRateConflictUncheckedUpdateManyWithoutWorkerNestedInput
+  matchFailures?: Prisma.TdMatchFailureUncheckedUpdateManyWithoutWorkerNestedInput
 }
 
 
@@ -1995,6 +2214,7 @@ export type WorkerCountOutputType = {
   paymentAccounts: number
   rateConflicts: number
   matchFailures: number
+  anomalyFlags: number
 }
 
 export type WorkerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2002,6 +2222,7 @@ export type WorkerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   paymentAccounts?: boolean | WorkerCountOutputTypeCountPaymentAccountsArgs
   rateConflicts?: boolean | WorkerCountOutputTypeCountRateConflictsArgs
   matchFailures?: boolean | WorkerCountOutputTypeCountMatchFailuresArgs
+  anomalyFlags?: boolean | WorkerCountOutputTypeCountAnomalyFlagsArgs
 }
 
 /**
@@ -2040,6 +2261,13 @@ export type WorkerCountOutputTypeCountRateConflictsArgs<ExtArgs extends runtime.
  */
 export type WorkerCountOutputTypeCountMatchFailuresArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TdMatchFailureWhereInput
+}
+
+/**
+ * WorkerCountOutputType without action
+ */
+export type WorkerCountOutputTypeCountAnomalyFlagsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AnomalyFlagWhereInput
 }
 
 
@@ -2082,6 +2310,7 @@ export type WorkerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   paymentAccounts?: boolean | Prisma.Worker$paymentAccountsArgs<ExtArgs>
   rateConflicts?: boolean | Prisma.Worker$rateConflictsArgs<ExtArgs>
   matchFailures?: boolean | Prisma.Worker$matchFailuresArgs<ExtArgs>
+  anomalyFlags?: boolean | Prisma.Worker$anomalyFlagsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["worker"]>
 
@@ -2202,6 +2431,7 @@ export type WorkerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   paymentAccounts?: boolean | Prisma.Worker$paymentAccountsArgs<ExtArgs>
   rateConflicts?: boolean | Prisma.Worker$rateConflictsArgs<ExtArgs>
   matchFailures?: boolean | Prisma.Worker$matchFailuresArgs<ExtArgs>
+  anomalyFlags?: boolean | Prisma.Worker$anomalyFlagsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WorkerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2219,6 +2449,7 @@ export type $WorkerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     paymentAccounts: Prisma.$PaymentAccountPayload<ExtArgs>[]
     rateConflicts: Prisma.$WorkerRateConflictPayload<ExtArgs>[]
     matchFailures: Prisma.$TdMatchFailurePayload<ExtArgs>[]
+    anomalyFlags: Prisma.$AnomalyFlagPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2653,6 +2884,7 @@ export interface Prisma__WorkerClient<T, Null = never, ExtArgs extends runtime.T
   paymentAccounts<T extends Prisma.Worker$paymentAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Worker$paymentAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   rateConflicts<T extends Prisma.Worker$rateConflictsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Worker$rateConflictsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkerRateConflictPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   matchFailures<T extends Prisma.Worker$matchFailuresArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Worker$matchFailuresArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TdMatchFailurePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  anomalyFlags<T extends Prisma.Worker$anomalyFlagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Worker$anomalyFlagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AnomalyFlagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3228,6 +3460,30 @@ export type Worker$matchFailuresArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.TdMatchFailureScalarFieldEnum | Prisma.TdMatchFailureScalarFieldEnum[]
+}
+
+/**
+ * Worker.anomalyFlags
+ */
+export type Worker$anomalyFlagsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AnomalyFlag
+   */
+  select?: Prisma.AnomalyFlagSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AnomalyFlag
+   */
+  omit?: Prisma.AnomalyFlagOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AnomalyFlagInclude<ExtArgs> | null
+  where?: Prisma.AnomalyFlagWhereInput
+  orderBy?: Prisma.AnomalyFlagOrderByWithRelationInput | Prisma.AnomalyFlagOrderByWithRelationInput[]
+  cursor?: Prisma.AnomalyFlagWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AnomalyFlagScalarFieldEnum | Prisma.AnomalyFlagScalarFieldEnum[]
 }
 
 /**

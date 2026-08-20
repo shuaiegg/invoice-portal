@@ -126,3 +126,28 @@ export type AppConfig = Prisma.AppConfigModel
  * 
  */
 export type WebhookConfig = Prisma.WebhookConfigModel
+/**
+ * Model AutomationConfig
+ * 
+ */
+export type AutomationConfig = Prisma.AutomationConfigModel
+/**
+ * Model AutomationRun
+ * 
+ */
+export type AutomationRun = Prisma.AutomationRunModel
+/**
+ * Model AnomalyFlag
+ * 
+ */
+export type AnomalyFlag = Prisma.AnomalyFlagModel
+/**
+ * Model MonthlyReport
+ * 
+ */
+export type MonthlyReport = Prisma.MonthlyReportModel
+/**
+ * Model AuditLog
+ * 
+ */
+export type AuditLog = Prisma.AuditLogModel

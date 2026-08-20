@@ -37,6 +37,24 @@ enum TdFailureReason {
   MISSING_RATE
 }
 
+enum AutomationRunStatus {
+  RUNNING
+  RUN_PAUSED
+  COMPLETED
+  FAILED
+}
+
+enum AnomalyType {
+  HOUR_DEVIATION
+  AMOUNT_CEILING
+  MISSING_TD_DATA
+}
+
+enum AnomalySeverity {
+  HIGH
+  MEDIUM
+}
+
 enum PaymentAccountType {
   BANK_TRANSFER
   WISE
@@ -133,6 +151,7 @@ model Worker {
   paymentAccounts PaymentAccount[]
   rateConflicts   WorkerRateConflict[]
   matchFailures   TdMatchFailure[]
+  anomalyFlags    AnomalyFlag[]
 }
 
 model PaymentAccount {
@@ -191,15 +210,19 @@ model Invoice {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  worker    Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  tdSyncRun TdSyncRun?    @relation(fields: [tdSyncRunId], references: [id], onDelete: SetNull)
-  lines     InvoiceLine[]
+  worker       Worker        @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  tdSyncRun    TdSyncRun?    @relation(fields: [tdSyncRunId], references: [id], onDelete: SetNull)
+  lines        InvoiceLine[]
+  anomalyFlags AnomalyFlag[]
 
   @@unique([workerId, billingMonth, supplementNo])
   @@index([workerId])
   @@index([tdSyncRunId])
   @@index([status])
   @@index([invoiceDate])
+  @@index([billingMonth])
+  @@index([createdAt])
+  @@index([billingMonth, status])
 }
 
 model TimeDoctorConfig {
@@ -346,4 +369,85 @@ model WebhookConfig {
   updatedAt       DateTime  @updatedAt
 
   @@unique([key, environment])
+}
+
+// Phase 4 — Automation & Reporting
+
+// Singleton row: admin-configurable anomaly detection thresholds
+model AutomationConfig {
+  id                     String   @id @default("singleton")
+  hourDeviationThreshold Float    @default(0.20)
+  amountCeiling          Float    @default(10000)
+  updatedAt              DateTime @updatedAt
+}
+
+// One record per monthly automation run
+model AutomationRun {
+  id           String              @id @default(cuid())
+  billingMonth String
+  status       AutomationRunStatus @default(RUNNING)
+  triggeredBy  String?
+  completedAt  DateTime?
+  errorLog     String?             @db.Text
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  anomalyFlags AnomalyFlag[]
+
+  @@index([billingMonth])
+  @@index([status])
+}
+
+// One record per anomaly detected during a run
+model AnomalyFlag {
+  id        String          @id @default(cuid())
+  runId     String
+  invoiceId String?
+  workerId  String?
+  type      AnomalyType
+  severity  AnomalySeverity
+  details   String          @db.Text
+  createdAt DateTime        @default(now())
+
+  run     AutomationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  invoice Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  worker  Worker?       @relation(fields: [workerId], references: [id], onDelete: SetNull)
+
+  @@index([runId])
+  @@index([invoiceId])
+  @@index([workerId])
+}
+
+// One record per completed month — aggregated payment summary
+model MonthlyReport {
+  id                String   @id @default(cuid())
+  year              Int
+  month             Int
+  generatedAt       DateTime @default(now())
+  totalAmount       Float
+  workerCount       Int
+  currencyBreakdown Json
+  xeroStatus        String?
+
+  @@unique([year, month])
+  @@index([year, month])
+}
+
+// Audit log — append-only, never deleted
+// action:     "INVOICE_STATUS_CHANGED" | "USER_ROLE_CHANGED"
+// entityType: "INVOICE" | "USER"
+// details:    action-specific JSON (see lib/audit.ts)
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String
+  actorId    String
+  actorName  String
+  details    Json
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt])
 }

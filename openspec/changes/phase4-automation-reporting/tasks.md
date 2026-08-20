@@ -16,18 +16,19 @@
 
 ## 3. Automation Orchestrator
 
-- [ ] 3.1 Create `lib/automation-run.ts` — chains: TD sync → anomaly check → (gate) → Wise batch → Xero sync
+- [ ] 3.1 Create `lib/automation-run.ts` — chains: TD sync → anomaly check → (gate) → Slack notify finance for manual payment
 - [ ] 3.2 Implement gate logic: if any HIGH severity anomalies exist, pause run and notify #finance
 - [ ] 3.3 Create `AutomationRun` record per monthly run; update status at each step
 - [ ] 3.4 Update existing TD cron (`/api/cron/td-sync`) to invoke orchestrator instead of sync-only
-- [ ] 3.5 Post comprehensive Slack summary on run completion: invoices generated, amount, anomalies flagged, payment status
+- [ ] 3.5 Post comprehensive Slack summary on run completion: invoices generated, amount, anomalies flagged
+- [ ] ~~3.6 Wise batch payment step~~ — deferred with Phase 3; slot reserved for future insertion
 
 ## 4. Admin Anomaly Review UI
 
 - [ ] 4.1 Create `/admin/automation` page showing current month's run status and anomaly list
 - [ ] 4.2 Anomaly table: worker, type, severity, details, "Mark Reviewed" action
 - [ ] 4.3 "Resume Run" button — only enabled when all HIGH anomalies are reviewed
-- [ ] 4.4 Resume calls `POST /api/admin/automation/[runId]/resume` → triggers Wise batch
+- [ ] 4.4 Resume calls `POST /api/admin/automation/[runId]/resume` → sends Slack payment-ready notification to finance
 
 ## 5. Monthly Finance Report
 
