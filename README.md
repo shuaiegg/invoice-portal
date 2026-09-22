@@ -1,6 +1,6 @@
 # Worker Invoice Portal
 
-A web application for 200+ remote contractors to submit monthly invoices, with an admin dashboard for the finance team to manage statuses, sync to Xero, and notify via Slack.
+A web application for 200+ remote contractors to submit monthly invoices, with an admin dashboard for the finance team to manage statuses, sync to Xero, and fire event notifications through n8n (Slack included).
 
 **Stack**: Next.js · React 19 · Tailwind CSS v4 · TypeScript · BetterAuth · Prisma · Neon PostgreSQL · shadcn/ui · Vercel
 
@@ -11,7 +11,7 @@ A web application for 200+ remote contractors to submit monthly invoices, with a
 - [Vercel](https://vercel.com) account
 - [Neon](https://neon.tech) PostgreSQL project
 - [Xero](https://developer.xero.com) app (for accounting sync)
-- Slack Incoming Webhook URL (for finance notifications)
+- An n8n instance with webhook triggers (for Slack/finance notifications — configured post-deploy via Admin Settings, not an env var)
 - Time Doctor API credentials (for automated hour sync)
 
 ---
@@ -29,8 +29,7 @@ Set all of the following in Vercel → Project → Settings → Environment Vari
 | `NEXT_PUBLIC_APP_URL` | Same as `BETTER_AUTH_URL` |
 | `XERO_CLIENT_ID` | Xero app Client ID |
 | `XERO_CLIENT_SECRET` | Xero app Client Secret |
-| `XERO_REDIRECT_URI` | `{APP_URL}/api/auth/xero/callback` |
-| `SLACK_WEBHOOK_URL` | Slack Incoming Webhook URL for #finance channel |
+| `XERO_REDIRECT_URI` | Optional — auto-derived as `{NEXT_PUBLIC_APP_URL}/api/auth/xero/callback`; only set to override |
 | `CRON_SECRET` | Random secret used by Vercel Cron to authenticate cron endpoints |
 | `TD_API_TOKEN` | Time Doctor API JWT (bootstrap reference — can be updated via Admin → Settings) |
 | `TD_COMPANY_ID` | Time Doctor company ID (bootstrap reference — can be updated via Admin → Settings) |
@@ -101,15 +100,15 @@ All subsequent registrations create Worker accounts by default. Admins can promo
 
 Once connected, invoices are synced to Xero automatically when marked as **Paid**.
 
-### Slack Notifications
+### n8n Notifications (Slack, etc.)
 
-1. Create a Slack app with an Incoming Webhook pointed at your #finance channel.
-2. Set `SLACK_WEBHOOK_URL` in Vercel.
+All outbound events dispatch to n8n, not directly to Slack — n8n decides where each event goes (Slack channel, another system, etc.).
 
-Notifications are sent automatically on:
-- Invoice submitted by a worker
-- Invoice status changes (Approved, Paid)
-- Monthly TD sync completion
+1. In n8n, create a Webhook Trigger for each event you want to handle.
+2. In the admin portal, go to **Settings → n8n Webhook Configuration** and, for each event key, set the n8n webhook URL and toggle it enabled. Each row shows a "Last Triggered" timestamp so you can confirm delivery.
+3. Run the seed script (`lib/seed-webhooks.ts`) after first deploy to pre-populate the event key rows, or add them individually via the UI.
+
+Event keys fired: `invoice.submitted`, `invoice.updated`, `invoice.revoked`, `invoice.status_changed`, `invoice.paid`, `invoice.changes_requested`, `invoice.bulk_completed`, `worker.invited`, `td.sync_completed`, `td.sync_failed`, `td.draft_ready`.
 
 ### Time Doctor Sync
 

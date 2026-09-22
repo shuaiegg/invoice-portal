@@ -12,7 +12,7 @@ This guide walks through deploying the Worker Invoice Portal from a GitHub fork 
 | Vercel | Hosting & CI/CD | Yes |
 | Neon PostgreSQL | Database | Yes |
 | Xero | Accounting sync | Optional |
-| Slack | Notifications | Optional |
+| n8n | Event notifications (Slack, etc.) | Optional |
 | Time Doctor | Automation | Optional |
 
 ---
@@ -81,6 +81,8 @@ Skip this section if you don't need accounting sync. Invoice submission and mana
    - **Client ID** → `XERO_CLIENT_ID`
    - **Client Secret** → `XERO_CLIENT_SECRET`
 
+> `XERO_REDIRECT_URI` is **not required as an env var** — the app derives it automatically as `{NEXT_PUBLIC_APP_URL}/api/auth/xero/callback`. You only need to register that exact URL in the Xero app above; only set the env var explicitly if the app's public URL differs from what's registered with Xero (e.g. behind a proxy).
+
 The app requests these OAuth scopes (hardcoded in the connect route):
 `openid`, `profile`, `email`, `offline_access`, `accounting.contacts`, `accounting.invoices`, `accounting.settings`
 
@@ -94,15 +96,9 @@ To complete the connection after deployment: Admin Settings → Xero → **Conne
 
 ---
 
-## Step 5 — Configure Slack Notifications (Optional)
+## Step 5 — Configure Notifications via n8n (Optional)
 
-Slack notifications are sent via an Incoming Webhook.
-
-1. Go to [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → **From scratch**
-2. Name it (e.g. "Invoice Portal") and select your workspace
-3. In the sidebar: **Incoming Webhooks** → toggle **Activate Incoming Webhooks** → On
-4. Click **Add New Webhook to Workspace** → choose the `#finance` channel (or any channel)
-5. Copy the webhook URL → `SLACK_WEBHOOK_URL`
+Notifications (Slack included) are **not** sent directly from this app — every event dispatches through `dispatchWebhook()` (`lib/webhook.ts`) to a per-event n8n Webhook Trigger URL stored in the `WebhookConfig` DB table, and n8n decides where it goes from there (Slack, another system, etc.). This is done via Admin UI after deployment, not an env var — see Step 10. There is no direct-to-Slack code path or `SLACK_WEBHOOK_URL` env var — that was migrated off and removed after all 8 non-TD event keys were verified end-to-end.
 
 ---
 
@@ -153,8 +149,9 @@ Before clicking **Deploy**, scroll down to **Environment Variables** and add all
 |----------|-------|-------|
 | `XERO_CLIENT_ID` | From Xero app | See Step 4 |
 | `XERO_CLIENT_SECRET` | From Xero app | See Step 4 |
-| `XERO_REDIRECT_URI` | `https://your-app.vercel.app/api/auth/xero/callback` | See Step 4 |
-| `SLACK_WEBHOOK_URL` | Slack Incoming Webhook URL | See Step 5 |
+| `XERO_REDIRECT_URI` | *(usually leave unset)* | Auto-derived from `NEXT_PUBLIC_APP_URL`; only set to override — see Step 4 |
+
+> **Notifications have no env var at all** — they're configured after deployment via Admin Settings → n8n Webhook Configuration (see Step 10), not `.env`.
 
 > **Time Doctor credentials** are NOT set here — they are configured through the Admin Settings UI after deployment and stored in the database.
 
@@ -226,14 +223,20 @@ This applies all migrations in `prisma/migrations/` to your Neon database. Run t
 
 ## Step 10 — Configure n8n Webhooks (If Using n8n)
 
-If you have an n8n instance and want it to receive invoice events, configure the webhook URLs after deployment.
+If you have an n8n instance and want it to receive events (invoice lifecycle, worker onboarding, TD sync), configure the webhook URLs after deployment. This is the **only** notification path this app uses — there is no direct Slack integration; n8n routes to Slack (or anywhere else) itself.
 
-**Via Admin UI (recommended):**
+**One-time setup:**
+
+1. Run `lib/seed-webhooks.ts` once against your database to pre-populate a `WebhookConfig` row per event key (seeded **disabled** with a placeholder URL, except `invoice.submitted`/`invoice.updated` if `N8N_INVOICE_SUBMITTED_URL`/`N8N_INVOICE_UPDATED_URL` were set at seed time).
+2. In n8n, create a Webhook Trigger for each event you want to handle.
+
+**Via Admin UI (for each event):**
 
 1. In Admin → **Settings**, scroll to the **n8n Webhook Configuration** section
-2. For each event (`invoice.submitted`, `invoice.updated`), click to edit and paste your n8n webhook URL
+2. Click **Configure** on the event, paste your n8n webhook URL
 3. Optionally set a **Secret** — it will be sent as the `X-Webhook-Secret` header so n8n can verify the request
 4. Toggle **Enabled** on
+5. After the event next fires, the row's **Last Triggered** column updates — use this to confirm delivery without digging through n8n's execution logs
 
 **Events fired and their payloads:**
 
@@ -241,6 +244,15 @@ If you have an n8n instance and want it to receive invoice events, configure the
 |-------|---------|---------------|
 | `invoice.submitted` | Worker submits invoice | `invoiceId`, `invoiceNumber`, `worker.id`, `worker.name`, `invoice.period`, `invoice.totalAmount`, `invoice.currency` |
 | `invoice.updated` | Worker edits a submitted invoice | Same as above |
+| `invoice.revoked` | Worker revokes a submitted invoice | Same as above |
+| `invoice.status_changed` | Admin changes invoice status | Same as above, plus `from`, `to` |
+| `invoice.paid` | Invoice transitions to PAID (single or bulk) | Same as above, plus `worker.paymentType` (and `worker.email` on the single-invoice path) |
+| `invoice.changes_requested` | Admin sends an invoice back to Draft | Same as above, plus `note` |
+| `invoice.bulk_completed` | Bulk approve/mark-paid action finishes | `action`, `count`, totals/breakdown fields, `xeroFailed` |
+| `worker.invited` | New worker created via TD CSV import | `worker.name`, `worker.timeDoctorEmail`, `registrationUrl` |
+| `td.sync_completed` | Monthly TD sync run finishes | sync result counts + `totalsByCurrency` |
+| `td.sync_failed` | Monthly TD sync run fails to start | *(empty payload)* |
+| `td.draft_ready` | TD_PLUS worker's draft invoice is generated | `invoiceId`, `invoiceNumber`, `worker.id`, `worker.name`, `invoice.period`, `invoice.totalAmount`, `invoice.currency` |
 
 All payloads also include `eventKey`, `timestamp`, and `environment`.
 
@@ -268,7 +280,7 @@ After completing the setup steps above, verify the following:
 - [ ] App loads at your domain without errors
 - [ ] Worker registration works (create a test worker account)
 - [ ] First admin account has the ADMIN role (check via Admin dashboard)
-- [ ] Invoice submission fires a Slack notification (if Slack is configured)
+- [ ] Invoice submission triggers `invoice.submitted` (check "Last Triggered" in Admin → Settings → n8n Webhook Configuration, if n8n is configured)
 - [ ] Xero status shows Connected (if Xero is configured)
 - [ ] Consider **closing public registration** once all workers are onboarded: Admin → Settings → Registration toggle → Off
 
@@ -317,8 +329,9 @@ Run this after the Vercel deployment completes.
 3. Update these environment variables in Vercel to the new domain:
    - `BETTER_AUTH_URL`
    - `NEXT_PUBLIC_APP_URL`
-   - `XERO_REDIRECT_URI` (also update this in your Xero developer app)
-4. Click **Redeploy** (no code changes needed — just env var update)
+   - If you had explicitly set `XERO_REDIRECT_URI`, update that too — otherwise it's derived automatically from `NEXT_PUBLIC_APP_URL`
+4. Update the redirect URI registered in your Xero developer app to match the new domain (Xero rejects requests from an unregistered redirect URI)
+5. Click **Redeploy** (no code changes needed — just env var update)
 
 ---
 

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-guard";
-import { invoiceChangesRequested, invoicePaidWorkerNotification, invoiceStatusChanged } from "@/lib/slack";
+import { dispatchWebhook } from "@/lib/webhook";
 import { isAdminInvoiceTransitionAllowed } from "@/lib/invoice-status";
 import type { InvoiceStatus } from "@/lib/generated/client/enums";
 import { syncInvoiceToXero } from "@/lib/xero";
@@ -109,13 +109,36 @@ export async function PUT(
     }
   }
 
-  invoiceStatusChanged(updatedInvoice, updatedInvoice.worker, currentStatus, status);
-  if (status === "PAID" && updatedInvoice.worker.paymentType === "MANUAL") {
-    invoicePaidWorkerNotification(updatedInvoice, updatedInvoice.worker);
+  dispatchWebhook("invoice.status_changed", {
+    invoiceId: updatedInvoice.id,
+    invoiceNumber: updatedInvoice.invoiceNumber,
+    worker: { id: updatedInvoice.worker.id, name: updatedInvoice.worker.name },
+    invoice: { period: updatedInvoice.period, totalAmount: updatedInvoice.totalAmount, currency: updatedInvoice.currency },
+    from: currentStatus,
+    to: status,
+  });
+  if (status === "PAID") {
+    dispatchWebhook("invoice.paid", {
+      invoiceId: updatedInvoice.id,
+      invoiceNumber: updatedInvoice.invoiceNumber,
+      worker: {
+        id: updatedInvoice.worker.id,
+        name: updatedInvoice.worker.name,
+        paymentType: updatedInvoice.worker.paymentType,
+        email: updatedInvoice.worker.user?.email ?? null,
+      },
+      invoice: { period: updatedInvoice.period, totalAmount: updatedInvoice.totalAmount, currency: updatedInvoice.currency },
+    });
   }
   // Request changes: tell the worker what to fix — the invoice is back in their court
   if (currentStatus === "SUBMITTED" && status === "DRAFT") {
-    invoiceChangesRequested(updatedInvoice, updatedInvoice.worker, typeof note === "string" ? note.trim() || null : null);
+    dispatchWebhook("invoice.changes_requested", {
+      invoiceId: updatedInvoice.id,
+      invoiceNumber: updatedInvoice.invoiceNumber,
+      worker: { id: updatedInvoice.worker.id, name: updatedInvoice.worker.name },
+      invoice: { period: updatedInvoice.period, totalAmount: updatedInvoice.totalAmount, currency: updatedInvoice.currency },
+      note: typeof note === "string" ? note.trim() || null : null,
+    });
   }
 
   await logInvoiceStatusChanged(

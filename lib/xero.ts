@@ -4,6 +4,17 @@ import { Invoice, InvoiceLine, Worker } from "./generated/client/client";
 const XERO_TOKEN_URL = "https://identity.xero.com/connect/token";
 const XERO_API_BASE = "https://api.xero.com/api.xro/2.0";
 
+// The redirect URI is always {app URL}/api/auth/xero/callback — deriving it from
+// NEXT_PUBLIC_APP_URL avoids a second env var that silently drifts out of sync
+// whenever the domain changes. XERO_REDIRECT_URI is kept as an explicit override
+// for setups where the public app URL differs from what's registered with Xero
+// (e.g. behind a proxy).
+export function getXeroRedirectUri(): string | undefined {
+  if (process.env.XERO_REDIRECT_URI) return process.env.XERO_REDIRECT_URI;
+  if (!process.env.NEXT_PUBLIC_APP_URL) return undefined;
+  return `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/xero/callback`;
+}
+
 // Xero enforces 60 calls/min per tenant. On 429 it sends Retry-After (seconds);
 // waiting it out and retrying turns a rate-limit failure into a slower success.
 async function xeroFetch(url: string, init: RequestInit, retries = 2): Promise<Response> {

@@ -1,7 +1,7 @@
 import { Prisma } from "./generated/client/client";
 import { db } from "./db";
 import { reserveInvoiceNumbers } from "./invoice-number";
-import { tdPlusDraftReady, tdSyncFailure, tdSyncSummary } from "./slack";
+import { dispatchWebhook } from "./webhook";
 import { calculateInvoiceAmounts } from "./invoice-lines";
 import { fetchMonthlyHours, hoursFromSeconds } from "./timedoctor";
 import { buildTdWorkerMatcher } from "./td-worker-matching";
@@ -218,7 +218,14 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
         invoicesCreated += 1;
         totalAmount += invoice.totalAmount;
         totalsByCurrency[invoice.currency] = (totalsByCurrency[invoice.currency] ?? 0) + invoice.totalAmount;
-        if (activeWorker.paymentType === "TD_PLUS") tdPlusDraftReady(invoice, activeWorker);
+        if (activeWorker.paymentType === "TD_PLUS") {
+          dispatchWebhook("td.draft_ready", {
+            invoiceId: invoice.id,
+            invoiceNumber: invoice.invoiceNumber,
+            worker: { id: activeWorker.id, name: activeWorker.name },
+            invoice: { period: invoice.period, totalAmount: invoice.totalAmount, currency: invoice.currency },
+          });
+        }
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") continue;
         errors.push(`${activeWorker.id}: ${error instanceof Error ? error.message : String(error)}`);
@@ -231,13 +238,13 @@ export async function runTdSync({ year, month, triggeredBy = null }: TdSyncOptio
       db.tdSyncRun.update({ where: { id: run.id }, data: { ...result, status, errorLog: errors.join("\n") || null } }),
       db.timeDoctorConfig.update({ where: { id: "singleton" }, data: { lastSyncAt: new Date(), lastSyncStatus: status } }),
     ]);
-    tdSyncSummary({ ...result, totalsByCurrency });
+    dispatchWebhook("td.sync_completed", { ...result, totalsByCurrency });
     return { id: run.id, status, ...result };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await db.tdSyncRun.update({ where: { id: run.id }, data: { status: "FAILED", errorLog: message } });
     await db.timeDoctorConfig.updateMany({ where: { id: "singleton" }, data: { lastSyncAt: new Date(), lastSyncStatus: "FAILED" } });
-    tdSyncFailure();
+    dispatchWebhook("td.sync_failed", {});
     throw error;
   }
 }

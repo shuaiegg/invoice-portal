@@ -12,7 +12,7 @@ import {
   summarizeInvoices,
   syncBulkInvoicesToXero,
 } from "@/lib/bulk-invoice-server";
-import { bulkOperationDigest, invoicePaidWorkerNotification } from "@/lib/slack";
+import { dispatchWebhook } from "@/lib/webhook";
 import { logInvoiceStatusChangedBulk } from "@/lib/audit";
 import { withConnectionRetry } from "@/lib/worker-import";
 
@@ -91,11 +91,16 @@ export async function POST(req: Request) {
 
     if (action === "MARK_PAID") {
       for (const invoice of transitionedInvoices) {
-        if (invoice.worker.paymentType === "MANUAL") invoicePaidWorkerNotification(invoice, invoice.worker);
+        dispatchWebhook("invoice.paid", {
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          worker: { id: invoice.worker.id, name: invoice.worker.name, paymentType: invoice.worker.paymentType },
+          invoice: { period: invoice.period, totalAmount: invoice.totalAmount, currency: invoice.currency },
+        });
       }
     }
     if (transitionedInvoices.length > 0) {
-      bulkOperationDigest({
+      dispatchWebhook("invoice.bulk_completed", {
         action,
         count: transitionedInvoices.length,
         ...summarizeInvoices(transitionedInvoices),

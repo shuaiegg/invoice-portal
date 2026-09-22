@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getXeroRedirectUri } from "@/lib/xero";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
     body: new URLSearchParams({
       grant_type: "authorization_code",
       code,
-      redirect_uri: process.env.XERO_REDIRECT_URI!,
+      redirect_uri: getXeroRedirectUri() ?? "",
     }),
   });
 

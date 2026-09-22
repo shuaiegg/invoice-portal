@@ -22,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Edit2, Globe, Shield, RefreshCw } from "lucide-react";
+import { Edit2, Globe, Plus, Shield, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -51,23 +51,52 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
   const [configs, setConfigs] = useState(initialConfigs);
   const [editingConfig, setWebhookToEdit] = useState<EditingConfig | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleEdit = (config: WebhookConfigRow) => {
     setWebhookToEdit({ ...config });
+    setIsCreating(false);
+    setIsDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setWebhookToEdit({
+      key: "",
+      environment: "production",
+      url: "",
+      enabled: false,
+      lastTriggeredAt: null,
+      updatedAt: new Date().toISOString(),
+      hasSecret: false,
+      hasInternalSecret: false,
+      secret: "",
+      internalSecret: "",
+    });
+    setIsCreating(true);
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
     if (!editingConfig) return;
+    const key = editingConfig.key.trim();
+    const environment = editingConfig.environment.trim();
+    if (isCreating && (!key || !environment)) {
+      toast.error("Event key and environment are required");
+      return;
+    }
+    if (isCreating && configs.some((c) => c.key === key && c.environment === environment)) {
+      toast.error("A webhook with this event key and environment already exists");
+      return;
+    }
     setLoading(true);
     try {
       // Build payload: do not include secret/internalSecret keys when left blank
-      const payload: Partial<EditingConfig> = { ...editingConfig };
+      const payload: Partial<EditingConfig> = { ...editingConfig, key, environment };
       if (payload.secret === "" || payload.secret === undefined) delete payload.secret;
       if (payload.internalSecret === "" || payload.internalSecret === undefined) delete payload.internalSecret;
 
-      const response = await fetch(`/api/admin/settings/webhooks/${editingConfig.key}`, {
+      const response = await fetch(`/api/admin/settings/webhooks/${encodeURIComponent(key)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -75,15 +104,16 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
 
       if (!response.ok) throw new Error("Failed to update config");
 
-      toast.success("Webhook configuration updated");
+      toast.success(isCreating ? "Webhook created" : "Webhook configuration updated");
       setIsDialogOpen(false);
       router.refresh();
       // Update local state (optimistic or after refresh)
-      setConfigs(configs.map(c => 
-        (c.key === editingConfig.key && c.environment === editingConfig.environment) 
-        ? editingConfig 
-        : c
-      ));
+      const saved = { ...editingConfig, key, environment };
+      setConfigs(
+        configs.some((c) => c.key === key && c.environment === environment)
+          ? configs.map((c) => (c.key === key && c.environment === environment ? saved : c))
+          : [...configs, saved],
+      );
     } catch {
       toast.error("Failed to save changes");
     } finally {
@@ -123,6 +153,12 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button size="sm" onClick={handleAddNew}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Webhook
+        </Button>
+      </div>
       <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
@@ -131,13 +167,14 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
               <TableHead>Environment</TableHead>
               <TableHead>Webhook URL</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Last Triggered</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {configs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-secondary-text">
+                <TableCell colSpan={6} className="text-center py-12 text-secondary-text">
                   No webhook configurations found. Run the seed script to create defaults.
                 </TableCell>
               </TableRow>
@@ -155,12 +192,17 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Switch 
-                        checked={config.enabled} 
+                      <Switch
+                        checked={config.enabled}
                         onCheckedChange={() => toggleEnabled(config)}
                       />
                       <span className="text-sm">{config.enabled ? "Live" : "Paused"}</span>
                     </div>
+                  </TableCell>
+                  <TableCell className="text-xs text-secondary-text">
+                    {config.lastTriggeredAt
+                      ? new Date(config.lastTriggeredAt).toLocaleString()
+                      : "Never"}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(config)}>
@@ -178,12 +220,38 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Configure Webhook</DialogTitle>
-            <DialogDescription>
-              {editingConfig?.key} for {editingConfig?.environment}
-            </DialogDescription>
+            <DialogTitle>{isCreating ? "Add Webhook" : "Configure Webhook"}</DialogTitle>
+            {!isCreating && (
+              <DialogDescription>
+                {editingConfig?.key} for {editingConfig?.environment}
+              </DialogDescription>
+            )}
           </DialogHeader>
           <div className="grid gap-6 py-4">
+            {isCreating && (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="key">Event Key</Label>
+                  <Input
+                    id="key"
+                    value={editingConfig?.key || ""}
+                    onChange={(e) => editingConfig && setWebhookToEdit({ ...editingConfig, key: e.target.value })}
+                    placeholder="e.g. invoice.paid"
+                    className="bg-accent/30 font-mono"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="environment">Environment</Label>
+                  <Input
+                    id="environment"
+                    value={editingConfig?.environment || ""}
+                    onChange={(e) => editingConfig && setWebhookToEdit({ ...editingConfig, environment: e.target.value })}
+                    placeholder="production"
+                    className="bg-accent/30"
+                  />
+                </div>
+              </>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="url">Target URL (n8n Webhook Trigger)</Label>
               <Input
@@ -227,7 +295,7 @@ export function WebhookSettings({ initialConfigs }: WebhookSettingsProps) {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={loading}>
               {loading && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
+              {isCreating ? "Create" : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

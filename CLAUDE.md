@@ -46,8 +46,8 @@ Invoice submission never touches Xero. When an admin marks an invoice PAID, `syn
 **PDF = HTML + `@media print` (no PDF library)**
 Invoice detail page (`/invoice/[id]`) is the print template. "Download PDF" calls `window.print()`. `@media print` CSS hides UI chrome. No `@react-pdf/renderer` or puppeteer.
 
-**Slack notifications via direct webhooks**
-Slack notifications are fired directly from Next.js using an Incoming Webhook URL stored in `SLACK_WEBHOOK_URL`.
+**Notifications go through n8n via WebhookConfig — no direct Slack integration**
+All outbound notification events (`invoice.submitted`, `invoice.updated`, `invoice.status_changed`, `invoice.paid`, `invoice.revoked`, `invoice.changes_requested`, `invoice.bulk_completed`, `worker.invited`, `td.sync_completed`, `td.sync_failed`, `td.draft_ready`) fire through `dispatchWebhook()` (`lib/webhook.ts`), which looks up a per-`(key, environment)` URL/secret in the `WebhookConfig` DB table and POSTs to n8n — n8n then routes to Slack or wherever. Configure URLs and enable/disable per event key in Admin Settings; each row shows a "Last Triggered" timestamp so you can confirm an event actually fired. There is no `SLACK_WEBHOOK_URL` env var and no direct-to-Slack code path — that was migrated off and deleted (`lib/slack.ts`) after all 8 non-TD event keys were live-verified end-to-end (2026-09-22). See `BACKLOG.md` for the migration history.
 
 **Invoice numbers use atomic DB upsert**
 `lib/invoice-number.ts` uses `INSERT INTO InvoiceCounter ... ON CONFLICT DO UPDATE RETURNING count` — race-condition safe. Format: `INV-{YYYY}-{NNNN}`.
@@ -88,7 +88,7 @@ No `middleware.ts`: auth is enforced per layout/page (session) and per API route
 | `lib/auth.ts` | BetterAuth server config (cookie-cached DB session, role on session, first-user-admin hook) |
 | `lib/auth-client.ts` | BetterAuth client for `'use client'` components |
 | `lib/xero.ts` | Xero API client (OAuth token mgmt, contact upsert, draft bill creation) |
-| `lib/slack.ts` | Direct Slack Incoming Webhook notification helper |
+| `lib/webhook.ts` | `dispatchWebhook()` — fires outbound events to n8n via `WebhookConfig` |
 | `lib/invoice-number.ts` | Atomic sequential invoice number generation |
 | `lib/admin-guard.ts` | `requireAdmin(request)` helper for all `/api/admin/*` routes |
 
@@ -102,8 +102,7 @@ BETTER_AUTH_URL=       # = NEXT_PUBLIC_APP_URL
 NEXT_PUBLIC_APP_URL=   # e.g. https://invoice.yourdomain.com
 XERO_CLIENT_ID=        # Xero App Client ID
 XERO_CLIENT_SECRET=    # Xero App Client Secret
-XERO_REDIRECT_URI=     # {APP_URL}/api/auth/xero/callback
-SLACK_WEBHOOK_URL=     # Slack Incoming Webhook URL
+XERO_REDIRECT_URI=     # Optional — auto-derived as {NEXT_PUBLIC_APP_URL}/api/auth/xero/callback; only set to override
 CRON_SECRET=           # Bearer secret used by Vercel Cron for /api/cron/td-sync
 TD_API_TOKEN=          # Time Doctor JWT bootstrap/reference; runtime config is saved via Admin settings
 TD_COMPANY_ID=         # Time Doctor company bootstrap/reference; runtime config is saved via Admin settings

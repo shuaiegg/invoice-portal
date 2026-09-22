@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/admin-guard";
+import { getXeroRedirectUri } from "@/lib/xero";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -6,11 +7,11 @@ export async function GET() {
   if (!authorized) return response;
 
   const clientId = process.env.XERO_CLIENT_ID;
-  const redirectUri = process.env.XERO_REDIRECT_URI;
+  const redirectUri = getXeroRedirectUri();
 
   if (!clientId || !redirectUri) {
     return NextResponse.json(
-      { error: "Missing env vars: XERO_CLIENT_ID and XERO_REDIRECT_URI must be set." },
+      { error: "Missing env vars: XERO_CLIENT_ID must be set, and either XERO_REDIRECT_URI or NEXT_PUBLIC_APP_URL." },
       { status: 500 }
     );
   }

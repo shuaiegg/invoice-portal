@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateInvoiceNumber } from "@/lib/invoice-number";
-import { invoiceSubmitted } from "@/lib/slack";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
 import { deriveBillingMonth, resolveInvoiceSlot } from "@/lib/billing-month";
@@ -190,14 +189,13 @@ export async function POST(req: Request) {
     );
   }
 
-  // Fire-and-forget: webhook + Slack
+  // Fire-and-forget
   dispatchWebhook("invoice.submitted", {
     invoiceId: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
     worker: { id: worker.id, name: worker.name },
     invoice: { period: invoice.period, totalAmount: invoice.totalAmount, currency: invoice.currency },
   });
-  invoiceSubmitted(invoice, worker);
 
   return NextResponse.json({ invoiceId: invoice.id });
 }

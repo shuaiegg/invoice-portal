@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAdminUser } from "@/lib/auth-role";
-import { invoiceUpdated } from "@/lib/slack";
 import { isWorkerInvoiceEditable } from "@/lib/invoice-status";
 import { dispatchWebhook } from "@/lib/webhook";
 import { parseDateInput } from "@/lib/date-utils";
@@ -197,7 +196,6 @@ export async function PUT(
     worker: { id: updatedInvoice.worker.id, name: updatedInvoice.worker.name },
     invoice: { period: updatedInvoice.period, totalAmount: updatedInvoice.totalAmount, currency: updatedInvoice.currency },
   });
-  invoiceUpdated(updatedInvoice, updatedInvoice.worker);
 
   return NextResponse.json(updatedInvoice);
 }

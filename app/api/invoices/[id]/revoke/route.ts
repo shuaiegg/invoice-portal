@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { notifySlack } from "@/lib/slack";
+import { dispatchWebhook } from "@/lib/webhook";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -43,8 +43,11 @@ export async function POST(
     include: { worker: true },
   });
 
-  notifySlack({
-    text: `Invoice revoked: ${revokedInvoice.invoiceNumber} by ${revokedInvoice.worker.name} (${revokedInvoice.totalAmount} ${revokedInvoice.currency})`
+  dispatchWebhook("invoice.revoked", {
+    invoiceId: revokedInvoice.id,
+    invoiceNumber: revokedInvoice.invoiceNumber,
+    worker: { id: revokedInvoice.worker.id, name: revokedInvoice.worker.name },
+    invoice: { period: revokedInvoice.period, totalAmount: revokedInvoice.totalAmount, currency: revokedInvoice.currency },
   });
 
   return NextResponse.json(revokedInvoice);

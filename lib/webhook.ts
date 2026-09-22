@@ -26,9 +26,22 @@ export function dispatchWebhook(
           timestamp: new Date().toISOString(),
           environment,
         }),
-      }).catch((err) => {
-        console.error(`Webhook dispatch failed for key ${key}:`, err);
-      });
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.error(`Webhook dispatch returned ${res.status} for key ${key}`);
+            return;
+          }
+          // Lets Admin Settings show "last triggered" per event key — the only way
+          // to confirm an event actually fired without digging through n8n's logs.
+          return db.webhookConfig.update({
+            where: { key_environment: { key, environment } },
+            data: { lastTriggeredAt: new Date() },
+          });
+        })
+        .catch((err) => {
+          console.error(`Webhook dispatch failed for key ${key}:`, err);
+        });
     })
     .catch((err) => {
       console.error(`Failed to fetch webhook config for key ${key}:`, err);

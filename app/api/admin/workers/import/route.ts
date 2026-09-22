@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/admin-guard";
 import { db } from "@/lib/db";
 import { Prisma } from "@/lib/generated/client/client";
-import { tdWorkerInvite } from "@/lib/slack";
+import { dispatchWebhook } from "@/lib/webhook";
 import { buildTdWorkerMatcher } from "@/lib/td-worker-matching";
 import { fetchTeamsByEmail } from "@/lib/timedoctor";
 import { acquireWorkerProvisioningLock, provisionWorker } from "@/lib/worker-provisioning";
@@ -178,7 +178,13 @@ export async function POST(request: Request) {
       return { batchId: batch.id, createdCount, updatedCount, conflictCount, createdWorkers };
     }, WORKER_IMPORT_TRANSACTION_OPTIONS));
 
-    createdWorkers.forEach(tdWorkerInvite);
+    const registrationUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/register`;
+    createdWorkers.forEach((worker) => {
+      dispatchWebhook("worker.invited", {
+        worker: { name: worker.name, timeDoctorEmail: worker.timeDoctorEmail },
+        registrationUrl,
+      });
+    });
     return NextResponse.json(counts);
   } catch (error) {
     const rawMessage = error instanceof Error ? error.message : "CSV import failed";
