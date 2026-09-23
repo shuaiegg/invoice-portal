@@ -96,7 +96,26 @@ This is used to filter invoices by payment method and helps organise the payment
 
 ### Importing Workers (CSV)
 
-The CSV import creates or updates worker profiles in bulk. If an imported hourly rate conflicts with the rate already in the portal, a **Rate Conflict** is recorded. Resolve conflicts from the Workers page → Rate Conflicts tab.
+The CSV import creates or updates worker profiles in bulk from a Time Doctor payroll summary export.
+
+**Required CSV columns** (exact header names, case-sensitive):
+
+| Column | Description |
+|--------|-------------|
+| `Name` | Worker's full name |
+| `Email` | Time Doctor email — used as the matching key |
+| `Currency` | ISO currency code, e.g. `EUR`, `USD`, `GBP` |
+| `Hourly rate` | Numeric rate, e.g. `25` or `12.50` |
+| `Payment method` | `Wise`, `PayPal`, or any other value (treated as Manual) |
+
+**What the import does:**
+- Matches rows to existing worker profiles by Time Doctor email
+- Creates a new profile if no match is found
+- Sets `paymentType` to `TD_PLUS` for all imported workers (hours from TD, worker reviews and submits)
+- Creates a `WISE` or `PAYPAL` payment account entry if the payment method matches
+- Records a **Rate Conflict** if the imported hourly rate differs from the rate already in the portal
+
+**Rate Conflicts**: appear on the Workers page → Rate Conflicts tab. Review each conflict and either accept the new rate or keep the existing one. Unresolved conflicts do not block the import or future syncs.
 
 ---
 

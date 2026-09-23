@@ -27,12 +27,15 @@ Set all of the following in Vercel → Project → Settings → Environment Vari
 | `BETTER_AUTH_SECRET` | Random secret for session signing — generate with `openssl rand -base64 32` |
 | `BETTER_AUTH_URL` | Full app URL, e.g. `https://invoice.yourdomain.com` |
 | `NEXT_PUBLIC_APP_URL` | Same as `BETTER_AUTH_URL` |
-| `XERO_CLIENT_ID` | Xero app Client ID |
-| `XERO_CLIENT_SECRET` | Xero app Client Secret |
-| `XERO_REDIRECT_URI` | Optional — auto-derived as `{NEXT_PUBLIC_APP_URL}/api/auth/xero/callback`; only set to override |
+| `NEXT_PUBLIC_COMPANY_NAME` | Company name shown on invoice PDFs |
+| `NEXT_PUBLIC_COMPANY_VAT` | Company VAT / tax number on invoice PDFs |
+| `NEXT_PUBLIC_COMPANY_ADDRESS` | Company street address on invoice PDFs |
+| `NEXT_PUBLIC_COMPANY_CITY` | Company city + postcode on invoice PDFs |
+| `NEXT_PUBLIC_COMPANY_COUNTRY` | Company country on invoice PDFs |
 | `CRON_SECRET` | Random secret used by Vercel Cron to authenticate cron endpoints |
-| `TD_API_TOKEN` | Time Doctor API JWT (bootstrap reference — can be updated via Admin → Settings) |
-| `TD_COMPANY_ID` | Time Doctor company ID (bootstrap reference — can be updated via Admin → Settings) |
+| `XERO_CLIENT_ID` | Xero app Client ID (optional) |
+| `XERO_CLIENT_SECRET` | Xero app Client Secret (optional) |
+| `XERO_REDIRECT_URI` | Optional — auto-derived as `{NEXT_PUBLIC_APP_URL}/api/auth/xero/callback`; only set to override |
 
 > **Important**: `DATABASE_URL` and `DIRECT_URL` must both be set. Using only one will cause either runtime failures or broken migrations.
 
@@ -94,9 +97,9 @@ All subsequent registrations create Worker accounts by default. Admins can promo
 
 1. In the Xero developer portal, create an app with:
    - OAuth 2.0 redirect URI: `{APP_URL}/api/auth/xero/callback`
-   - Scopes: `accounting.transactions`, `accounting.contacts`
-2. Set `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, and `XERO_REDIRECT_URI` in Vercel.
-3. In the admin portal, go to **Settings → Xero** and click **Connect Xero** to complete the OAuth flow.
+   - Scopes: `openid`, `profile`, `email`, `offline_access`, `accounting.contacts`, `accounting.invoices`, `accounting.settings`
+2. Set `XERO_CLIENT_ID` and `XERO_CLIENT_SECRET` in Vercel (`XERO_REDIRECT_URI` is optional — auto-derived from `NEXT_PUBLIC_APP_URL`)
+3. In the admin portal, go to **Settings → Xero** and click **Connect Xero Account** to complete the OAuth flow
 
 Once connected, invoices are synced to Xero automatically when marked as **Paid**.
 
@@ -112,9 +115,11 @@ Event keys fired: `invoice.submitted`, `invoice.updated`, `invoice.revoked`, `in
 
 ### Time Doctor Sync
 
-1. Obtain your Time Doctor API token and company ID.
-2. Set `TD_API_TOKEN` and `TD_COMPANY_ID` as bootstrap values in Vercel.
-3. In the admin portal, go to **Settings → Time Doctor** to verify the connection and update credentials if needed.
+Time Doctor credentials are configured entirely via the Admin UI — no environment variables needed.
+
+1. In the admin portal, go to **Settings → Time Doctor**
+2. Enter your Time Doctor email and password and click **Connect**
+3. The token is saved to the database and refreshed automatically
 
 The TD sync runs automatically via cron on the 1st of each month at 06:00 UTC, generating draft invoices for all matched workers.
 
@@ -122,7 +127,7 @@ The TD sync runs automatically via cron on the 1st of each month at 06:00 UTC, g
 
 ## Cron Jobs
 
-Configured in `vercel.json` — Vercel runs these automatically on the Pro plan.
+Configured in `vercel.json` — Vercel runs these automatically on Hobby and Pro plans.
 
 | Schedule | Endpoint | Purpose |
 |----------|----------|---------|
