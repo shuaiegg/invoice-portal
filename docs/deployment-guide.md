@@ -90,7 +90,7 @@ Your Xero user account must have permission to manage **Contacts** and **Bills**
 
 ### How the connection works
 
-Xero uses OAuth 2.0. The three environment variables (`XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, `XERO_REDIRECT_URI`) are static credentials that identify your app. The actual OAuth tokens (access token + refresh token + tenant ID) are obtained once via the Admin UI and stored in the `XeroToken` database table. They are **refreshed automatically** by the server — you never need to update environment variables after the initial connection.
+Xero uses OAuth 2.0. Two environment variables (`XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`) are required to identify your app. `XERO_REDIRECT_URI` is optional — it is auto-derived from `NEXT_PUBLIC_APP_URL`. The actual OAuth tokens (access token + refresh token + tenant ID) are obtained once via the Admin UI and stored in the `XeroToken` database table. They are **refreshed automatically** by the server — you never need to update environment variables after the initial connection.
 
 To complete the connection after deployment: Admin Settings → Xero → **Connect Xero Account**. If you later switch Xero organisations, use **Reconnect Xero** — this clears cached contact IDs so they are recreated in the new organisation on the next sync.
 
@@ -269,7 +269,7 @@ Time Doctor is used for automatic monthly invoice generation. It is configured v
 3. Click **Connect** — this calls the Time Doctor API to obtain a token, which is saved to the database
 4. The token expiry is shown. Tokens last approximately 1 year; reconnect when the expiry warning appears
 
-> **What it does:** On the 1st of each month (via cron), the system fetches worker hours from Time Doctor, creates draft invoices for TD-matched workers, and posts a summary to Slack.
+> **What it does:** On the 1st of each month (via cron), the system fetches worker hours from Time Doctor, creates draft invoices for TD-matched workers, and fires `td.sync_completed` / `td.draft_ready` webhook events (routed to Slack via n8n if configured).
 
 ---
 
@@ -370,7 +370,7 @@ Make sure you're using `DIRECT_URL` (not `DATABASE_URL`) for migrations. The poo
 `BETTER_AUTH_URL` must exactly match the domain users are accessing. After changing domains, update this variable and redeploy.
 
 ### Xero sync fails after re-deployment
-Xero tokens are stored in the database. They should persist across deployments. If you see OAuth errors, re-connect Xero from **Settings → Integrations**.
+Xero tokens are stored in the database. They should persist across deployments. If you see OAuth errors, re-connect Xero from **Admin → Settings → Xero → Reconnect Xero**.
 
 ### First user is not admin
 This can happen if there are leftover rows in the `User` table (e.g. from a previous test). Delete all users via Prisma Studio or `psql` and register again.
