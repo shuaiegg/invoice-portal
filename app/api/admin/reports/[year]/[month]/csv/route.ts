@@ -3,7 +3,12 @@ import { getReportInvoicesForCsv } from "@/lib/report-generator";
 
 const escapeCSV = (value: unknown) => {
   if (value === null || value === undefined) return "";
-  const str = String(value);
+  let str = String(value);
+  // Neutralize formula injection: a value starting with =, +, -, @, tab, or CR
+  // would be interpreted as a live formula by Excel/Sheets/Numbers.
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
   if (/[",\n\r]/.test(str)) return `"${str.replace(/"/g, '""')}"`;
   return str;
 };
