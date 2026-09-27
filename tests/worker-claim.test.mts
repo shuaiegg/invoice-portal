@@ -6,6 +6,7 @@ test("claimPreprovisionedWorker links an unclaimed case-insensitive TD email mat
   const calls: unknown[] = [];
   const tx = {
     $queryRaw: async () => [],
+    $executeRaw: async () => 0,
     worker: {
       findFirst: async (args: unknown) => {
         calls.push(args);
@@ -27,6 +28,7 @@ test("claimPreprovisionedWorker links an unclaimed case-insensitive TD email mat
 test("claimPreprovisionedWorker does nothing without a match", async () => {
   const tx = {
     $queryRaw: async () => [],
+    $executeRaw: async () => 0,
     worker: {
       findFirst: async () => null,
       updateMany: async () => { throw new Error("must not update"); },

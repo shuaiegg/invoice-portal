@@ -6,6 +6,7 @@ import type { PaymentAccountType, PaymentType, HourlyRateSource } from "./genera
 // elsewhere in this codebase (see lib/worker-claim.ts, lib/payment-account-actions.ts).
 export type LockableTransaction = {
   $queryRaw(query: TemplateStringsArray, ...values: unknown[]): Promise<unknown>;
+  $executeRaw(query: TemplateStringsArray, ...values: unknown[]): Promise<unknown>;
 };
 
 // Every worker-creation path (CSV import, TD sync failure resolution, manual admin add) must
@@ -26,7 +27,11 @@ export async function acquireWorkerProvisioningLock(tx: LockableTransaction): Pr
 // up-to-date data. This is what makes the sign-up-vs-resolve race in design.md (R1) safe: whichever
 // side commits first is guaranteed visible to the other before it acts.
 export async function acquireWorkerProvisioningLockBlocking(tx: LockableTransaction): Promise<void> {
-  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext('worker-import'))`;
+  // $executeRaw, not $queryRaw: pg_advisory_xact_lock() returns void, and the pg driver
+  // adapter can't deserialize a void column when $queryRaw tries to read back a result row.
+  // $executeRaw doesn't attempt that, so it's the correct call for a function we only run for
+  // its locking side effect.
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('worker-import'))`;
 }
 
 export type ProvisionWorkerFields = {
