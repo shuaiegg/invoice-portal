@@ -70,10 +70,10 @@ export function InvoiceDashboard({
     }).format(new Date(date));
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
-      currency: "EUR",
+      currency,
     }).format(amount);
   };
 
@@ -125,7 +125,7 @@ export function InvoiceDashboard({
               >
                 <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                 <TableCell>{invoice.period}</TableCell>
-                <TableCell>{formatCurrency(invoice.totalAmount)}</TableCell>
+                <TableCell>{formatCurrency(invoice.totalAmount, invoice.currency)}</TableCell>
                 <TableCell>
                   <StatusBadge status={invoice.status} />
                 </TableCell>
