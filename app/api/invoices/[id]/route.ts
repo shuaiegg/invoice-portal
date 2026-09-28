@@ -156,7 +156,7 @@ export async function PUT(
         vatRate,
         vatInclusive,
         currency: data.currency || "EUR",
-        ...(invoice.status === "DRAFT" ? { status: "SUBMITTED" as const } : {}),
+        ...(invoice.status === "DRAFT" && data.submit !== false ? { status: "SUBMITTED" as const } : {}),
         lines: {
           create: lines.map((line) => ({
             description: line.description,

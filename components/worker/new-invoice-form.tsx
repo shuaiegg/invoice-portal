@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Loader2, Plus, Send, Trash2 } from "lucide-react";
+import { Loader2, Plus, Save, Send, Trash2 } from "lucide-react";
 
 type InvoiceFormLine = {
   description: string;
@@ -167,9 +167,11 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
     setLines((prev) => (prev.length > 1 ? prev.filter((_, lineIndex) => lineIndex !== index) : prev));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const [savingDraft, setSavingDraft] = useState(false);
+
+  const handleSave = async (submit: boolean) => {
+    if (submit) setLoading(true);
+    else setSavingDraft(true);
 
     try {
       const url = initialData ? `/api/invoices/${initialData.id}` : "/api/invoices";
@@ -177,30 +179,35 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
 
       const response = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           lines,
           vatRate: applyVat ? formData.vatRate : 0,
           vatInclusive: applyVat ? vatInclusive : false,
+          submit,
         }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to submit invoice");
+        throw new Error(error.error || "Failed to save invoice");
       }
 
       const result = await response.json() as { invoiceId: string };
-      toast.success(initialData ? "Invoice updated" : "Invoice submitted");
+      toast.success(submit ? "Invoice submitted" : "Draft saved");
       window.location.href = `/invoice/${initialData ? initialData.id : result.invoiceId}`;
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to submit invoice");
+      toast.error(error instanceof Error ? error.message : "Failed to save invoice");
     } finally {
       setLoading(false);
+      setSavingDraft(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleSave(true);
   };
 
   const formatCurrency = (amount: number) => {
@@ -476,11 +483,23 @@ export function NewInvoiceForm({ worker, initialData }: NewInvoiceFormProps) {
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={loading}>
+            <CardFooter className="flex flex-col gap-2">
+              <Button type="submit" className="w-full" disabled={loading || savingDraft}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                {initialData ? "Update Invoice" : "Submit Invoice"}
+                Submit Invoice
               </Button>
+              {initialData?.status === "DRAFT" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={loading || savingDraft}
+                  onClick={() => handleSave(false)}
+                >
+                  {savingDraft ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Save Draft
+                </Button>
+              )}
             </CardFooter>
           </Card>
         </div>
