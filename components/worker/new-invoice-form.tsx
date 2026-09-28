@@ -29,6 +29,7 @@ type InvoiceFormLine = {
 
 type InitialInvoiceData = {
   id: string;
+  status?: string | null;
   description?: string | null;
   period?: string | null;
   serviceDate?: string | Date | null;
