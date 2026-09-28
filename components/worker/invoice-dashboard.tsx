@@ -25,6 +25,7 @@ interface InvoiceListItem {
   invoiceNumber: string;
   period: string;
   totalAmount: number;
+  currency: string;
   status: InvoiceStatus;
   invoiceDate: string | Date;
 }
