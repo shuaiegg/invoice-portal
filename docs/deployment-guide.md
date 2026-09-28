@@ -180,7 +180,7 @@ cd invoice-portal
 npm install
 ```
 
-Create a `.env.local` file with just the two database URLs:
+Add the two database URLs to your `.env` file (or `.env.local` — but see the note below):
 
 ```env
 DATABASE_URL=<your Neon pooled URL>
@@ -189,9 +189,16 @@ DIRECT_URL=<your Neon direct URL>
 
 ### Run migrations
 
+> **Prisma v8 + Neon:** Prisma v8's `prisma.config.ts` does not support `directUrl`, so `prisma migrate deploy` defaults to `DATABASE_URL` (the pooler). Neon's pgbouncer pooler rejects DDL statements, causing a connection error. The fix is to override `DATABASE_URL` with the direct URL at runtime:
+
 ```bash
-npx prisma migrate deploy
+DIRECT_URL=$(grep -v '^#' .env | grep 'DIRECT_URL=' | cut -d= -f2- | tr -d '"') \
+DATABASE_URL=$DIRECT_URL npx prisma migrate deploy
 ```
+
+If your credentials are in `.env.local` instead of `.env`, replace `.env` with `.env.local` in the command above.
+
+> **Neon auto-suspend:** Neon free tier computes pause after inactivity. Direct connections cannot wake a suspended compute — only the pooler can. If you get `P1001: Can't reach database server`, go to the Neon dashboard → **Branches → production → Primary compute** and wait for the status to show **Active**, then re-run the command immediately.
 
 This applies all migrations in `prisma/migrations/` to your Neon database. Run this command:
 - After the first deployment
